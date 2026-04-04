@@ -43,5 +43,4 @@ Coming soon
 
 ## 📋 Conventions
 
-- [Branch Strategy](docs/convention/branch-strategy.md)
-- [Commit Convention](docs/convention/commit.md)
+- [Conventions](docs/convention.md)
