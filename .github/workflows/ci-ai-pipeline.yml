@@ -1,0 +1,32 @@
+name: CI - AI Pipeline
+
+on:
+  push:
+    paths:
+      - 'apps/ai-pipeline/**'
+  pull_request:
+    paths:
+      - 'apps/ai-pipeline/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+        working-directory: apps/ai-pipeline
+
+      - name: Check syntax
+        run: |
+          python -m py_compile main.py
+        working-directory: apps/ai-pipeline

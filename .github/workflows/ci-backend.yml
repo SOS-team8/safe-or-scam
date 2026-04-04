@@ -1,0 +1,30 @@
+name: CI - Backend
+
+on:
+  push:
+    paths:
+      - 'apps/backend/**'
+  pull_request:
+    paths:
+      - 'apps/backend/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x apps/backend/gradlew
+        
+      - name: Build with Gradle
+        run: ./gradlew build -x test
+        working-directory: apps/backend

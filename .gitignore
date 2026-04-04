@@ -1,0 +1,72 @@
+# ========================
+# Java / Spring Boot
+# ========================
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+target/
+build/
+out/
+.gradle/
+gradle-app.setting
+!gradle-wrapper.jar
+.gradletasknamecache
+
+# IntelliJ
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# ========================
+# Python / FastAPI
+# ========================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+develop-eggs/
+.eggs/
+lib/
+lib64/
+.venv/
+venv/
+env/
+ENV/
+
+# ========================
+# Node / React
+# ========================
+node_modules/
+dist/
+build/
+.next/
+.nuxt/
+.cache/
+*.local
+
+# ========================
+# 환경변수
+# ========================
+.env
+.env.*
+!.env.example
+
+# ========================
+# OS
+# ========================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ========================
+# 로그
+# ========================
+*.log
+logs/

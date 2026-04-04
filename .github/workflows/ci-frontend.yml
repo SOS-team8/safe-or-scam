@@ -1,0 +1,30 @@
+name: CI - Frontend
+
+on:
+  push:
+    paths:
+      - 'apps/frontend/**'
+  pull_request:
+    paths:
+      - 'apps/frontend/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+        working-directory: apps/frontend
+
+      - name: Build
+        run: npm run build
+        working-directory: apps/frontend
