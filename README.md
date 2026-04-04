@@ -12,7 +12,7 @@ helping them recognize and respond to phishing attacks.
 
 | Service | Tech |
 |---|---|
-| Backend | Java 17, Spring Boot 3, PostgreSQL |
+| Backend | Java 21, Spring Boot 3, PostgreSQL |
 | Game Engine | Python, FastAPI, MongoDB |
 | AI Pipeline | Python, FastAPI, MongoDB, Gemini API |
 | Frontend | React |
