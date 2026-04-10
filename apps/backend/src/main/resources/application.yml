@@ -1,0 +1,12 @@
+spring:
+  profiles:
+    active: local # 로컬 개발 중이니까 로컬. 이렇게 하면 application-local.yml도 함께 읽음
+
+  application:
+    name: sos-backend
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /api-docs
