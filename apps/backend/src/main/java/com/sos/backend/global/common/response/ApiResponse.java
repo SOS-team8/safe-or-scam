@@ -1,4 +1,4 @@
-package com.sos.backend.common.response;
+package com.sos.backend.global.common.response;
 
 import lombok.Getter;
 

@@ -1,12 +1,12 @@
-package com.sos.backend.auth;
+package com.sos.backend.global.auth;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import com.sos.backend.common.exception.CustomException;
-import com.sos.backend.common.exception.ErrorCode;
+import com.sos.backend.global.common.exception.CustomException;
+import com.sos.backend.global.common.exception.ErrorCode;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 
