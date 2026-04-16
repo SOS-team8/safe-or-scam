@@ -1,6 +1,6 @@
 package com.sos.backend.domain.notification.entity;
 
-import com.sos.backend.domain.common.enums.NotificationType;
+import com.sos.backend.domain.user.enums.NotificationType;
 import com.sos.backend.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;

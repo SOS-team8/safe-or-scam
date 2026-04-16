@@ -1,8 +1,8 @@
 package com.sos.backend.domain.user.entity;
 
-import com.sos.backend.domain.common.enums.Provider;
-import com.sos.backend.domain.common.enums.Role;
-import com.sos.backend.domain.common.enums.UserStatus;
+import com.sos.backend.domain.user.enums.Provider;
+import com.sos.backend.domain.user.enums.Role;
+import com.sos.backend.domain.user.enums.UserStatus;
 import com.sos.backend.global.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;

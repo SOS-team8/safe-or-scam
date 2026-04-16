@@ -1,6 +1,6 @@
 package com.sos.backend.domain.user.entity;
 
-import com.sos.backend.domain.common.enums.Gender;
+import com.sos.backend.domain.user.enums.Gender;
 import com.sos.backend.global.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;

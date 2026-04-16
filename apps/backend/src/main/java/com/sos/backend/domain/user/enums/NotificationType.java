@@ -1,4 +1,4 @@
-package com.sos.backend.domain.common.enums;
+package com.sos.backend.domain.user.enums;
 
 public enum NotificationType {
     ACHIEVEMENT, NEW_SCENARIO, SYSTEM

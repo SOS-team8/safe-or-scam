@@ -1,6 +1,6 @@
 package com.sos.backend.domain.email.entity;
 
-import com.sos.backend.domain.common.enums.VerificationPurpose;
+import com.sos.backend.domain.email.enums.VerificationPurpose;
 import jakarta.persistence.*;
 import lombok.*;
 

@@ -1,4 +1,4 @@
-package com.sos.backend.domain.common.enums;
+package com.sos.backend.domain.user.enums;
 
 import java.util.Arrays;
 
