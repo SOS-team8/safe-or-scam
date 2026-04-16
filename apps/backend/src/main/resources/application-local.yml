@@ -7,7 +7,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
     show-sql: true
     properties:
       hibernate:
@@ -15,7 +15,7 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
 jwt:
-  secret: ${JWT_SECRET:this_is_my_local_test_secret_key_which_must_be_at_least_256_bits_long_for_hs256!}
+  secret: ${JWT_SECRET}
   access-token-expiration: 1800000    # 30분 (밀리초)
   refresh-token-expiration: 1209600000 # 14일 (밀리초)
 

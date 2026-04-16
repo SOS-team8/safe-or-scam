@@ -8,5 +8,4 @@ import java.util.Optional;
 
 public interface GameSessionRepository extends JpaRepository<GameSession, Long> {
     Optional<GameSession> findBySessionId(String sessionId);
-    List<GameSession> findByUserIdAndStatus(Long userId, String status);
 }

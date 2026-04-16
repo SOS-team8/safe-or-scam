@@ -13,7 +13,7 @@ public class Achievement {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "achievement_d")
+    @Column(name = "achievement_id")
     private Long achievementId;
 
     @Column(name = "code", nullable = false, length = 50)

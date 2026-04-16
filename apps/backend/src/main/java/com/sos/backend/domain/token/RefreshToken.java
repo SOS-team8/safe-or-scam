@@ -32,8 +32,8 @@ public class RefreshToken {
     @Column(name = "expired_at", nullable = false)
     private LocalDateTime expiredAt;
 
-    @Column(name = "revoked_at", nullable = false)
-    private Boolean revokedAt;
+    @Column(name = "revoked", nullable = false)
+    private Boolean revoked;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

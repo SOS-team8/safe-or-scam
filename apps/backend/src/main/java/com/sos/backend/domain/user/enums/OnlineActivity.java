@@ -6,7 +6,7 @@ public enum OnlineActivity {
     USED_TRADE("used_trade"),
     ONLINE_SHOPPING("online_shopping"),
     DELIVERY("delivery"),
-    GOVERMENT("goverment"),
+    GOVERNMENT("government"),
     OVERSEAS_SHOPPING("overseas_shopping"),
     NONE("none");
 

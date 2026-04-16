@@ -20,7 +20,7 @@ import java.util.Map;
 @Table(
     name = "game_sessions",
     uniqueConstraints = {
-        @UniqueConstraint(name = "uk_gmae_sessions_session_id", columnNames = "session_id")
+        @UniqueConstraint(name = "uk_game_sessions_session_id", columnNames = "session_id")
     }
 )
 public class GameSession {
@@ -54,7 +54,7 @@ public class GameSession {
     private List<Map<String, Object>> choicesHistory = new ArrayList<>();
 
     @Column(name = "dangerous_count", nullable = false)
-    private Integer dangerousCount;
+    private int dangerousCount;
 
     @JdbcTypeCode(SqlTypes.ARRAY)
     @Builder.Default

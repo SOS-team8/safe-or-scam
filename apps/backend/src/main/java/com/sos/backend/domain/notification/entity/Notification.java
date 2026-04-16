@@ -5,6 +5,8 @@ import com.sos.backend.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Entity
 @Builder
@@ -36,5 +38,5 @@ public class Notification {
     private Boolean isRead;
 
     @Column(name = "created_at", nullable = false, updatable = false)
-    private Long createdAt;
+    private LocalDateTime createdAt;
 }
