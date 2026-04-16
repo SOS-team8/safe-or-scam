@@ -1,4 +1,4 @@
-package com.sos.backend.domain.game_session;
+package com.sos.backend.domain.game_session.entity;
 
 import com.sos.backend.domain.user.entity.User;
 import jakarta.persistence.*;

@@ -1,4 +1,4 @@
-package com.sos.backend.domain.history.entity;
+package com.sos.backend.domain.scenario_progress.entity;
 
 import com.sos.backend.domain.user.entity.User;
 import jakarta.persistence.*;
