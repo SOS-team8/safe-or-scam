@@ -11,7 +11,7 @@ import lombok.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "user_achievements",
     uniqueConstraints = {
-        @UniqueConstraint(name = "uk_user_achievement_once", columnNames = {"user_id", "achcive_id"})
+        @UniqueConstraint(name = "uk_user_achievement_once", columnNames = {"user_id", "achievement_id"})
     }
 )
 public class UserAchievement {
@@ -26,7 +26,7 @@ public class UserAchievement {
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "achcive_id", nullable = false)
+    @JoinColumn(name = "achievement_id", nullable = false)
     private Achievement achievement;
 
     @Column(name = "achieved_at", nullable = false)
