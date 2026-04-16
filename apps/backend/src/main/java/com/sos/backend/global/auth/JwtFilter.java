@@ -1,4 +1,4 @@
-package com.sos.backend.auth;
+package com.sos.backend.global.auth;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

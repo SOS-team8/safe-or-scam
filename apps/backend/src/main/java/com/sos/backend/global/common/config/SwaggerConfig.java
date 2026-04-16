@@ -1,4 +1,4 @@
-package com.sos.backend.common.config;
+package com.sos.backend.global.common.config;
 
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;

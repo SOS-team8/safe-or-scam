@@ -1,6 +1,6 @@
-package com.sos.backend.common.exception;
+package com.sos.backend.global.common.exception;
 
-import com.sos.backend.common.response.ApiResponse;
+import com.sos.backend.global.common.response.ApiResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
