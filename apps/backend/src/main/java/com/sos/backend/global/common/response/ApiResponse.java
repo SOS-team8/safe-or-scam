@@ -12,12 +12,12 @@ import java.util.List;
 public class ApiResponse<T> {
 
     private final T data;
-    private final ErrorInfo message;
+    private final ErrorInfo error;
     private final Meta meta;
 
     private ApiResponse(T data, ErrorInfo message) {
         this.data = data;
-        this.message = message;
+        this.error = message;
         this.meta = new Meta(LocalDateTime.now());
     }
 
