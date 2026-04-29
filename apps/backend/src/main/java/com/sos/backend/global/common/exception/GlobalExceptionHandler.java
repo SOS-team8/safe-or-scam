@@ -6,6 +6,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.util.List;
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -15,22 +17,21 @@ public class GlobalExceptionHandler {
         ErrorCode errorCode = e.getErrorCode();
         return ResponseEntity
             .status(errorCode.getStatus())
-            .body(ApiResponse.fail(errorCode.getMessage()));
+            .body(ApiResponse.error(errorCode));
     }
 
     // Validation 예외 처리 (@Valid 실패 시)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Void>> handleValidationException(
         MethodArgumentNotValidException e) {
-        String message = e.getBindingResult()
-            .getAllErrors()
+        List<ApiResponse.FieldError> details = e.getBindingResult()
+            .getFieldErrors()
             .stream()
-            .findFirst()
-            .map(error -> error.getDefaultMessage())
-            .orElse(ErrorCode.INVALID_INPUT.getMessage());
+            .map(error -> new ApiResponse.FieldError(error.getField(), error.getDefaultMessage()))
+            .toList();
         return ResponseEntity
             .badRequest()
-            .body(ApiResponse.fail(message));
+            .body(ApiResponse.validationError(details));
     }
 
     // 그 외 모든 예외 처리
@@ -38,6 +39,6 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleException(Exception e) {
         return ResponseEntity
             .internalServerError()
-            .body(ApiResponse.fail(ErrorCode.INTERNAL_SERVER_ERROR.getMessage()));
+            .body(ApiResponse.error(ErrorCode.INTERNAL_SERVER_ERROR));
     }
 }
