@@ -15,9 +15,9 @@ public class ApiResponse<T> {
     private final ErrorInfo error;
     private final Meta meta;
 
-    private ApiResponse(T data, ErrorInfo message) {
+    private ApiResponse(T data, ErrorInfo error) {
         this.data = data;
-        this.error = message;
+        this.error = error;
         this.meta = new Meta(LocalDateTime.now());
     }
 
