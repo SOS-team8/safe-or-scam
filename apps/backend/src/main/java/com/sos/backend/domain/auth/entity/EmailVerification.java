@@ -1,6 +1,7 @@
-package com.sos.backend.domain.email.entity;
+package com.sos.backend.domain.auth.entity;
 
-import com.sos.backend.domain.email.enums.VerificationPurpose;
+import com.sos.backend.domain.auth.enums.VerificationPurpose;
+import com.sos.backend.global.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -11,8 +12,13 @@ import java.time.LocalDateTime;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "email_verifications")
-public class EmailVerification {
+@Table(
+    name = "email_verifications",
+    indexes = {
+        @Index(name = "idx_email_verifications_email_purpose", columnList = "email, purpose")
+    }
+)
+public class EmailVerification extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,11 +36,13 @@ public class EmailVerification {
     private VerificationPurpose purpose;
 
     @Column(name = "verified", nullable = false)
-    private Boolean verified;
+    @Builder.Default
+    private Boolean verified = false;
 
     @Column(name = "expired_at", nullable = false)
     private LocalDateTime expiredAt;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    @Column(name = "attempt_count", nullable = false)
+    @Builder.Default
+    private Integer attemptCount = 0;
 }

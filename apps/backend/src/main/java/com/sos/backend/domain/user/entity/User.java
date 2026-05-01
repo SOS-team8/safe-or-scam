@@ -1,6 +1,5 @@
 package com.sos.backend.domain.user.entity;
 
-import com.sos.backend.domain.user.enums.Provider;
 import com.sos.backend.domain.user.enums.Role;
 import com.sos.backend.domain.user.enums.UserStatus;
 import com.sos.backend.global.common.entity.BaseEntity;
@@ -33,18 +32,8 @@ public class User extends BaseEntity {
     @Column(name = "password", length = 255)
     private String password;
 
-    @Column(name = "name", length = 50)
+    @Column(name = "name", nullable = false, length = 50)
     private String name;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "provider", nullable = false, length = 20)
-    private Provider provider;
-
-    @Column(name = "provider_id", length = 255)
-    private String providerId;
-
-    @Column(name = "email_verified")
-    private Boolean emailVerified;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false, length = 20)
