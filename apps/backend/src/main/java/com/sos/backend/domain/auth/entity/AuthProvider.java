@@ -36,4 +36,15 @@ public class AuthProvider extends BaseEntity {
 
     @Column(name = "provider_id", length = 255)
     private String providerId;
+
+    @PrePersist
+    @PreUpdate
+    private void validateProviderId() {
+        if (provider == Provider.LOCAL && providerId != null) {
+            throw new IllegalStateException("LOCAL provider는 provider_id를 가질 수 없습니다");
+        }
+        if (provider != Provider.LOCAL && (providerId == null || providerId.isBlank())) {
+            throw new IllegalStateException("OAuth provider는 provider_id가 필수입니다");
+        }
+    }
 }
