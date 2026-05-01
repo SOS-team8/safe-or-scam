@@ -1,6 +1,7 @@
-package com.sos.backend.domain.token;
+package com.sos.backend.domain.auth.entity;
 
 import com.sos.backend.domain.user.entity.User;
+import com.sos.backend.global.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -11,8 +12,14 @@ import java.time.LocalDateTime;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "refresh_tokens")
-public class RefreshToken {
+@Table(
+    name = "refresh_tokens",
+    indexes = {
+        @Index(name = "idx_refresh_tokens_user_id", columnList = "user_id"),
+        @Index(name = "idx_refresh_tokens_token_hash", columnList = "token_hash", unique = true)
+    }
+)
+public class RefreshToken extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,8 +40,6 @@ public class RefreshToken {
     private LocalDateTime expiredAt;
 
     @Column(name = "revoked", nullable = false)
-    private Boolean revoked;
-
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    @Builder.Default
+    private Boolean revoked = false;
 }

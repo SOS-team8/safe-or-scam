@@ -1,4 +1,4 @@
-package com.sos.backend.domain.user.enums;
+package com.sos.backend.domain.auth.enums;
 
 public enum Provider {
     LOCAL, GOOGLE
