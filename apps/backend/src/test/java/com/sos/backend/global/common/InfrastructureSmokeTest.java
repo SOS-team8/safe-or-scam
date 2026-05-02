@@ -1,0 +1,57 @@
+package com.sos.backend.global.common;
+
+import com.sos.backend.domain.user.entity.User;
+import com.sos.backend.domain.user.enums.Role;
+import com.sos.backend.domain.user.enums.UserStatus;
+import com.sos.backend.domain.user.repository.UserRepository;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+
+@DisplayName("테스트 인프라 동작 검증")
+public class InfrastructureSmokeTest extends AbstractIntegrationTest{
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Test
+    @DisplayName("TestContainer가 기동되고 JPA를 통해 User를 저장/조회할 수 있다")
+    void canSaveFindUser() {
+        // given
+        User user = User.builder()
+            .email("smoke@test.com")
+            .name("스모크 테스트")
+            .role(Role.USER)
+            .status(UserStatus.ACTIVE)
+            .build();
+
+        // when
+        User saved = userRepository.save(user);
+        User found = userRepository.findById(saved.getId()).orElseThrow();
+
+        // then
+        assertThat(found.getId()).isNotNull();
+        assertThat(found.getEmail()).isEqualTo("smoke@test.com");
+    }
+
+    @Test
+    @DisplayName("BaseEntity의 createdAt, updatedAt이 자동으로 채워진다")
+    void baseEntityAuditingWorks() {
+        // given
+        User user = User.builder()
+            .email("auditing@test.com")
+            .name("어디팅 테스트")
+            .role(Role.USER)
+            .status(UserStatus.ACTIVE)
+            .build();
+
+        // when
+        User saved = userRepository.save(user);
+
+        // then
+        assertThat(saved.getCreatedAt()).isNotNull();
+        assertThat(saved.getUpdatedAt()).isNotNull();
+    }
+}

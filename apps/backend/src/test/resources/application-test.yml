@@ -1,0 +1,20 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        format_sql: true
+    show-sql: false
+    open-in-view: false
+
+jwt:
+  secret: testSecretKeyForIntegrationTestingOnlyDoNotUseInProduction1234567890
+  access-token-expiration: 3600000
+  refresh-token-expiration: 604800000
+
+logging:
+  level:
+    org.hibernate.SQL: warn
+    org.testcontainers: info
+    com.github.dockerjava: warn
