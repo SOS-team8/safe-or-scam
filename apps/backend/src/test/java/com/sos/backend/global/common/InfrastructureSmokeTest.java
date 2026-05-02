@@ -4,6 +4,7 @@ import com.sos.backend.domain.user.entity.User;
 import com.sos.backend.domain.user.enums.Role;
 import com.sos.backend.domain.user.enums.UserStatus;
 import com.sos.backend.domain.user.repository.UserRepository;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,9 @@ public class InfrastructureSmokeTest extends AbstractIntegrationTest{
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private EntityManager entityManager;
 
     @Test
     @DisplayName("TestContainer가 기동되고 JPA를 통해 User를 저장/조회할 수 있다")
@@ -29,6 +33,8 @@ public class InfrastructureSmokeTest extends AbstractIntegrationTest{
 
         // when
         User saved = userRepository.save(user);
+        entityManager.flush();
+        entityManager.clear();
         User found = userRepository.findById(saved.getId()).orElseThrow();
 
         // then
@@ -49,9 +55,12 @@ public class InfrastructureSmokeTest extends AbstractIntegrationTest{
 
         // when
         User saved = userRepository.save(user);
+        entityManager.flush();
+        entityManager.clear();
+        User found = userRepository.findById(saved.getId()).orElseThrow();
 
         // then
-        assertThat(saved.getCreatedAt()).isNotNull();
-        assertThat(saved.getUpdatedAt()).isNotNull();
+        assertThat(found.getCreatedAt()).isNotNull();
+        assertThat(found.getUpdatedAt()).isNotNull();
     }
 }
