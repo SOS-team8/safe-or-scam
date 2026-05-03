@@ -30,3 +30,8 @@ auth:
     min-length: 10
     max-length: 72             # BCrypt 입력 byte 한계
     bcrypt-strength: 12
+
+mail:
+  sender:
+    from: noreply@safeorscam.com
+    sender-name: Safe or Scam
