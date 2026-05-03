@@ -10,5 +10,15 @@ spring:
       ddl-auto: validate
     show-sql: false
 
+  mail:
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT}
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+
 server:
   port: 8080

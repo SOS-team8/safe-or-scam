@@ -10,3 +10,23 @@ springdoc:
     path: /swagger-ui.html
   api-docs:
     path: /api-docs
+
+jwt:
+  secret: ${JWT_SECRET}
+  access-token-expiration: 1800000     # 30분(밀리초)
+  refresh-token-expiration: 1209600000 # 14일(밀리초)
+
+auth:
+  email-verification:
+    code-length: 6
+    expires-in-seconds: 300    # 5분
+    cooldown-seconds: 60       # 재요청 쿨다운
+    daily-limit: 10            # 동일 이메일 24h 발송 한도
+    max-attempts: 5            # verify 시도 한도
+  verification-token:
+    secret: ${VERIFICATION_TOKEN_SECRET}
+    expires-in-seconds: 300    # 5분
+  password:
+    min-length: 10
+    max-length: 72             # BCrypt 입력 byte 한계
+    bcrypt-strength: 12

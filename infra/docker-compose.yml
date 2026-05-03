@@ -43,8 +43,21 @@ services:
     volumes:
       - redis-data:/data
 
+  mailpit:
+    image: axllent/mailpit:v1.27
+    container_name: sos-mailpit
+    ports:
+      - "1025:1025"   # SMTP
+      - "8025:8025"   # Web UI
+    environment:
+      MP_MAX_MESSAGES: 5000
+      MP_DATABASE: /data/mailpit.db
+    volumes:
+      - mailpit-data:/data
+
 volumes:
   postgres-data:
   mongo-data:
   rabbitmq-data:
   redis-data:
+  mailpit-data:
