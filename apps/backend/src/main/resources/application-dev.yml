@@ -20,5 +20,10 @@ spring:
           starttls:
             enable: false
 
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+
 server:
   port: 8080
