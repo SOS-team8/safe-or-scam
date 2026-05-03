@@ -40,5 +40,6 @@ public class EmailVerification extends BaseEntity {
 
     @Column(name = "attempt_count", nullable = false)
     @Builder.Default
+    @Setter
     private Integer attemptCount = 0;
 }
