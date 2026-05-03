@@ -35,10 +35,6 @@ public class EmailVerification extends BaseEntity {
     @Column(name = "purpose", nullable = false, length = 30)
     private VerificationPurpose purpose;
 
-    @Column(name = "verified", nullable = false)
-    @Builder.Default
-    private Boolean verified = false;
-
     @Column(name = "expired_at", nullable = false)
     private LocalDateTime expiredAt;
 
