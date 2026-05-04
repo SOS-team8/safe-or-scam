@@ -94,7 +94,7 @@ public class EmailVerificationService {
         int attemptCount = Integer.parseInt(attemptCountStr);
 
         // 2. 시도 횟수 초과
-        if (attemptCount < properties.maxAttempts()) {
+        if (attemptCount >= properties.maxAttempts()) {
             throw new CustomException(ErrorCode.EMAIL_VERIFICATION_ATTEMPTS_EXCEEDED);
         }
 
