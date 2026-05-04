@@ -16,10 +16,12 @@ import com.sos.backend.global.auth.VerificationTokenProvider;
 import com.sos.backend.global.common.exception.CustomException;
 import com.sos.backend.global.common.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 
 @Service
@@ -60,7 +62,11 @@ public class AuthService {
             .status(UserStatus.ACTIVE)
             .lastLoginAt(LocalDateTime.now())
             .build();
-        userRepository.save(user);
+        try {
+            userRepository.save(user);
+        } catch (DataIntegrityViolationException e) {
+            throw new CustomException(ErrorCode.EMAIL_ALREADY_EXISTS);
+        }
 
         // 5. AuthProvider(LOCAL) 생성 + 저장
         AuthProvider authProvider = AuthProvider.builder()
@@ -88,8 +94,16 @@ public class AuthService {
     }
 
     private void validatePasswordLength(String password) {
-        int length = password.length();
-        if (length < passwordProperties.minLength() || length > passwordProperties.maxLength()) {
+        int byteLength = password.getBytes(StandardCharsets.UTF_8).length;
+        int charLength = password.length();
+
+        // 최소 길이는 문자 수 기준 (UX 일관성)
+        if (charLength < passwordProperties.minLength()) {
+            throw new CustomException(ErrorCode.INVALID_PASSWORD_LENGTH);
+        }
+
+        // 최대 길이는 byte 기준 (BCrypt 한계)
+        if (byteLength > passwordProperties.maxLength()) {
             throw new CustomException(ErrorCode.INVALID_PASSWORD_LENGTH);
         }
     }
