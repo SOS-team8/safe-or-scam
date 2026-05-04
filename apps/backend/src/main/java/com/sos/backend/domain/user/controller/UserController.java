@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -29,8 +30,7 @@ public class UserController {
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "유저 또는 프로필을 찾을 수 없음",
         content = @Content(schema = @Schema(implementation = ApiResponse.class)))
     public ApiResponse<UserInfoResponse> getMyInfo(
-        @Parameter(description = "임시 사용자 식별자", required = true, example = "1")
-        @RequestHeader("X-User-Id") Long userId
+        @AuthenticationPrincipal Long userId
     ) {
         return ApiResponse.success(userService.getMyInfo(userId));
     }
@@ -43,8 +43,7 @@ public class UserController {
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "유저 또는 프로필을 찾을 수 없음",
         content = @Content(schema = @Schema(implementation = ApiResponse.class)))
     public ApiResponse<UserActionResponse> updateMyInfo(
-        @Parameter(description = "임시 사용자 식별자", required = true, example = "1")
-        @RequestHeader("X-User-Id") Long userId,
+        @AuthenticationPrincipal Long userId,
         @Valid @RequestBody UserUpdateRequest request
     ) {
         return ApiResponse.success(userService.updateMyInfo(userId, request));
@@ -58,8 +57,7 @@ public class UserController {
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "유저 또는 프로필을 찾을 수 없음",
         content = @Content(schema = @Schema(implementation = ApiResponse.class)))
     public ApiResponse<UserActionResponse> onboard(
-        @Parameter(description = "임시 사용자 식별자", required = true, example = "1")
-        @RequestHeader("X-User-Id") Long userId,
+        @AuthenticationPrincipal Long userId,
         @Valid @RequestBody OnboardingRequest request
     ) {
         return ApiResponse.success(userService.onboard(userId, request));
