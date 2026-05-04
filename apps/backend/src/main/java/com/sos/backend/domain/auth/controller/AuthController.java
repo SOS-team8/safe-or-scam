@@ -1,11 +1,9 @@
 package com.sos.backend.domain.auth.controller;
 
-import com.sos.backend.domain.auth.dto.request.EmailSendRequest;
-import com.sos.backend.domain.auth.dto.request.EmailVerifyRequest;
-import com.sos.backend.domain.auth.dto.request.LoginRequest;
-import com.sos.backend.domain.auth.dto.request.SignupRequest;
+import com.sos.backend.domain.auth.dto.request.*;
 import com.sos.backend.domain.auth.dto.response.EmailVerifyResponse;
 import com.sos.backend.domain.auth.dto.response.LoginResponse;
+import com.sos.backend.domain.auth.dto.response.RefreshResponse;
 import com.sos.backend.domain.auth.dto.response.SignupResponse;
 import com.sos.backend.domain.auth.service.AuthService;
 import com.sos.backend.domain.auth.service.EmailVerificationService;
@@ -45,6 +43,12 @@ public class AuthController {
     @PostMapping("/login")
     public ApiResponse<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
         LoginResponse response = authService.login(request);
+        return ApiResponse.success(response);
+    }
+
+    @PostMapping("/refresh")
+    public ApiResponse<RefreshResponse> refresh(@Valid @RequestBody RefreshRequest request) {
+        RefreshResponse response = authService.refresh(request);
         return ApiResponse.success(response);
     }
 }

@@ -4,6 +4,8 @@ import com.sos.backend.domain.auth.entity.RefreshToken;
 import com.sos.backend.domain.auth.repository.RefreshTokenRepository;
 import com.sos.backend.domain.user.entity.User;
 import com.sos.backend.global.auth.JwtProvider;
+import com.sos.backend.global.common.exception.CustomException;
+import com.sos.backend.global.common.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,6 +41,27 @@ public class RefreshTokenService {
         refreshTokenRepository.save(entity);
 
         return refreshToken;
+    }
+
+    @Transactional(noRollbackFor = CustomException.class)
+    public String rotate(String refreshToken) {
+        // 1. JWT 자체 검증 (만료/위조 시 throw)
+        jwtProvider.validateOrThrow(refreshToken);
+
+        // 2. tokenHash로 DB 조회
+        String tokenHash = sha256(refreshToken);
+        RefreshToken stored = refreshTokenRepository.findByTokenHash(tokenHash)
+            .orElseThrow(() -> new CustomException(ErrorCode.INVALID_TOKEN));
+
+        // 3. 재사용 감지
+        if (Boolean.TRUE.equals(stored.getRevoked())) {
+            refreshTokenRepository.revokeAllByUserId(stored.getUser().getId());
+            throw new CustomException(ErrorCode.INVALID_TOKEN);
+        }
+
+        // 4. 정상 흐름 (토큰 재발행)
+        stored.setRevoked(true);
+        return issue(stored.getUser());
     }
 
     private String sha256(String input) {

@@ -2,8 +2,10 @@ package com.sos.backend.domain.auth.service;
 
 import com.sos.backend.domain.auth.PasswordProperties;
 import com.sos.backend.domain.auth.dto.request.LoginRequest;
+import com.sos.backend.domain.auth.dto.request.RefreshRequest;
 import com.sos.backend.domain.auth.dto.request.SignupRequest;
 import com.sos.backend.domain.auth.dto.response.LoginResponse;
+import com.sos.backend.domain.auth.dto.response.RefreshResponse;
 import com.sos.backend.domain.auth.dto.response.SignupResponse;
 import com.sos.backend.domain.auth.entity.AuthProvider;
 import com.sos.backend.domain.auth.enums.Provider;
@@ -145,6 +147,18 @@ public class AuthService {
                 user.getRole()
             )
         );
+    }
+
+    public RefreshResponse refresh(RefreshRequest request) {
+        // 1. Refresh Token Rotation (검증 + 재사용 감지 + 새 refresh token 발급)
+        String newRefreshToken = refreshTokenService.rotate(request.refreshToken());
+
+        // 2. 새 refresh token에서 user 정보 추출하여 access token 발급
+        Long userId = jwtProvider.getUserId(newRefreshToken);
+        String email = jwtProvider.getEmail(newRefreshToken);
+        String newAccessToken = jwtProvider.createAccessToken(userId, email);
+
+        return new RefreshResponse(newAccessToken, newRefreshToken);
     }
 
     private void validatePasswordLength(String password) {
