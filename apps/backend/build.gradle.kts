@@ -4,6 +4,8 @@ plugins {
 	id("io.spring.dependency-management") version "1.1.7"
 }
 
+val mockitoAgent by configurations.creating
+
 group = "com.sos"
 version = "0.0.1-SNAPSHOT"
 
@@ -38,11 +40,17 @@ dependencies {
     testImplementation("org.testcontainers:junit-jupiter:1.20.4")
     testImplementation("org.testcontainers:postgresql:1.20.4")
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
+	mockitoAgent("org.mockito:mockito-core") {
+		isTransitive = false
+	}
 	testCompileOnly("org.projectlombok:lombok")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 	testAnnotationProcessor("org.projectlombok:lombok")
 }
 
-tasks.withType<Test> {
+tasks.withType<Test>().configureEach {
 	useJUnitPlatform()
+	jvmArgumentProviders += CommandLineArgumentProvider {
+		listOf("-javaagent:${mockitoAgent.singleFile.absolutePath}")
+	}
 }

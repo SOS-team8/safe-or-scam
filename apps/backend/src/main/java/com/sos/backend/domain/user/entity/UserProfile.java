@@ -1,6 +1,8 @@
 package com.sos.backend.domain.user.entity;
 
 import com.sos.backend.domain.user.enums.Gender;
+import com.sos.backend.domain.user.enums.AgeGroup;
+import com.sos.backend.domain.user.enums.Occupation;
 import com.sos.backend.global.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -18,16 +20,17 @@ import java.util.List;
 public class UserProfile extends BaseEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "profile_id")
-    private Long profileId;
+    @Column(name = "user_id")
+    private Long userId;
 
+    @MapsId
     @OneToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id", nullable = false, unique = true)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(name = "occupation", length = 50)
-    private String occupation;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "occupation", length = 30)
+    private Occupation occupation;
 
     @Column(name = "birth")
     private Integer birth;
@@ -35,6 +38,10 @@ public class UserProfile extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "gender", length = 10)
     private Gender gender;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "age_group", length = 30)
+    private AgeGroup ageGroup;
 
     @Column(name = "onboarding_completed", nullable = false)
     private Boolean onboardingCompleted;
@@ -60,4 +67,31 @@ public class UserProfile extends BaseEntity {
     @JdbcTypeCode(SqlTypes.ARRAY)
     @Column(name = "family_type", columnDefinition = "text[]")
     private List<String> familyType;
+
+    public void updateBasicInfo(Occupation occupation, Gender gender, AgeGroup ageGroup) {
+        this.occupation = occupation;
+        this.gender = gender;
+        this.ageGroup = ageGroup;
+    }
+
+    public void completeOnboarding(
+        Occupation occupation,
+        Gender gender,
+        AgeGroup ageGroup,
+        List<String> economicActivities,
+        List<String> communicateChannels,
+        List<String> onlineActivities,
+        List<String> financialChannels,
+        List<String> familyType
+    ) {
+        this.occupation = occupation;
+        this.gender = gender;
+        this.ageGroup = ageGroup;
+        this.economicActivities = economicActivities;
+        this.communicateChannels = communicateChannels;
+        this.onlineActivities = onlineActivities;
+        this.financialChannels = financialChannels;
+        this.familyType = familyType;
+        this.onboardingCompleted = true;
+    }
 }
