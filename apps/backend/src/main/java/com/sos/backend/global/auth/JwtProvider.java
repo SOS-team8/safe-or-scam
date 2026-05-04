@@ -80,4 +80,9 @@ public class JwtProvider {
             .parseSignedClaims(token)
             .getPayload();
     }
+
+    // 리프레시토큰 만료 기간 리턴
+    public long getRefreshTokenExpirationMillis() {
+        return refreshTokenExpiration;
+    }
 }
