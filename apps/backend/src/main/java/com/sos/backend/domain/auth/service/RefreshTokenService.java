@@ -11,8 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.HexFormat;
 
 @Service
@@ -35,7 +33,7 @@ public class RefreshTokenService {
         RefreshToken entity = RefreshToken.builder()
             .user(user)
             .tokenHash(tokenHash)
-            .expiredAt(LocalDateTime.now().plus(Duration.ofMillis(jwtProvider.getRefreshTokenExpirationMillis())))  // 14일
+            .expiredAt(jwtProvider.extractExpiry(refreshToken))
             .build();
 
         refreshTokenRepository.save(entity);
