@@ -1,7 +1,12 @@
 package com.sos.backend.domain.auth.service;
 
 import com.sos.backend.domain.auth.PasswordProperties;
+import com.sos.backend.domain.auth.dto.request.LoginRequest;
+import com.sos.backend.domain.auth.dto.request.LogoutRequest;
+import com.sos.backend.domain.auth.dto.request.RefreshRequest;
 import com.sos.backend.domain.auth.dto.request.SignupRequest;
+import com.sos.backend.domain.auth.dto.response.LoginResponse;
+import com.sos.backend.domain.auth.dto.response.RefreshResponse;
 import com.sos.backend.domain.auth.dto.response.SignupResponse;
 import com.sos.backend.domain.auth.entity.AuthProvider;
 import com.sos.backend.domain.auth.enums.Provider;
@@ -15,6 +20,7 @@ import com.sos.backend.global.auth.JwtProvider;
 import com.sos.backend.global.auth.VerificationTokenProvider;
 import com.sos.backend.global.common.exception.CustomException;
 import com.sos.backend.global.common.exception.ErrorCode;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -35,6 +42,13 @@ public class AuthService {
     private final AuthProviderRepository authProviderRepository;
     private final JwtProvider jwtProvider;
     private final RefreshTokenService refreshTokenService;
+
+    private String dummyHash;
+
+    @PostConstruct
+    private void initDummyHash() {
+        this.dummyHash = passwordEncoder.encode("dummy");
+    }
 
     @Transactional
     public SignupResponse signup(SignupRequest request) {
@@ -93,6 +107,61 @@ public class AuthService {
         );
     }
 
+    @Transactional
+    public LoginResponse login(LoginRequest request) {
+        // 1. 이메일로 user 조회
+        Optional<User> userOpt = userRepository.findByEmail(request.email());
+
+        // 2. user 없으면 더미 해시로 BCrypt 비교 후 실패 (timing attack 방어)
+        if (userOpt.isEmpty()) {
+            passwordEncoder.matches(request.password(), dummyHash);
+            throw new CustomException(ErrorCode.INVALID_CREDENTIALS);
+        }
+
+        User user = userOpt.get();
+
+        // 3. 비밀번호 비교
+        if (!passwordEncoder.matches(request.password(), user.getPassword())) {
+            throw new CustomException(ErrorCode.INVALID_CREDENTIALS);
+        }
+
+        // 4. 계정 상태 검증 (ACTIVE만 로그인 허용)
+        if (user.getStatus() != UserStatus.ACTIVE) {
+            throw new CustomException(ErrorCode.INVALID_CREDENTIALS);
+        }
+
+        // 5. lastLoginAt 갱신
+        user.setLastLoginAt(LocalDateTime.now());
+
+        // 6. Access/Refresh Token 발급
+        String accessToken = jwtProvider.createAccessToken(user.getId(), user.getEmail());
+        String refreshToken = refreshTokenService.issue(user);
+
+        // 7. 응답 구성
+        return new LoginResponse(
+            accessToken,
+            refreshToken,
+            new LoginResponse.UserInfo(
+                user.getId(),
+                user.getEmail(),
+                user.getName(),
+                user.getRole()
+            )
+        );
+    }
+
+    public RefreshResponse refresh(RefreshRequest request) {
+        // 1. Refresh Token Rotation (검증 + 재사용 감지 + 새 refresh token 발급)
+        String newRefreshToken = refreshTokenService.rotate(request.refreshToken());
+
+        // 2. 새 refresh token에서 user 정보 추출하여 access token 발급
+        Long userId = jwtProvider.getUserId(newRefreshToken);
+        String email = jwtProvider.getEmail(newRefreshToken);
+        String newAccessToken = jwtProvider.createAccessToken(userId, email);
+
+        return new RefreshResponse(newAccessToken, newRefreshToken);
+    }
+
     private void validatePasswordLength(String password) {
         int byteLength = password.getBytes(StandardCharsets.UTF_8).length;
         int charLength = password.length();
@@ -106,5 +175,13 @@ public class AuthService {
         if (byteLength > passwordProperties.maxLength()) {
             throw new CustomException(ErrorCode.INVALID_PASSWORD_LENGTH);
         }
+    }
+
+    public void logout(LogoutRequest request, Long userId) {
+        refreshTokenService.revoke(request.refreshToken(), userId);
+    }
+
+    public void logoutAll(Long userId) {
+        refreshTokenService.revokeAllByUserId(userId);
     }
 }

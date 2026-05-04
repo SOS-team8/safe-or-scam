@@ -47,6 +47,7 @@ public class User extends BaseEntity {
     private LocalDateTime withdrawnAt;
 
     @Column(name = "last_login_at")
+    @Setter
     private LocalDateTime lastLoginAt;
 
     public void changeStatus(UserStatus status) {

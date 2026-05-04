@@ -4,6 +4,8 @@ import com.sos.backend.domain.auth.entity.RefreshToken;
 import com.sos.backend.domain.auth.repository.RefreshTokenRepository;
 import com.sos.backend.domain.user.entity.User;
 import com.sos.backend.global.auth.JwtProvider;
+import com.sos.backend.global.common.exception.CustomException;
+import com.sos.backend.global.common.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,8 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.HexFormat;
 
 @Service
@@ -35,12 +35,66 @@ public class RefreshTokenService {
         RefreshToken entity = RefreshToken.builder()
             .user(user)
             .tokenHash(tokenHash)
-            .expiredAt(LocalDateTime.now().plus(Duration.ofMillis(jwtProvider.getRefreshTokenExpirationMillis())))  // 14일
+            .expiredAt(jwtProvider.extractExpiry(refreshToken))
             .build();
 
         refreshTokenRepository.save(entity);
 
         return refreshToken;
+    }
+
+    @Transactional(noRollbackFor = CustomException.class)
+    public String rotate(String refreshToken) {
+        // 1. JWT 자체 검증 (만료/위조 시 throw)
+        jwtProvider.validateOrThrow(refreshToken);
+
+        // 2. tokenHash로 DB 조회
+        String tokenHash = sha256(refreshToken);
+        RefreshToken stored = refreshTokenRepository.findByTokenHash(tokenHash)
+            .orElseThrow(() -> new CustomException(ErrorCode.INVALID_TOKEN));
+
+        // 3. 재사용 감지
+        if (Boolean.TRUE.equals(stored.getRevoked())) {
+            refreshTokenRepository.revokeAllByUserId(stored.getUser().getId());
+            throw new CustomException(ErrorCode.INVALID_TOKEN);
+        }
+
+        // 4. 정상 흐름 (토큰 재발행)
+        stored.setRevoked(true);
+        return issue(stored.getUser());
+    }
+
+    /**
+     * 단일 Refresh Token 폐기 (logout).
+     * 본인 user의 토큰인지 검증하여 위조 요청 차단.
+     */
+    @Transactional
+    public void revoke(String refreshToken, Long userId) {
+        // 1. JWT 자체 검증 (만료/위조 시 throw)
+        jwtProvider.validateOrThrow(refreshToken);
+
+        // 2. tokenHash로 DB 조회
+        String tokenHash = sha256(refreshToken);
+        RefreshToken stored = refreshTokenRepository.findByTokenHash(tokenHash)
+            .orElseThrow(() -> new CustomException(ErrorCode.INVALID_TOKEN));
+
+        // 3. 본인 토큰 검증
+        if (!stored.getUser().getId().equals(userId)) {
+            throw new CustomException(ErrorCode.INVALID_TOKEN);
+        }
+
+        // 4. revoke (이미 revoked여도 멱등 — silent success)
+        if (Boolean.FALSE.equals(stored.getRevoked())) {
+            stored.setRevoked(true);
+        }
+    }
+
+    /**
+     * user의 모든 Refresh Token 일괄 폐기 (logout-all).
+     */
+    @Transactional
+    public void revokeAllByUserId(Long userId) {
+        refreshTokenRepository.revokeAllByUserId(userId);
     }
 
     private String sha256(String input) {
