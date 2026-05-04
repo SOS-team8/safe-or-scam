@@ -180,4 +180,8 @@ public class AuthService {
     public void logout(LogoutRequest request, Long userId) {
         refreshTokenService.revoke(request.refreshToken(), userId);
     }
+
+    public void logoutAll(Long userId) {
+        refreshTokenService.revokeAllByUserId(userId);
+    }
 }

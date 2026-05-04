@@ -61,4 +61,10 @@ public class AuthController {
         authService.logout(request, userId);
         return ApiResponse.success(null);
     }
+
+    @PostMapping("/logout/all")
+    public ApiResponse<Void> logoutAll(@AuthenticationPrincipal Long userId) {
+        authService.logoutAll(userId);
+        return ApiResponse.success(null);
+    }
 }
