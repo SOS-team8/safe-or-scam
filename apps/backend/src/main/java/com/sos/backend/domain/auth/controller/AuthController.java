@@ -11,6 +11,7 @@ import com.sos.backend.global.common.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -50,5 +51,14 @@ public class AuthController {
     public ApiResponse<RefreshResponse> refresh(@Valid @RequestBody RefreshRequest request) {
         RefreshResponse response = authService.refresh(request);
         return ApiResponse.success(response);
+    }
+
+    @PostMapping("/logout")
+    public ApiResponse<Void> logout(
+        @Valid @RequestBody LogoutRequest request,
+        @AuthenticationPrincipal Long userId
+    ) {
+        authService.logout(request, userId);
+        return ApiResponse.success(null);
     }
 }

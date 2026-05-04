@@ -2,6 +2,7 @@ package com.sos.backend.domain.auth.service;
 
 import com.sos.backend.domain.auth.PasswordProperties;
 import com.sos.backend.domain.auth.dto.request.LoginRequest;
+import com.sos.backend.domain.auth.dto.request.LogoutRequest;
 import com.sos.backend.domain.auth.dto.request.RefreshRequest;
 import com.sos.backend.domain.auth.dto.request.SignupRequest;
 import com.sos.backend.domain.auth.dto.response.LoginResponse;
@@ -174,5 +175,9 @@ public class AuthService {
         if (byteLength > passwordProperties.maxLength()) {
             throw new CustomException(ErrorCode.INVALID_PASSWORD_LENGTH);
         }
+    }
+
+    public void logout(LogoutRequest request, Long userId) {
+        refreshTokenService.revoke(request.refreshToken(), userId);
     }
 }

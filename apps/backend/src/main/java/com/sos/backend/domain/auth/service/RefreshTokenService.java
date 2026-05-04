@@ -64,6 +64,39 @@ public class RefreshTokenService {
         return issue(stored.getUser());
     }
 
+    /**
+     * 단일 Refresh Token 폐기 (logout).
+     * 본인 user의 토큰인지 검증하여 위조 요청 차단.
+     */
+    @Transactional
+    public void revoke(String refreshToken, Long userId) {
+        // 1. JWT 자체 검증 (만료/위조 시 throw)
+        jwtProvider.validateOrThrow(refreshToken);
+
+        // 2. tokenHash로 DB 조회
+        String tokenHash = sha256(refreshToken);
+        RefreshToken stored = refreshTokenRepository.findByTokenHash(tokenHash)
+            .orElseThrow(() -> new CustomException(ErrorCode.INVALID_TOKEN));
+
+        // 3. 본인 토큰 검증
+        if (!stored.getUser().getId().equals(userId)) {
+            throw new CustomException(ErrorCode.INVALID_TOKEN);
+        }
+
+        // 4. revoke (이미 revoked여도 멱등 — silent success)
+        if (Boolean.FALSE.equals(stored.getRevoked())) {
+            stored.setRevoked(true);
+        }
+    }
+
+    /**
+     * user의 모든 Refresh Token 일괄 폐기 (logout-all).
+     */
+    @Transactional
+    public void revokeAllByUserId(Long userId) {
+        refreshTokenRepository.revokeAllByUserId(userId);
+    }
+
     private String sha256(String input) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
