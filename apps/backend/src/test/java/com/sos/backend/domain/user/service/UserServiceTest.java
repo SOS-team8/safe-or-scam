@@ -128,6 +128,23 @@ class UserServiceTest {
         }
 
         @Test
+        @DisplayName("WITHDRAWN 상태면 INVALID_INPUT 예외를 던진다")
+        void onboard_withdrawnUser() {
+            Long userId = 1L;
+            User user = createUser(userId, UserStatus.WITHDRAWN);
+            UserProfile profile = createProfile(userId, user);
+            OnboardingRequest request = createOnboardingRequest();
+
+            given(userRepository.findById(userId)).willReturn(Optional.of(user));
+            given(userProfileRepository.findByUserId(userId)).willReturn(Optional.of(profile));
+
+            assertThatThrownBy(() -> userService.onboard(userId, request))
+                .isInstanceOf(CustomException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.INVALID_INPUT);
+        }
+
+        @Test
         @DisplayName("온보딩 완료 시 프로필 저장값을 반영하고 UserStatus를 ACTIVE로 변경한다")
         void onboard_success() {
             Long userId = 1L;
