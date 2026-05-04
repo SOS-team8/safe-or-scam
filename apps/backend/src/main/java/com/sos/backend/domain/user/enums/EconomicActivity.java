@@ -3,14 +3,12 @@ package com.sos.backend.domain.user.enums;
 import java.util.Arrays;
 
 public enum EconomicActivity {
-    EMPLOYEE("employee"),
-    SELF_EMPLOYED("self_employed"),
-    SIDE_JOB("side_job"),
-    INVESTMENT("investment"),
+    ENTERTAINMENT("entertainment"),
+    TRAVEL("travel"),
+    SUBSCRIPTION("subscription"),
+    EDUCATION("education"),
     ONLINE_SHOPPING("online_shopping"),
-    JOB_SEEKING("job_seeking"),
-    STUDENT("student"),
-    NONE("none");
+    INVESTMENT("investment");
 
     private final String code;
 

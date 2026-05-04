@@ -48,4 +48,8 @@ public class User extends BaseEntity {
 
     @Column(name = "last_login_at")
     private LocalDateTime lastLoginAt;
+
+    public void changeStatus(UserStatus status) {
+        this.status = status;
+    }
 }
