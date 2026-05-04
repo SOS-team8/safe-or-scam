@@ -1,4 +1,4 @@
-package com.sos.backend.domain.auth.dto;
+package com.sos.backend.domain.auth.dto.request;
 
 import com.sos.backend.domain.auth.enums.VerificationPurpose;
 import jakarta.validation.constraints.Email;
