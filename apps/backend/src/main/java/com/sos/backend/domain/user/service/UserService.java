@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -49,7 +50,7 @@ public class UserService {
         User user = getUser(userId);
         UserProfile profile = getUserProfile(userId);
 
-        if (user.getStatus() == UserStatus.ACTIVE) {
+        if (!Set.of(UserStatus.ONBOARDING, UserStatus.INACTIVE).contains(user.getStatus())) {
             throw new CustomException(ErrorCode.INVALID_INPUT);
         }
 
