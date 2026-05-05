@@ -84,7 +84,6 @@ public class AuthService {
             if (userRepository.existsByEmail(email)) {
                 throw new CustomException(ErrorCode.EMAIL_ALREADY_EXISTS);
             }
-            log.error("회원가입 중 users 저장 실패 - email: {}", email, e);
             throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
         }
 
