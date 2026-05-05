@@ -1,13 +1,13 @@
 package com.sos.backend.domain.user.controller;
 
 import com.sos.backend.domain.user.dto.OnboardingRequest;
+import com.sos.backend.domain.user.dto.OnboardingResponse;
 import com.sos.backend.domain.user.dto.UserActionResponse;
 import com.sos.backend.domain.user.dto.UserInfoResponse;
 import com.sos.backend.domain.user.dto.UserUpdateRequest;
 import com.sos.backend.domain.user.service.UserService;
 import com.sos.backend.global.common.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -50,13 +50,16 @@ public class UserController {
     }
 
     @PostMapping("/onboarding")
-    @Operation(summary = "온보딩", description = "온보딩 설문을 저장하고 사용자 상태를 ACTIVE로 변경합니다.")
+    @Operation(
+        summary = "온보딩 완료",
+        description = "온보딩 설문을 저장하고 사용자 권한을 GUEST에서 USER로 승격한 뒤, 변경된 권한이 반영된 JWT 토큰을 재발급합니다."
+    )
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "온보딩 완료")
-    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "잘못된 입력값 또는 이미 온보딩 완료된 사용자",
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "잘못된 입력값 또는 이미 USER 권한인 사용자",
         content = @Content(schema = @Schema(implementation = ApiResponse.class)))
     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "유저 또는 프로필을 찾을 수 없음",
         content = @Content(schema = @Schema(implementation = ApiResponse.class)))
-    public ApiResponse<UserActionResponse> onboard(
+    public ApiResponse<OnboardingResponse> onboard(
         @AuthenticationPrincipal Long userId,
         @Valid @RequestBody OnboardingRequest request
     ) {
