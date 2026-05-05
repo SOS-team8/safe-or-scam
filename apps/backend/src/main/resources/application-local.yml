@@ -30,3 +30,13 @@ spring:
 
 server:
   port: 8080
+
+jwt:
+  secret: ${JWT_SECRET:local-jwt-secret-key-at-least-32-bytes-123}
+  access-token-expiration: 1800000
+  refresh-token-expiration: 1209600000
+
+auth:
+  verification-token:
+    secret: ${VERIFICATION_TOKEN_SECRET:local-verification-token-secret-at-least-32b}
+    expires-in-seconds: 300
