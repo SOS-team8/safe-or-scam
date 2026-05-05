@@ -22,6 +22,7 @@ import com.sos.backend.global.common.exception.CustomException;
 import com.sos.backend.global.common.exception.ErrorCode;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -32,6 +33,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class AuthService {
 
@@ -72,14 +74,18 @@ public class AuthService {
             .email(email)
             .password(hashedPassword)
             .name(request.name())
-            .role(Role.USER)
+            .role(Role.GUEST)
             .status(UserStatus.ACTIVE)
             .lastLoginAt(LocalDateTime.now())
             .build();
         try {
             userRepository.save(user);
         } catch (DataIntegrityViolationException e) {
-            throw new CustomException(ErrorCode.EMAIL_ALREADY_EXISTS);
+            if (userRepository.existsByEmail(email)) {
+                throw new CustomException(ErrorCode.EMAIL_ALREADY_EXISTS);
+            }
+            log.error("회원가입 중 users 저장 실패 - email: {}", email, e);
+            throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
         }
 
         // 5. AuthProvider(LOCAL) 생성 + 저장
@@ -91,7 +97,7 @@ public class AuthService {
         authProviderRepository.save(authProvider);
 
         // 6. Access/Refresh Token 발급 (자동 로그인)
-        String accessToken = jwtProvider.createAccessToken(user.getId(), user.getEmail());
+        String accessToken = jwtProvider.createAccessToken(user.getId(), user.getEmail(), user.getRole());
         String refreshToken = refreshTokenService.issue(user);
 
         // 7. 응답 구성
@@ -134,7 +140,7 @@ public class AuthService {
         user.setLastLoginAt(LocalDateTime.now());
 
         // 6. Access/Refresh Token 발급
-        String accessToken = jwtProvider.createAccessToken(user.getId(), user.getEmail());
+        String accessToken = jwtProvider.createAccessToken(user.getId(), user.getEmail(), user.getRole());
         String refreshToken = refreshTokenService.issue(user);
 
         // 7. 응답 구성

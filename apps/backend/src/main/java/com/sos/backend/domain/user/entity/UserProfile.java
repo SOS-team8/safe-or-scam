@@ -32,9 +32,6 @@ public class UserProfile extends BaseEntity {
     @Column(name = "occupation", length = 30)
     private Occupation occupation;
 
-    @Column(name = "birth")
-    private Integer birth;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "gender", length = 10)
     private Gender gender;

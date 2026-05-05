@@ -1,6 +1,7 @@
 package com.sos.backend.domain.user.service;
 
 import com.sos.backend.domain.user.dto.OnboardingRequest;
+import com.sos.backend.domain.user.dto.OnboardingResponse;
 import com.sos.backend.domain.user.dto.UserActionResponse;
 import com.sos.backend.domain.user.dto.UserInfoResponse;
 import com.sos.backend.domain.user.dto.UserUpdateRequest;
@@ -10,9 +11,11 @@ import com.sos.backend.domain.user.enums.CommunicateChannel;
 import com.sos.backend.domain.user.enums.EconomicActivity;
 import com.sos.backend.domain.user.enums.FinancialChannel;
 import com.sos.backend.domain.user.enums.OnlineActivity;
-import com.sos.backend.domain.user.enums.UserStatus;
+import com.sos.backend.domain.user.enums.Role;
 import com.sos.backend.domain.user.repository.UserProfileRepository;
 import com.sos.backend.domain.user.repository.UserRepository;
+import com.sos.backend.domain.auth.service.RefreshTokenService;
+import com.sos.backend.global.auth.JwtProvider;
 import com.sos.backend.global.common.exception.CustomException;
 import com.sos.backend.global.common.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +23,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +31,8 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final UserProfileRepository userProfileRepository;
+    private final JwtProvider jwtProvider;
+    private final RefreshTokenService refreshTokenService;
 
     public UserInfoResponse getMyInfo(Long userId) {
         User user = getUser(userId);
@@ -46,13 +50,12 @@ public class UserService {
     }
 
     @Transactional
-    public UserActionResponse onboard(Long userId, OnboardingRequest request) {
+    public OnboardingResponse onboard(Long userId, OnboardingRequest request) {
         User user = getUser(userId);
-        UserProfile profile = getUserProfile(userId);
-
-        if (!Set.of(UserStatus.ONBOARDING, UserStatus.INACTIVE).contains(user.getStatus())) {
+        if (user.getRole() == Role.USER) {
             throw new CustomException(ErrorCode.INVALID_INPUT);
         }
+        UserProfile profile = getOrCreateUserProfile(user);
 
         profile.completeOnboarding(
             request.occupation(),
@@ -64,9 +67,12 @@ public class UserService {
             request.financialChannels().stream().map(FinancialChannel::code).toList(),
             List.of(request.familyType().code())
         );
-        user.changeStatus(UserStatus.ACTIVE);
+        user.changeRole(Role.USER);
 
-        return UserActionResponse.of("온보딩이 완료되었습니다.");
+        String newAccessToken = jwtProvider.createAccessToken(user.getId(), user.getEmail(), user.getRole());
+        String newRefreshToken = refreshTokenService.issue(user);
+
+        return OnboardingResponse.of("온보딩이 완료되었습니다.", newAccessToken, newRefreshToken, user);
     }
 
     private User getUser(Long userId) {
@@ -77,5 +83,15 @@ public class UserService {
     private UserProfile getUserProfile(Long userId) {
         return userProfileRepository.findByUserId(userId)
             .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
+    }
+
+    private UserProfile getOrCreateUserProfile(User user) {
+        return userProfileRepository.findByUserId(user.getId())
+            .orElseGet(() -> userProfileRepository.save(
+                UserProfile.builder()
+                    .user(user)
+                    .onboardingCompleted(false)
+                    .build()
+            ));
     }
 }

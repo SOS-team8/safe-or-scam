@@ -1,5 +1,6 @@
 package com.sos.backend.global.auth;
 
+import com.sos.backend.domain.user.enums.Role;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -30,23 +31,32 @@ public class JwtProvider {
 
     // Access Token 생성
     public String createAccessToken(Long userId, String email) {
-        return createToken(userId, email, accessTokenExpiration);
+        return createToken(userId, email, null, accessTokenExpiration);
+    }
+
+    public String createAccessToken(Long userId, String email, Role role) {
+        return createToken(userId, email, role, accessTokenExpiration);
     }
 
     // Refresh Token 생성
     public String createRefreshToken(Long userId, String email) {
-        return createToken(userId, email, refreshTokenExpiration);
+        return createToken(userId, email, null, refreshTokenExpiration);
     }
 
     // 토큰 생성
-    private String createToken(Long userId, String email, long expiration) {
-        return Jwts.builder()
+    private String createToken(Long userId, String email, Role role, long expiration) {
+        var builder = Jwts.builder()
             .subject(String.valueOf(userId))
             .claim("email", email)
             .issuedAt(new Date())
             .expiration(new Date(System.currentTimeMillis() + expiration))
-            .signWith(secretKey)
-            .compact();
+            .signWith(secretKey);
+
+        if (role != null) {
+            builder.claim("role", role.name());
+        }
+
+        return builder.compact();
     }
 
     // 토큰에서 userId 추출
