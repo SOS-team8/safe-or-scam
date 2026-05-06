@@ -13,6 +13,7 @@ import com.sos.backend.domain.user.enums.Role;
 import com.sos.backend.domain.user.enums.UserStatus;
 import com.sos.backend.domain.user.enums.WithdrawalOutboxStatus;
 import com.sos.backend.domain.user.event.UserAnonymizedEvent;
+import com.sos.backend.domain.user.event.UserStatusCacheInvalidateEvent;
 import com.sos.backend.domain.user.repository.UserProfileRepository;
 import com.sos.backend.domain.user.repository.UserRepository;
 import com.sos.backend.domain.user.repository.WithdrawalOutboxRepository;
@@ -103,7 +104,8 @@ class UserWithdrawalServiceTest {
             assertThat(outboxCaptor.getValue().getUserId()).isEqualTo(userId);
 
             verify(refreshTokenService).revokeAllByUserId(userId);
-            verify(userStatusCacheService).invalidate(userId);
+            verify(userStatusCacheService).cacheStatus(userId, UserStatus.WITHDRAWAL_PENDING);
+            verify(applicationEventPublisher).publishEvent(any(UserStatusCacheInvalidateEvent.class));
         }
 
         @Test

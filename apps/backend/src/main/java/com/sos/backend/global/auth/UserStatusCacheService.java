@@ -44,6 +44,11 @@ public class UserStatusCacheService {
         cache.remove(userId);
     }
 
+    public void cacheStatus(Long userId, UserStatus status) {
+        long now = System.currentTimeMillis();
+        cache.put(userId, new CacheEntry(status, now + TTL_MILLIS));
+    }
+
     private record CacheEntry(UserStatus status, long expiresAtMillis) {
     }
 }

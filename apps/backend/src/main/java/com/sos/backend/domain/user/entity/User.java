@@ -58,10 +58,6 @@ public class User extends BaseEntity {
         this.role = role;
     }
 
-    public boolean isBlockedForAuthentication() {
-        return this.status == UserStatus.WITHDRAWAL_PENDING || this.status == UserStatus.WITHDRAWN;
-    }
-
     public void requestWithdrawal() {
         this.status = UserStatus.WITHDRAWAL_PENDING;
     }

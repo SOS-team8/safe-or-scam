@@ -14,6 +14,7 @@ import com.sos.backend.domain.user.repository.UserProfileRepository;
 import com.sos.backend.domain.user.repository.UserRepository;
 import com.sos.backend.domain.user.repository.WithdrawalOutboxRepository;
 import com.sos.backend.domain.user.event.UserAnonymizedEvent;
+import com.sos.backend.domain.user.event.UserStatusCacheInvalidateEvent;
 import com.sos.backend.global.auth.UserStatusCacheService;
 import com.sos.backend.global.common.exception.CustomException;
 import com.sos.backend.global.common.exception.ErrorCode;
@@ -62,7 +63,8 @@ public class UserWithdrawalService {
             throw new CustomException(ErrorCode.INVALID_INPUT);
         }
 
-        userStatusCacheService.invalidate(userId);
+        userStatusCacheService.cacheStatus(userId, UserStatus.WITHDRAWAL_PENDING);
+        applicationEventPublisher.publishEvent(new UserStatusCacheInvalidateEvent(userId));
         return WithdrawalResponse.of(executeAt, user.getStatus());
     }
 
