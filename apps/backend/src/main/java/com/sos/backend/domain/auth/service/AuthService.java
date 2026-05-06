@@ -16,6 +16,7 @@ import com.sos.backend.domain.user.entity.User;
 import com.sos.backend.domain.user.enums.Role;
 import com.sos.backend.domain.user.enums.UserStatus;
 import com.sos.backend.domain.user.repository.UserRepository;
+import com.sos.backend.domain.user.service.UserWithdrawalService;
 import com.sos.backend.global.auth.JwtProvider;
 import com.sos.backend.global.auth.VerificationTokenProvider;
 import com.sos.backend.global.common.exception.CustomException;
@@ -44,6 +45,7 @@ public class AuthService {
     private final AuthProviderRepository authProviderRepository;
     private final JwtProvider jwtProvider;
     private final RefreshTokenService refreshTokenService;
+    private final UserWithdrawalService userWithdrawalService;
 
     private String dummyHash;
 
@@ -63,9 +65,15 @@ public class AuthService {
         // 2. 비밀번호 길이 검증
         validatePasswordLength(request.password());
 
-        // 3. 이메일 중복 검증
-        if (userRepository.existsByEmail(email)) {
-            throw new CustomException(ErrorCode.EMAIL_ALREADY_EXISTS);
+        // 3. 이메일 중복 검증 (WITHDRAWAL_PENDING이면 즉시 익명화 후 신규 가입 허용)
+        Optional<User> existingUser = userRepository.findByEmail(email);
+        if (existingUser.isPresent()) {
+            User found = existingUser.get();
+            if (found.getStatus() == UserStatus.WITHDRAWAL_PENDING) {
+                userWithdrawalService.finalizePendingUserForResignup(found);
+            } else {
+                throw new CustomException(ErrorCode.EMAIL_ALREADY_EXISTS);
+            }
         }
 
         // 4. User 생성 + 저장

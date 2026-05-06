@@ -126,4 +126,12 @@ public class EmailVerificationService {
     private String buildDailyKey(String email, VerificationPurpose purpose) {
         return KEY_PREFIX_DAILY + purpose.name() + ":" + email;
     }
+
+    public void deleteVerificationKeysByEmail(String email) {
+        for (VerificationPurpose purpose : VerificationPurpose.values()) {
+            redis.delete(buildCodeKey(email, purpose));
+            redis.delete(buildCooldownKey(email, purpose));
+            redis.delete(buildDailyKey(email, purpose));
+        }
+    }
 }

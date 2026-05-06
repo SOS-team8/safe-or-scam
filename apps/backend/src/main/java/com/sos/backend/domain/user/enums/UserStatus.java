@@ -1,5 +1,5 @@
 package com.sos.backend.domain.user.enums;
 
 public enum UserStatus {
-    ACTIVE, INACTIVE, WITHDRAWN
+    ACTIVE, INACTIVE, WITHDRAWAL_PENDING, WITHDRAWN
 }
