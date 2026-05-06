@@ -63,8 +63,8 @@ public class WithdrawalOutbox extends BaseEntity {
     }
 
     public void markFailed(LocalDateTime now, String errorMessage) {
-        this.status = WithdrawalOutboxStatus.PENDING;
-        this.processedAt = null;
+        this.status = WithdrawalOutboxStatus.FAILED;
+        this.processedAt = now;
         this.lastError = errorMessage;
     }
 }
