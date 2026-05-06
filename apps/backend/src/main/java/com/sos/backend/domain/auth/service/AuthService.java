@@ -71,6 +71,8 @@ public class AuthService {
             User found = existingUser.get();
             if (found.getStatus() == UserStatus.WITHDRAWAL_PENDING) {
                 userWithdrawalService.finalizePendingUserForResignup(found);
+                // 기존 계정 익명화 update를 먼저 DB에 반영해 unique(email) 충돌 방지
+                userRepository.flush();
             } else {
                 throw new CustomException(ErrorCode.EMAIL_ALREADY_EXISTS);
             }
