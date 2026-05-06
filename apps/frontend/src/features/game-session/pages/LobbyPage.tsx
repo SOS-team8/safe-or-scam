@@ -30,7 +30,7 @@ export function LobbyPage() {
         <h2 className="text-xl font-semibold text-white">전체 시나리오</h2>
         <div className="grid gap-4 md:grid-cols-3">
           {scenarios.map((scenario) => (
-            <article key={scenario.title} className="rounded-lg border border-white/10 bg-white/[0.03] p-5">
+            <article key={scenario.title} className="rounded-lg border border-white/10 bg-white/3 p-5">
               <div className="flex items-center justify-between gap-3">
                 <span className="rounded-md bg-slate-800 px-2 py-1 text-xs text-slate-300">{scenario.difficulty}</span>
                 <span className="text-xs font-medium text-emerald-300">{scenario.status}</span>
