@@ -48,7 +48,7 @@ public class UserWithdrawalService {
     public WithdrawalResponse requestWithdrawal(Long userId) {
         User user = getUser(userId);
 
-        if (user.getStatus() == UserStatus.WITHDRAWAL_PENDING || user.getStatus() == UserStatus.WITHDRAWN) {
+        if (user.getStatus() != UserStatus.ACTIVE) {
             throw new CustomException(ErrorCode.INVALID_INPUT);
         }
 
