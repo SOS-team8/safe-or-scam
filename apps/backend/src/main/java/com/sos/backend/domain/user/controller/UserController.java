@@ -5,7 +5,9 @@ import com.sos.backend.domain.user.dto.OnboardingResponse;
 import com.sos.backend.domain.user.dto.UserActionResponse;
 import com.sos.backend.domain.user.dto.UserInfoResponse;
 import com.sos.backend.domain.user.dto.UserUpdateRequest;
+import com.sos.backend.domain.user.dto.WithdrawalResponse;
 import com.sos.backend.domain.user.service.UserService;
+import com.sos.backend.domain.user.service.UserWithdrawalService;
 import com.sos.backend.global.common.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -23,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
+    private final UserWithdrawalService userWithdrawalService;
 
     @GetMapping
     @Operation(summary = "내 정보 조회", description = "현재 사용자(임시: X-User-Id)의 기본 정보를 조회합니다.")
@@ -64,5 +67,21 @@ public class UserController {
         @Valid @RequestBody OnboardingRequest request
     ) {
         return ApiResponse.success(userService.onboard(userId, request));
+    }
+
+    @PostMapping("/withdrawal")
+    @Operation(
+        summary = "회원 탈퇴 요청",
+        description = "계정을 즉시 WITHDRAWAL_PENDING 상태로 전환하고 모든 Refresh Token을 revoke합니다. 최종 익명화/정리는 14일 후 스케줄러가 처리합니다."
+    )
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "탈퇴 요청 접수")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "이미 탈퇴 진행 중이거나 탈퇴된 사용자",
+        content = @Content(schema = @Schema(implementation = ApiResponse.class)))
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "유저를 찾을 수 없음",
+        content = @Content(schema = @Schema(implementation = ApiResponse.class)))
+    public ApiResponse<WithdrawalResponse> requestWithdrawal(
+        @AuthenticationPrincipal Long userId
+    ) {
+        return ApiResponse.success(userWithdrawalService.requestWithdrawal(userId));
     }
 }

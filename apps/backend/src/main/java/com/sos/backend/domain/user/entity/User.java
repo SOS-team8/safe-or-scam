@@ -57,4 +57,19 @@ public class User extends BaseEntity {
     public void changeRole(Role role) {
         this.role = role;
     }
+
+    public void requestWithdrawal() {
+        this.status = UserStatus.WITHDRAWAL_PENDING;
+    }
+
+    public void completeWithdrawal(LocalDateTime now) {
+        if (this.id == null) {
+            throw new IllegalStateException("탈퇴 익명화를 위해 user id가 필요합니다.");
+        }
+        this.email = "withdrawn-" + this.id + "@anonymized.local";
+        this.password = null;
+        this.name = "탈퇴한 사용자";
+        this.status = UserStatus.WITHDRAWN;
+        this.withdrawnAt = now;
+    }
 }

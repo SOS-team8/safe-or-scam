@@ -1,5 +1,6 @@
 package com.sos.backend.global.auth;
 
+import com.sos.backend.domain.user.enums.UserStatus;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,6 +17,7 @@ import java.util.Collections;
 public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtProvider jwtProvider;
+    private final UserStatusCacheService userStatusCacheService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -28,6 +30,12 @@ public class JwtFilter extends OncePerRequestFilter {
         if (token != null && jwtProvider.validateToken(token)) {
             Long userId = jwtProvider.getUserId(token);
             String email = jwtProvider.getEmail(token);
+            UserStatus userStatus = userStatusCacheService.getStatus(userId);
+
+            if (userStatus == UserStatus.WITHDRAWAL_PENDING || userStatus == UserStatus.WITHDRAWN) {
+                filterChain.doFilter(request, response);
+                return;
+            }
 
             UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(

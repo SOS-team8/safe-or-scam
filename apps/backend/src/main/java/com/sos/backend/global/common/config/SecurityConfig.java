@@ -3,6 +3,7 @@ package com.sos.backend.global.common.config;
 import com.sos.backend.domain.auth.PasswordProperties;
 import com.sos.backend.global.auth.JwtFilter;
 import com.sos.backend.global.auth.JwtProvider;
+import com.sos.backend.global.auth.UserStatusCacheService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,6 +16,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import jakarta.servlet.http.HttpServletResponse;
+
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
@@ -22,6 +25,7 @@ public class SecurityConfig {
 
     private final JwtProvider jwtProvider;
     private final PasswordProperties passwordProperties;
+    private final UserStatusCacheService userStatusCacheService;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -48,7 +52,11 @@ public class SecurityConfig {
                 ).permitAll()
                 .anyRequest().authenticated()
             )
-            .addFilterBefore(new JwtFilter(jwtProvider),
+            .exceptionHandling(ex -> ex
+                .authenticationEntryPoint((request, response, authException) ->
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED))
+            )
+            .addFilterBefore(new JwtFilter(jwtProvider, userStatusCacheService),
                 UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
