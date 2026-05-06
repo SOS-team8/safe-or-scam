@@ -15,7 +15,7 @@ helping them recognize and respond to phishing attacks.
 | Backend | Java 21, Spring Boot 3, PostgreSQL |
 | Game Engine | Python, FastAPI, MongoDB |
 | AI Pipeline | Python, FastAPI, MongoDB, Gemini API |
-| Frontend | React |
+| Frontend | React 18, TypeScript, axios, Tailwind CSS, Vite |
 | Infra | Docker, Nginx, RabbitMQ, Redis |
 
 ## 📁 Project Structure
