@@ -92,7 +92,7 @@ export function EmailVerificationPage() {
         <p className="text-slate-300">이메일로 받은 6자리 인증 코드를 입력하세요.</p>
       </div>
 
-      <form className="space-y-5 rounded-lg border border-white/10 bg-white/[0.03] p-6" onSubmit={handleSubmit(onSubmit)}>
+      <form className="space-y-5 rounded-lg border border-white/10 bg-white/3 p-6" onSubmit={handleSubmit(onSubmit)}>
         {!signupDraft ? (
           <div className="rounded-md border border-amber-300/30 bg-amber-300/10 px-3 py-2 text-sm text-amber-100">
             회원가입 정보를 찾을 수 없습니다. 다시 가입 정보를 입력해주세요.

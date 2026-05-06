@@ -12,7 +12,7 @@ export function OnboardingPage() {
         <p className="text-slate-300">직업, 연령대, 성별을 선택하면 맞춤 훈련 추천에 활용됩니다.</p>
       </div>
 
-      <div className="space-y-5 rounded-lg border border-white/10 bg-white/[0.03] p-6">
+      <div className="space-y-5 rounded-lg border border-white/10 bg-white/3 p-6">
         <div className="space-y-3">
           <h2 className="text-base font-semibold text-white">직업</h2>
           <div className="grid gap-2 sm:grid-cols-4">

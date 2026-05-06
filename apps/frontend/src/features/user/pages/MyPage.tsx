@@ -34,7 +34,7 @@ export function MyPage() {
         <p className="text-slate-300">가입 정보는 조회만 가능하며, 온보딩 답변만 수정할 수 있습니다.</p>
       </div>
 
-      <section className="space-y-4 rounded-lg border border-white/10 bg-white/[0.03] p-6">
+      <section className="space-y-4 rounded-lg border border-white/10 bg-white/3 p-6">
         <h2 className="text-lg font-semibold text-white">회원 정보</h2>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="rounded-md border border-white/10 bg-slate-900 px-3 py-3">
@@ -48,7 +48,7 @@ export function MyPage() {
         </div>
       </section>
 
-      <form className="space-y-5 rounded-lg border border-white/10 bg-white/[0.03] p-6">
+      <form className="space-y-5 rounded-lg border border-white/10 bg-white/3 p-6">
         <h2 className="text-lg font-semibold text-white">온보딩 답변</h2>
 
         <label className="block space-y-2">
@@ -101,7 +101,7 @@ export function MyPage() {
         </button>
       </form>
 
-      <section className="space-y-4 rounded-lg border border-white/10 bg-white/[0.03] p-6">
+      <section className="space-y-4 rounded-lg border border-white/10 bg-white/3 p-6">
         <div className="space-y-1">
           <h2 className="text-lg font-semibold text-white">히스토리</h2>
           <p className="text-sm text-slate-400">

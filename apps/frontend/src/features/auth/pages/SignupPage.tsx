@@ -54,7 +54,7 @@ export function SignupPage() {
         <p className="text-slate-300">피싱 대응 훈련을 위한 기본 계정을 만듭니다.</p>
       </div>
 
-      <form className="space-y-4 rounded-lg border border-white/10 bg-white/[0.03] p-6" onSubmit={handleSubmit(onSubmit)}>
+      <form className="space-y-4 rounded-lg border border-white/10 bg-white/3 p-6" onSubmit={handleSubmit(onSubmit)}>
         {serverError ? (
           <div className="whitespace-pre-line rounded-md border border-red-400/30 bg-red-500/10 px-3 py-2 text-sm text-red-100">
             {serverError.message}

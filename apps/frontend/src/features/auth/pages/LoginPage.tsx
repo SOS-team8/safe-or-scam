@@ -51,7 +51,7 @@ export function LoginPage() {
         <p className="text-slate-300">학습 기록과 맞춤 시나리오를 이어서 확인합니다.</p>
       </div>
 
-      <form className="space-y-4 rounded-lg border border-white/10 bg-white/[0.03] p-6" onSubmit={handleSubmit(onSubmit)}>
+      <form className="space-y-4 rounded-lg border border-white/10 bg-white/3 p-6" onSubmit={handleSubmit(onSubmit)}>
         {serverError ? (
           <div className="whitespace-pre-line rounded-md border border-red-400/30 bg-red-500/10 px-3 py-2 text-sm text-red-100">
             {serverError.message}

@@ -30,7 +30,7 @@ export function LandingPage() {
         </div>
       </div>
 
-      <div className="rounded-lg border border-white/10 bg-white/[0.03] p-5">
+      <div className="rounded-lg border border-white/10 bg-white/3 p-5">
         <div className="space-y-4">
           <div className="rounded-md border border-amber-300/30 bg-amber-300/10 p-4 text-left">
             <p className="text-sm font-semibold text-amber-200">문자 메시지</p>
