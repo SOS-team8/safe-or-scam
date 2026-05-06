@@ -11,6 +11,7 @@ import com.sos.backend.domain.user.entity.User;
 import com.sos.backend.domain.user.entity.WithdrawalOutbox;
 import com.sos.backend.domain.user.enums.Role;
 import com.sos.backend.domain.user.enums.UserStatus;
+import com.sos.backend.domain.user.enums.WithdrawalOutboxStatus;
 import com.sos.backend.domain.user.event.UserAnonymizedEvent;
 import com.sos.backend.domain.user.repository.UserProfileRepository;
 import com.sos.backend.domain.user.repository.UserRepository;
@@ -129,6 +130,8 @@ class UserWithdrawalServiceTest {
         when(withdrawalOutboxRepository.findByUserId(userId)).thenReturn(Optional.of(outbox));
 
         userWithdrawalService.finalizePendingUserForResignup(user);
+        assertThat(outbox.getStatus()).isEqualTo(WithdrawalOutboxStatus.DONE);
+        assertThat(outbox.getProcessedAt()).isNotNull();
 
         assertThat(user.getStatus()).isEqualTo(UserStatus.WITHDRAWN);
         assertThat(user.getEmail()).isEqualTo("withdrawn-3@anonymized.local");
