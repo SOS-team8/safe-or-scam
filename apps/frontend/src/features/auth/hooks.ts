@@ -1,4 +1,5 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useEffect } from 'react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLocation, useNavigate, type Location } from 'react-router-dom'
 
 import { authApi } from './api'
@@ -9,7 +10,7 @@ import type {
   AuthUser,
   EmailVerifyRequest,
   LoginResponse,
-  SignupDraft,
+  MeResponse,
   SignupResponse,
   SignupRequest,
 } from './types'
@@ -32,6 +33,11 @@ const normalizeSignupUser = (user: SignupResponse['user']): AuthUser => ({
   role: user.role,
 })
 
+const normalizeMeUser = (user: MeResponse): AuthUser => ({
+  email: user.email,
+  name: user.name,
+})
+
 const getRedirectPath = (state: unknown) => {
   const redirectState = state as RedirectState | null
   const from = redirectState?.from
@@ -43,9 +49,40 @@ const getRedirectPath = (state: unknown) => {
   return `${from.pathname}${from.search}${from.hash}`
 }
 
+export const useAuthBootstrap = () => {
+  const accessToken = useAuthStore((state) => state.accessToken)
+  const user = useAuthStore((state) => state.user)
+  const setUser = useAuthStore((state) => state.setUser)
+  const clearAuth = useAuthStore((state) => state.clearAuth)
+
+  const meQuery = useQuery({
+    queryKey: authKeys.user(),
+    queryFn: ({ signal }) => authApi.getMe({ signal }),
+    enabled: Boolean(accessToken && !user),
+    retry: false,
+  })
+
+  useEffect(() => {
+    if (meQuery.data) {
+      setUser(normalizeMeUser(meQuery.data))
+    }
+  }, [meQuery.data, setUser])
+
+  useEffect(() => {
+    if (meQuery.error) {
+      clearAuth()
+    }
+  }, [clearAuth, meQuery.error])
+
+  return {
+    isLoadingUser: Boolean(accessToken && !user && meQuery.isPending),
+  }
+}
+
 export const useSendSignupVerificationEmail = () => {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const setSignupDraft = useAuthStore((state) => state.setSignupDraft)
 
   return useMutation({
     mutationFn: (values: SignupFormValues) =>
@@ -57,13 +94,12 @@ export const useSendSignupVerificationEmail = () => {
       void queryClient.invalidateQueries({
         queryKey: authKeys.emailVerification(values.email),
       })
-      navigate('/signup/verify', {
-        state: {
-          email: values.email,
-          name: values.name,
-          password: values.password,
-        } satisfies SignupDraft,
+      setSignupDraft({
+        email: values.email,
+        name: values.name,
+        password: values.password,
       })
+      navigate('/signup/verify')
     },
   })
 }
@@ -85,11 +121,13 @@ export const useSignup = () => {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const setAuth = useAuthStore((state) => state.setAuth)
+  const clearSignupDraft = useAuthStore((state) => state.clearSignupDraft)
 
   return useMutation({
     mutationFn: (request: SignupRequest) => authApi.signup(request),
     onSuccess: (response) => {
-      setAuth(response.accessToken, normalizeSignupUser(response.user))
+      setAuth(response.accessToken, response.refreshToken, normalizeSignupUser(response.user))
+      clearSignupDraft()
       void queryClient.invalidateQueries({ queryKey: authKeys.session() })
       navigate('/onboarding', { replace: true })
     },
@@ -105,7 +143,7 @@ export const useLogin = () => {
   return useMutation({
     mutationFn: authApi.login,
     onSuccess: (response) => {
-      setAuth(response.accessToken, normalizeLoginUser(response.user))
+      setAuth(response.accessToken, response.refreshToken, normalizeLoginUser(response.user))
       void queryClient.invalidateQueries({ queryKey: authKeys.session() })
       navigate(getRedirectPath(location.state), { replace: true })
     },
@@ -116,9 +154,11 @@ export const useLogout = () => {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const clearAuth = useAuthStore((state) => state.clearAuth)
+  const refreshToken = useAuthStore((state) => state.refreshToken)
 
   return useMutation({
-    mutationFn: authApi.logout,
+    mutationFn: () =>
+      refreshToken ? authApi.logout({ refreshToken }) : Promise.resolve(null),
     onSettled: () => {
       clearAuth()
       void queryClient.invalidateQueries({ queryKey: authKeys.session() })

@@ -1,6 +1,6 @@
 import { Link, Navigate, Route, Routes } from 'react-router-dom'
 
-import { useLogout } from '@/features/auth/hooks'
+import { useAuthBootstrap, useLogout } from '@/features/auth/hooks'
 import { LoginPage } from '@/features/auth/pages/LoginPage'
 import { SignupPage } from '@/features/auth/pages/SignupPage'
 import { EmailVerificationPage } from '@/features/auth/pages/EmailVerificationPage'
@@ -12,6 +12,8 @@ import { LandingPage } from '@/pages/LandingPage'
 import { ProtectedRoute } from '@/routes/ProtectedRoute'
 
 function App() {
+  useAuthBootstrap()
+
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const logoutMutation = useLogout()
 

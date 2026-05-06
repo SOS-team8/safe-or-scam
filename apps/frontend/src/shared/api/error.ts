@@ -38,7 +38,7 @@ const isBackendErrorResponse = (value: unknown): value is BackendErrorResponse =
 export const toApiError = (error: unknown): ApiError => {
   if (!axios.isAxiosError(error)) {
     return {
-      message: error instanceof Error ? error.message : DEFAULT_ERROR_MESSAGE,
+      message: DEFAULT_ERROR_MESSAGE,
     }
   }
 
@@ -48,7 +48,7 @@ export const toApiError = (error: unknown): ApiError => {
   if (!isBackendErrorResponse(payload) || !payload.error) {
     return {
       status,
-      message: error.message || DEFAULT_ERROR_MESSAGE,
+      message: DEFAULT_ERROR_MESSAGE,
     }
   }
 

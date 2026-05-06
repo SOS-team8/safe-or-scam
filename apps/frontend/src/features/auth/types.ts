@@ -24,6 +24,10 @@ export type SignupRequest = {
   name: string
 }
 
+export type LogoutRequest = {
+  refreshToken: string
+}
+
 export type LoginResponse = {
   accessToken: string
   refreshToken: string
@@ -50,6 +54,14 @@ export type EmailVerifyResponse = {
   verificationToken: string
 }
 
+export type MeResponse = {
+  name: string
+  email: string
+  occupation: string | null
+  gender: string | null
+  ageGroup: string | null
+}
+
 export type ApiResponse<T> = {
   data: T
   error?: {
@@ -66,10 +78,10 @@ export type ApiResponse<T> = {
 }
 
 export type AuthUser = {
-  id: number
+  id?: number
   email: string
   name: string
-  role: UserRole
+  role?: UserRole
 }
 
 export type SignupDraft = {

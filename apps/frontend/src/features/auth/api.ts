@@ -1,4 +1,4 @@
-import type { AxiosResponse } from 'axios'
+import type { AxiosRequestConfig, AxiosResponse } from 'axios'
 
 import { apiClient } from '@/shared/api/client'
 
@@ -9,6 +9,8 @@ import type {
   EmailVerifyResponse,
   LoginRequest,
   LoginResponse,
+  LogoutRequest,
+  MeResponse,
   SignupRequest,
   SignupResponse,
 } from './types'
@@ -35,8 +37,12 @@ export const authApi = {
     const response = await apiClient.post<ApiResponse<LoginResponse>>('/api/v1/auth/login', request)
     return unwrapData(response)
   },
-  logout: async () => {
-    const response = await apiClient.post<ApiResponse<null>>('/api/v1/auth/logout/all')
+  getMe: async (config?: AxiosRequestConfig) => {
+    const response = await apiClient.get<ApiResponse<MeResponse>>('/api/v1/users/me', config)
+    return unwrapData(response)
+  },
+  logout: async (request: LogoutRequest) => {
+    const response = await apiClient.post<ApiResponse<null>>('/api/v1/auth/logout', request)
     return unwrapData(response)
   },
 }

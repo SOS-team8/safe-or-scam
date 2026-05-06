@@ -1,4 +1,5 @@
-import { Link, useLocation } from 'react-router-dom'
+import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 
 import { toApiError } from '@/shared/api/error'
@@ -8,24 +9,11 @@ import {
   emailVerificationSchema,
   type EmailVerificationFormValues,
 } from '../schemas'
-import type { SignupDraft } from '../types'
-
-const isSignupDraft = (value: unknown): value is SignupDraft => {
-  if (typeof value !== 'object' || value === null) {
-    return false
-  }
-
-  const draft = value as Record<string, unknown>
-  return (
-    typeof draft.email === 'string' &&
-    typeof draft.name === 'string' &&
-    typeof draft.password === 'string'
-  )
-}
+import { useAuthStore } from '../store'
 
 export function EmailVerificationPage() {
-  const location = useLocation()
-  const signupDraft = isSignupDraft(location.state) ? location.state : null
+  const signupDraft = useAuthStore((state) => state.signupDraft)
+  const [verificationToken, setVerificationToken] = useState<string | null>(null)
   const verifyEmailMutation = useVerifyEmail()
   const signupMutation = useSignup()
   const {
@@ -49,6 +37,15 @@ export function EmailVerificationPage() {
 
   const onSubmit = (values: EmailVerificationFormValues) => {
     if (!signupDraft) {
+      return
+    }
+
+    if (verificationToken) {
+      signupMutation.mutate({
+        verificationToken,
+        password: signupDraft.password,
+        name: signupDraft.name,
+      })
       return
     }
 
@@ -76,9 +73,10 @@ export function EmailVerificationPage() {
         purpose: 'SIGNUP',
       },
       {
-        onSuccess: ({ verificationToken }) => {
+        onSuccess: ({ verificationToken: nextVerificationToken }) => {
+          setVerificationToken(nextVerificationToken)
           signupMutation.mutate({
-            verificationToken,
+            verificationToken: nextVerificationToken,
             password: signupDraft.password,
             name: signupDraft.name,
           })
