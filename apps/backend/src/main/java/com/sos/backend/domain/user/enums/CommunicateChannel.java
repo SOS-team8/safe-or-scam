@@ -8,7 +8,8 @@ public enum CommunicateChannel {
     MESSENGER("messenger"),
     SNS("sns"),
     EMAIL("email"),
-    COMMUNITY("community");
+    COMMUNITY("community"),
+    NONE("none");
 
     private final String code;
 
