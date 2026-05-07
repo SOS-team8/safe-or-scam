@@ -16,28 +16,57 @@ type AuthState = {
   clearSignupDraft: () => void
 }
 
-const getStoredToken = (key: 'accessToken' | 'refreshToken') => {
+const getStoredAccessToken = () => {
   if (typeof window === 'undefined') {
     return null
   }
 
   // TODO: Move session persistence to HttpOnly cookies or a BFF once the backend auth contract supports it.
-  return localStorage.getItem(key)
+  return localStorage.getItem('accessToken')
+}
+
+const getStoredRefreshToken = () => {
+  if (typeof window === 'undefined') {
+    return null
+  }
+
+  // TODO: Move session persistence to HttpOnly cookies or a BFF once the backend auth contract supports it.
+  return sessionStorage.getItem('refreshToken')
 }
 
 const persistTokens = (accessToken: string, refreshToken: string) => {
   localStorage.setItem('accessToken', accessToken)
-  localStorage.setItem('refreshToken', refreshToken)
+  sessionStorage.setItem('refreshToken', refreshToken)
 }
 
 const clearStoredTokens = () => {
   localStorage.removeItem('accessToken')
-  localStorage.removeItem('refreshToken')
+  sessionStorage.removeItem('refreshToken')
+}
+
+const getInitialTokens = () => {
+  const accessToken = getStoredAccessToken()
+  const refreshToken = getStoredRefreshToken()
+
+  if (!accessToken || !refreshToken) {
+    if (accessToken || refreshToken) {
+      clearStoredTokens()
+    }
+
+    return {
+      accessToken: null,
+      refreshToken: null,
+    }
+  }
+
+  return {
+    accessToken,
+    refreshToken,
+  }
 }
 
 export const useAuthStore = create<AuthState>((set) => {
-  const accessToken = getStoredToken('accessToken')
-  const refreshToken = getStoredToken('refreshToken')
+  const { accessToken, refreshToken } = getInitialTokens()
 
   return {
     accessToken,

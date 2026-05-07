@@ -30,6 +30,13 @@ type RefreshResponse = {
   refreshToken: string
 }
 
+class MissingRefreshTokenError extends Error {
+  constructor() {
+    super('Missing refresh token')
+    this.name = 'MissingRefreshTokenError'
+  }
+}
+
 const refreshClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
   timeout: REQUEST_TIMEOUT_MS,
@@ -80,10 +87,10 @@ const clearAuthAndRedirect = () => {
 
 const requestTokenRefresh = async () => {
   const refreshToken =
-    useAuthStore.getState().refreshToken ?? localStorage.getItem('refreshToken')
+    useAuthStore.getState().refreshToken ?? sessionStorage.getItem('refreshToken')
 
   if (!refreshToken) {
-    throw new Error('Missing refresh token')
+    throw new MissingRefreshTokenError()
   }
 
   const response = await refreshClient.post<ApiResponse<RefreshResponse>>(AUTH_REFRESH_PATH, {
@@ -101,6 +108,14 @@ const refreshTokensOnce = () => {
   })
 
   return refreshPromise
+}
+
+const shouldClearAuthAfterRefreshError = (refreshError: unknown) => {
+  if (refreshError instanceof MissingRefreshTokenError) {
+    return true
+  }
+
+  return axios.isAxiosError(refreshError) && refreshError.response?.status === 401
 }
 
 const handleUnauthorized =
@@ -132,7 +147,10 @@ const handleUnauthorized =
 
       return client(originalConfig)
     } catch (refreshError) {
-      clearAuthAndRedirect()
+      if (shouldClearAuthAfterRefreshError(refreshError)) {
+        clearAuthAndRedirect()
+      }
+
       return Promise.reject(refreshError)
     }
   }
