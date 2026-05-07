@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 const scenarios = [
@@ -11,9 +11,21 @@ type LobbyLocationState = {
   onboardingComplete?: boolean
 }
 
+const focusableSelector = [
+  'a[href]',
+  'button:not([disabled])',
+  'textarea:not([disabled])',
+  'input:not([disabled])',
+  'select:not([disabled])',
+  '[tabindex]:not([tabindex="-1"])',
+].join(',')
+
 export function LobbyPage() {
   const location = useLocation()
   const navigate = useNavigate()
+  const dialogRef = useRef<HTMLDivElement>(null)
+  const primaryActionRef = useRef<HTMLButtonElement>(null)
+  const previouslyFocusedElementRef = useRef<HTMLElement | null>(null)
   const [isOnboardingPopupOpen, setIsOnboardingPopupOpen] = useState(
     Boolean((location.state as LobbyLocationState | null)?.onboardingComplete),
   )
@@ -35,16 +47,50 @@ export function LobbyPage() {
       return
     }
 
-    const handleEscape = (event: KeyboardEvent) => {
+    previouslyFocusedElementRef.current = document.activeElement as HTMLElement | null
+    primaryActionRef.current?.focus()
+
+    const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setIsOnboardingPopupOpen(false)
+        return
+      }
+
+      if (event.key !== 'Tab') {
+        return
+      }
+
+      const dialog = dialogRef.current
+      const focusableElements = Array.from(
+        dialog?.querySelectorAll<HTMLElement>(focusableSelector) ?? [],
+      ).filter((element) => !element.hasAttribute('disabled') && !element.getAttribute('aria-hidden'))
+
+      if (!dialog || focusableElements.length === 0) {
+        event.preventDefault()
+        dialog?.focus()
+        return
+      }
+
+      const firstFocusableElement = focusableElements[0]
+      const lastFocusableElement = focusableElements[focusableElements.length - 1]
+
+      if (event.shiftKey && document.activeElement === firstFocusableElement) {
+        event.preventDefault()
+        lastFocusableElement.focus()
+        return
+      }
+
+      if (!event.shiftKey && document.activeElement === lastFocusableElement) {
+        event.preventDefault()
+        firstFocusableElement.focus()
       }
     }
 
-    window.addEventListener('keydown', handleEscape)
+    window.addEventListener('keydown', handleKeyDown)
 
     return () => {
-      window.removeEventListener('keydown', handleEscape)
+      window.removeEventListener('keydown', handleKeyDown)
+      previouslyFocusedElementRef.current?.focus()
     }
   }, [isOnboardingPopupOpen])
 
@@ -56,10 +102,12 @@ export function LobbyPage() {
           className="fixed inset-0 z-20 flex items-center justify-center bg-slate-950/75 px-5 py-8"
         >
           <div
+            ref={dialogRef}
             role="dialog"
             aria-modal="true"
             aria-labelledby="onboarding-complete-title"
             aria-describedby="onboarding-complete-description"
+            tabIndex={-1}
             className="w-full max-w-md rounded-lg border border-emerald-300/30 bg-slate-900 p-6 shadow-2xl shadow-slate-950/50"
           >
             <p className="text-sm font-semibold text-emerald-300">프로필 저장 완료</p>
@@ -74,14 +122,15 @@ export function LobbyPage() {
               <button
                 type="button"
                 onClick={() => setIsOnboardingPopupOpen(false)}
-                className="rounded-md border border-white/10 px-4 py-3 text-sm font-semibold text-slate-200 transition hover:border-emerald-300 hover:text-white"
+                className="rounded-md border border-white/10 px-4 py-3 text-sm font-semibold text-slate-200 transition hover:border-emerald-300 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200"
               >
                 조금 둘러볼게요
               </button>
               <button
+                ref={primaryActionRef}
                 type="button"
                 onClick={() => setIsOnboardingPopupOpen(false)}
-                className="rounded-md bg-emerald-400 px-4 py-3 text-sm font-semibold text-slate-950 transition hover:bg-emerald-300"
+                className="rounded-md bg-emerald-400 px-4 py-3 text-sm font-semibold text-slate-950 transition hover:bg-emerald-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200"
               >
                 시나리오 플레이하기
               </button>

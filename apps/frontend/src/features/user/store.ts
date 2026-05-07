@@ -2,7 +2,7 @@ import { create } from 'zustand'
 
 import type { OnboardingDraft } from './types'
 
-export const emptyOnboardingDraft: OnboardingDraft = {
+const createEmptyOnboardingDraft = (): OnboardingDraft => ({
   occupation: null,
   ageGroup: null,
   gender: null,
@@ -11,7 +11,7 @@ export const emptyOnboardingDraft: OnboardingDraft = {
   onlineActivities: [],
   financialChannels: [],
   familyType: null,
-}
+})
 
 type OnboardingDraftState = {
   onboardingDraft: OnboardingDraft
@@ -20,7 +20,7 @@ type OnboardingDraftState = {
 }
 
 export const useOnboardingDraftStore = create<OnboardingDraftState>((set) => ({
-  onboardingDraft: emptyOnboardingDraft,
+  onboardingDraft: createEmptyOnboardingDraft(),
   setOnboardingDraft: (draft) => {
     set((state) => ({
       onboardingDraft: {
@@ -30,6 +30,6 @@ export const useOnboardingDraftStore = create<OnboardingDraftState>((set) => ({
     }))
   },
   clearOnboardingDraft: () => {
-    set({ onboardingDraft: emptyOnboardingDraft })
+    set({ onboardingDraft: createEmptyOnboardingDraft() })
   },
 }))
