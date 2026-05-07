@@ -3,42 +3,17 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLocation, useNavigate, type Location } from 'react-router-dom'
 
 import { toApiError } from '@/shared/api/error'
+import { userKeys } from '@/features/user/queryKeys'
 
 import { authApi } from './api'
 import { authKeys } from './queryKeys'
 import type { SignupFormValues } from './schemas'
 import { useAuthStore } from './store'
-import type {
-  AuthUser,
-  EmailVerifyRequest,
-  LoginResponse,
-  MeResponse,
-  SignupResponse,
-  SignupRequest,
-} from './types'
+import type { EmailVerifyRequest, SignupRequest } from './types'
 
 type RedirectState = {
   from?: Pick<Location, 'pathname' | 'search' | 'hash'>
 }
-
-const normalizeLoginUser = (user: LoginResponse['user']): AuthUser => ({
-  id: user.id,
-  email: user.email,
-  name: user.name,
-  role: user.role,
-})
-
-const normalizeSignupUser = (user: SignupResponse['user']): AuthUser => ({
-  id: user.userId,
-  email: user.email,
-  name: user.name,
-  role: user.role,
-})
-
-const normalizeMeUser = (user: MeResponse): AuthUser => ({
-  email: user.email,
-  name: user.name,
-})
 
 const getRedirectPath = (state: unknown) => {
   const redirectState = state as RedirectState | null
@@ -53,22 +28,16 @@ const getRedirectPath = (state: unknown) => {
 
 export const useAuthBootstrap = () => {
   const accessToken = useAuthStore((state) => state.accessToken)
-  const user = useAuthStore((state) => state.user)
-  const setUser = useAuthStore((state) => state.setUser)
+  const role = useAuthStore((state) => state.role)
+  const setRole = useAuthStore((state) => state.setRole)
   const clearAuth = useAuthStore((state) => state.clearAuth)
 
   const meQuery = useQuery({
     queryKey: authKeys.user(),
     queryFn: ({ signal }) => authApi.getMe({ signal }),
-    enabled: Boolean(accessToken && !user),
+    enabled: Boolean(accessToken),
     retry: false,
   })
-
-  useEffect(() => {
-    if (meQuery.data) {
-      setUser(normalizeMeUser(meQuery.data))
-    }
-  }, [meQuery.data, setUser])
 
   useEffect(() => {
     if (meQuery.error && toApiError(meQuery.error).status === 401) {
@@ -76,8 +45,32 @@ export const useAuthBootstrap = () => {
     }
   }, [clearAuth, meQuery.error])
 
+  useEffect(() => {
+    if (!accessToken || role || meQuery.isPending) {
+      return
+    }
+
+    if (meQuery.data?.role) {
+      setRole(meQuery.data.role)
+      return
+    }
+
+    if (meQuery.isSuccess || meQuery.isError) {
+      clearAuth()
+    }
+  }, [
+    accessToken,
+    clearAuth,
+    meQuery.data?.role,
+    meQuery.isError,
+    meQuery.isPending,
+    meQuery.isSuccess,
+    role,
+    setRole,
+  ])
+
   return {
-    isLoadingUser: Boolean(accessToken && !user && meQuery.isPending),
+    isLoadingUser: Boolean(accessToken && meQuery.isPending),
   }
 }
 
@@ -128,7 +121,7 @@ export const useSignup = () => {
   return useMutation({
     mutationFn: (request: SignupRequest) => authApi.signup(request),
     onSuccess: (response) => {
-      setAuth(response.accessToken, response.refreshToken, normalizeSignupUser(response.user))
+      setAuth(response.accessToken, response.refreshToken, response.user.role)
       clearSignupDraft()
       void queryClient.invalidateQueries({ queryKey: authKeys.session() })
       navigate('/onboarding', { replace: true })
@@ -145,7 +138,7 @@ export const useLogin = () => {
   return useMutation({
     mutationFn: authApi.login,
     onSuccess: (response) => {
-      setAuth(response.accessToken, response.refreshToken, normalizeLoginUser(response.user))
+      setAuth(response.accessToken, response.refreshToken, response.user.role)
       void queryClient.invalidateQueries({ queryKey: authKeys.session() })
       navigate(getRedirectPath(location.state), { replace: true })
     },
@@ -162,6 +155,7 @@ export const useLogout = () => {
     mutationFn: () => authApi.logout({ refreshToken: refreshToken as string }),
     onSettled: () => {
       clearAuth()
+      queryClient.removeQueries({ queryKey: userKeys.me() })
       void queryClient.invalidateQueries({ queryKey: authKeys.session() })
       navigate('/login', { replace: true })
     },

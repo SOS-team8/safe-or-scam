@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
+import { useUserProfile } from '@/features/user/hooks'
+
 const scenarios = [
   { title: '택배 배송 주소 확인', difficulty: '초급', status: '추천' },
   { title: '회사 보안 메일 점검', difficulty: '중급', status: '준비됨' },
@@ -23,12 +25,14 @@ const focusableSelector = [
 export function LobbyPage() {
   const location = useLocation()
   const navigate = useNavigate()
+  const profileQuery = useUserProfile()
   const dialogRef = useRef<HTMLDivElement>(null)
   const primaryActionRef = useRef<HTMLButtonElement>(null)
   const previouslyFocusedElementRef = useRef<HTMLElement | null>(null)
   const [isOnboardingPopupOpen, setIsOnboardingPopupOpen] = useState(
     Boolean((location.state as LobbyLocationState | null)?.onboardingComplete),
   )
+  const userName = profileQuery.data?.name?.trim() || '회원'
 
   useEffect(() => {
     const isOnboardingComplete = Boolean(
@@ -140,8 +144,8 @@ export function LobbyPage() {
       ) : null}
 
       <div className="space-y-2">
-        <p className="text-sm font-medium text-emerald-300">온보딩이 완료되었습니다</p>
-        <h1 className="text-3xl font-semibold text-white">안녕하세요, 소영님</h1>
+        <p className="text-sm font-medium text-emerald-300">오늘의 추천 훈련</p>
+        <h1 className="text-3xl font-semibold text-white">안녕하세요, {userName}님</h1>
         <p className="text-slate-300">오늘은 실생활 메시지 피싱을 빠르게 판별하는 훈련을 추천합니다.</p>
       </div>
 

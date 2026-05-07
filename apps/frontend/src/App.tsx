@@ -65,7 +65,7 @@ function App() {
           <Route
             path="/onboarding"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['GUEST']}>
                 <OnboardingPage />
               </ProtectedRoute>
             }
@@ -73,7 +73,7 @@ function App() {
           <Route
             path="/lobby"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['USER']}>
                 <LobbyPage />
               </ProtectedRoute>
             }
@@ -81,7 +81,7 @@ function App() {
           <Route
             path="/mypage"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['USER']}>
                 <MyPage />
               </ProtectedRoute>
             }

@@ -60,6 +60,7 @@ export type MeResponse = {
   occupation: string | null
   gender: string | null
   ageGroup: string | null
+  role?: UserRole
 }
 
 export type ApiResponse<T> = {
@@ -75,13 +76,6 @@ export type ApiResponse<T> = {
   meta: {
     timestamp: string
   }
-}
-
-export type AuthUser = {
-  id?: number
-  email: string
-  name: string
-  role?: UserRole
 }
 
 export type SignupDraft = {
