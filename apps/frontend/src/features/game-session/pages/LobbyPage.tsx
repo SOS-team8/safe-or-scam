@@ -1,12 +1,144 @@
+import { useEffect, useRef, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
+
 const scenarios = [
   { title: '택배 배송 주소 확인', difficulty: '초급', status: '추천' },
   { title: '회사 보안 메일 점검', difficulty: '중급', status: '준비됨' },
   { title: '계좌 이상 거래 알림', difficulty: '중급', status: '준비됨' },
 ]
 
+type LobbyLocationState = {
+  onboardingComplete?: boolean
+}
+
+const focusableSelector = [
+  'a[href]',
+  'button:not([disabled])',
+  'textarea:not([disabled])',
+  'input:not([disabled])',
+  'select:not([disabled])',
+  '[tabindex]:not([tabindex="-1"])',
+].join(',')
+
 export function LobbyPage() {
+  const location = useLocation()
+  const navigate = useNavigate()
+  const dialogRef = useRef<HTMLDivElement>(null)
+  const primaryActionRef = useRef<HTMLButtonElement>(null)
+  const previouslyFocusedElementRef = useRef<HTMLElement | null>(null)
+  const [isOnboardingPopupOpen, setIsOnboardingPopupOpen] = useState(
+    Boolean((location.state as LobbyLocationState | null)?.onboardingComplete),
+  )
+
+  useEffect(() => {
+    const isOnboardingComplete = Boolean(
+      (location.state as LobbyLocationState | null)?.onboardingComplete,
+    )
+
+    if (!isOnboardingComplete) {
+      return
+    }
+
+    navigate(location.pathname, { replace: true, state: null })
+  }, [location.pathname, location.state, navigate])
+
+  useEffect(() => {
+    if (!isOnboardingPopupOpen) {
+      return
+    }
+
+    previouslyFocusedElementRef.current = document.activeElement as HTMLElement | null
+    primaryActionRef.current?.focus()
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsOnboardingPopupOpen(false)
+        return
+      }
+
+      if (event.key !== 'Tab') {
+        return
+      }
+
+      const dialog = dialogRef.current
+      const focusableElements = Array.from(
+        dialog?.querySelectorAll<HTMLElement>(focusableSelector) ?? [],
+      ).filter((element) => !element.hasAttribute('disabled') && !element.getAttribute('aria-hidden'))
+
+      if (!dialog || focusableElements.length === 0) {
+        event.preventDefault()
+        dialog?.focus()
+        return
+      }
+
+      const firstFocusableElement = focusableElements[0]
+      const lastFocusableElement = focusableElements[focusableElements.length - 1]
+
+      if (event.shiftKey && document.activeElement === firstFocusableElement) {
+        event.preventDefault()
+        lastFocusableElement.focus()
+        return
+      }
+
+      if (!event.shiftKey && document.activeElement === lastFocusableElement) {
+        event.preventDefault()
+        firstFocusableElement.focus()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+      previouslyFocusedElementRef.current?.focus()
+    }
+  }, [isOnboardingPopupOpen])
+
   return (
     <section className="space-y-8 py-6">
+      {isOnboardingPopupOpen ? (
+        <div
+          role="presentation"
+          className="fixed inset-0 z-20 flex items-center justify-center bg-slate-950/75 px-5 py-8"
+        >
+          <div
+            ref={dialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="onboarding-complete-title"
+            aria-describedby="onboarding-complete-description"
+            tabIndex={-1}
+            className="w-full max-w-md rounded-lg border border-emerald-300/30 bg-slate-900 p-6 shadow-2xl shadow-slate-950/50"
+          >
+            <p className="text-sm font-semibold text-emerald-300">프로필 저장 완료</p>
+            <h2 id="onboarding-complete-title" className="mt-3 text-2xl font-semibold text-white">
+              맞춤 시나리오가 준비됐어요
+            </h2>
+            <p id="onboarding-complete-description" className="mt-3 leading-7 text-slate-300">
+              답변해주신 생활 패턴을 바탕으로 추천 훈련을 골라두었어요. 이제 실제 메시지처럼
+              보이는 상황을 플레이하며 안전 신호와 위험 신호를 연습해볼까요?
+            </p>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={() => setIsOnboardingPopupOpen(false)}
+                className="rounded-md border border-white/10 px-4 py-3 text-sm font-semibold text-slate-200 transition hover:border-emerald-300 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200"
+              >
+                조금 둘러볼게요
+              </button>
+              <button
+                ref={primaryActionRef}
+                type="button"
+                onClick={() => setIsOnboardingPopupOpen(false)}
+                className="rounded-md bg-emerald-400 px-4 py-3 text-sm font-semibold text-slate-950 transition hover:bg-emerald-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200"
+              >
+                시나리오 플레이하기
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       <div className="space-y-2">
         <p className="text-sm font-medium text-emerald-300">온보딩이 완료되었습니다</p>
         <h1 className="text-3xl font-semibold text-white">안녕하세요, 소영님</h1>
