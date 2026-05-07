@@ -8,7 +8,8 @@ public enum FinancialChannel {
     INTERNET_BANKING("internet_banking"),
     EASY_PAY("easy_pay"),
     CRYPTO("crypto"),
-    OVERSEAS_REMIT("overseas_remit");
+    OVERSEAS_REMIT("overseas_remit"),
+    NONE("none");
 
     private final String code;
 

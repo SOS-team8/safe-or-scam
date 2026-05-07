@@ -8,7 +8,8 @@ public enum EconomicActivity {
     SUBSCRIPTION("subscription"),
     EDUCATION("education"),
     ONLINE_SHOPPING("online_shopping"),
-    INVESTMENT("investment");
+    INVESTMENT("investment"),
+    NONE("none");
 
     private final String code;
 
