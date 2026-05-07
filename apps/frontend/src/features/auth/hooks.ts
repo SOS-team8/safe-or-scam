@@ -2,6 +2,8 @@ import { useEffect } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLocation, useNavigate, type Location } from 'react-router-dom'
 
+import { toApiError } from '@/shared/api/error'
+
 import { authApi } from './api'
 import { authKeys } from './queryKeys'
 import type { SignupFormValues } from './schemas'
@@ -69,7 +71,7 @@ export const useAuthBootstrap = () => {
   }, [meQuery.data, setUser])
 
   useEffect(() => {
-    if (meQuery.error) {
+    if (meQuery.error && toApiError(meQuery.error).status === 401) {
       clearAuth()
     }
   }, [clearAuth, meQuery.error])
@@ -157,8 +159,7 @@ export const useLogout = () => {
   const refreshToken = useAuthStore((state) => state.refreshToken)
 
   return useMutation({
-    mutationFn: () =>
-      refreshToken ? authApi.logout({ refreshToken }) : Promise.resolve(null),
+    mutationFn: () => authApi.logout({ refreshToken: refreshToken as string }),
     onSettled: () => {
       clearAuth()
       void queryClient.invalidateQueries({ queryKey: authKeys.session() })

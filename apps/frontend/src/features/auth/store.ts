@@ -4,19 +4,19 @@ import type { AuthUser, SignupDraft } from './types'
 
 type AuthState = {
   accessToken: string | null
-  // Intentionally memory-only for current-session logout; refresh rotation belongs to the Day 3 auth flow.
   refreshToken: string | null
   user: AuthUser | null
   signupDraft: SignupDraft | null
   isAuthenticated: boolean
   setAuth: (accessToken: string, refreshToken: string, user: AuthUser) => void
+  setTokens: (accessToken: string, refreshToken: string) => void
   setUser: (user: AuthUser) => void
   clearAuth: () => void
   setSignupDraft: (signupDraft: SignupDraft) => void
   clearSignupDraft: () => void
 }
 
-const getInitialAccessToken = () => {
+const getStoredAccessToken = () => {
   if (typeof window === 'undefined') {
     return null
   }
@@ -25,17 +25,57 @@ const getInitialAccessToken = () => {
   return localStorage.getItem('accessToken')
 }
 
-export const useAuthStore = create<AuthState>((set) => {
-  const accessToken = getInitialAccessToken()
+const getStoredRefreshToken = () => {
+  if (typeof window === 'undefined') {
+    return null
+  }
+
+  // TODO: Move session persistence to HttpOnly cookies or a BFF once the backend auth contract supports it.
+  return sessionStorage.getItem('refreshToken')
+}
+
+const persistTokens = (accessToken: string, refreshToken: string) => {
+  localStorage.setItem('accessToken', accessToken)
+  sessionStorage.setItem('refreshToken', refreshToken)
+}
+
+const clearStoredTokens = () => {
+  localStorage.removeItem('accessToken')
+  sessionStorage.removeItem('refreshToken')
+}
+
+const getInitialTokens = () => {
+  const accessToken = getStoredAccessToken()
+  const refreshToken = getStoredRefreshToken()
+
+  if (!accessToken || !refreshToken) {
+    if (accessToken || refreshToken) {
+      clearStoredTokens()
+    }
+
+    return {
+      accessToken: null,
+      refreshToken: null,
+    }
+  }
 
   return {
     accessToken,
-    refreshToken: null,
+    refreshToken,
+  }
+}
+
+export const useAuthStore = create<AuthState>((set) => {
+  const { accessToken, refreshToken } = getInitialTokens()
+
+  return {
+    accessToken,
+    refreshToken,
     user: null,
     signupDraft: null,
-    isAuthenticated: Boolean(accessToken),
+    isAuthenticated: Boolean(accessToken && refreshToken),
     setAuth: (nextAccessToken, nextRefreshToken, user) => {
-      localStorage.setItem('accessToken', nextAccessToken)
+      persistTokens(nextAccessToken, nextRefreshToken)
       set({
         accessToken: nextAccessToken,
         refreshToken: nextRefreshToken,
@@ -43,11 +83,19 @@ export const useAuthStore = create<AuthState>((set) => {
         isAuthenticated: true,
       })
     },
+    setTokens: (nextAccessToken, nextRefreshToken) => {
+      persistTokens(nextAccessToken, nextRefreshToken)
+      set({
+        accessToken: nextAccessToken,
+        refreshToken: nextRefreshToken,
+        isAuthenticated: true,
+      })
+    },
     setUser: (user) => {
       set({ user })
     },
     clearAuth: () => {
-      localStorage.removeItem('accessToken')
+      clearStoredTokens()
       set({
         accessToken: null,
         refreshToken: null,
