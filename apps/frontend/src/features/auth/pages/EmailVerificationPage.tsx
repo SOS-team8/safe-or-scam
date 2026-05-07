@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 
 import { toApiError } from '@/shared/api/error'
 
@@ -17,12 +18,12 @@ export function EmailVerificationPage() {
   const verifyEmailMutation = useVerifyEmail()
   const signupMutation = useSignup()
   const {
-    clearErrors,
     formState: { errors },
     handleSubmit,
     register,
-    setError,
   } = useForm<EmailVerificationFormValues>({
+    resolver: zodResolver(emailVerificationSchema),
+    mode: 'onTouched',
     defaultValues: {
       code: '',
     },
@@ -49,27 +50,10 @@ export function EmailVerificationPage() {
       return
     }
 
-    clearErrors()
-    const validation = emailVerificationSchema.safeParse(values)
-
-    if (!validation.success) {
-      validation.error.issues.forEach((issue) => {
-        const field = issue.path[0]
-
-        if (field === 'code') {
-          setError(field, {
-            type: 'zod',
-            message: issue.message,
-          })
-        }
-      })
-      return
-    }
-
     verifyEmailMutation.mutate(
       {
         email: signupDraft.email,
-        code: validation.data.code,
+        code: values.code,
         purpose: 'SIGNUP',
       },
       {

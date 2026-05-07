@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 
 import { toApiError } from '@/shared/api/error'
 
@@ -9,12 +10,12 @@ import { loginSchema, type LoginFormValues } from '../schemas'
 export function LoginPage() {
   const loginMutation = useLogin()
   const {
-    clearErrors,
     formState: { errors },
     handleSubmit,
     register,
-    setError,
   } = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    mode: 'onTouched',
     defaultValues: {
       email: '',
       password: '',
@@ -24,24 +25,7 @@ export function LoginPage() {
   const serverError = loginMutation.error ? toApiError(loginMutation.error) : null
 
   const onSubmit = (values: LoginFormValues) => {
-    clearErrors()
-    const validation = loginSchema.safeParse(values)
-
-    if (!validation.success) {
-      validation.error.issues.forEach((issue) => {
-        const field = issue.path[0]
-
-        if (field === 'email' || field === 'password') {
-          setError(field, {
-            type: 'zod',
-            message: issue.message,
-          })
-        }
-      })
-      return
-    }
-
-    loginMutation.mutate(validation.data)
+    loginMutation.mutate(values)
   }
 
   return (

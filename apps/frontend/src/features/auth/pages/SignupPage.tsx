@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 
 import { toApiError } from '@/shared/api/error'
 
@@ -9,12 +10,12 @@ import { signupSchema, type SignupFormValues } from '../schemas'
 export function SignupPage() {
   const sendVerificationMutation = useSendSignupVerificationEmail()
   const {
-    clearErrors,
     formState: { errors },
     handleSubmit,
     register,
-    setError,
   } = useForm<SignupFormValues>({
+    resolver: zodResolver(signupSchema),
+    mode: 'onTouched',
     defaultValues: {
       name: '',
       email: '',
@@ -27,24 +28,7 @@ export function SignupPage() {
     : null
 
   const onSubmit = (values: SignupFormValues) => {
-    clearErrors()
-    const validation = signupSchema.safeParse(values)
-
-    if (!validation.success) {
-      validation.error.issues.forEach((issue) => {
-        const field = issue.path[0]
-
-        if (field === 'name' || field === 'email' || field === 'password') {
-          setError(field, {
-            type: 'zod',
-            message: issue.message,
-          })
-        }
-      })
-      return
-    }
-
-    sendVerificationMutation.mutate(validation.data)
+    sendVerificationMutation.mutate(values)
   }
 
   return (

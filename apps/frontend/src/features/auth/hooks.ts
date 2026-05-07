@@ -157,8 +157,7 @@ export const useLogout = () => {
   const refreshToken = useAuthStore((state) => state.refreshToken)
 
   return useMutation({
-    mutationFn: () =>
-      refreshToken ? authApi.logout({ refreshToken }) : Promise.resolve(null),
+    mutationFn: () => authApi.logout({ refreshToken: refreshToken as string }),
     onSettled: () => {
       clearAuth()
       void queryClient.invalidateQueries({ queryKey: authKeys.session() })
