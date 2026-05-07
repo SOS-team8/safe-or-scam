@@ -97,6 +97,30 @@ export type OnboardingResponse = {
   role: UserRole
 }
 
+export type UserProfile = {
+  name: string
+  email: string
+  occupation: Occupation | null
+  gender: Gender | null
+  ageGroup: AgeGroup | null
+}
+
+export type UpdateProfileRequest = {
+  occupation: Occupation
+  gender: Gender
+  ageGroup: AgeGroup
+}
+
+export type UpdateProfileResponse = {
+  message: string
+}
+
+export type WithdrawalResponse = {
+  message: string
+  scheduledAt: string
+  status: string
+}
+
 export type Option<Value extends string> = {
   value: Value
   label: string

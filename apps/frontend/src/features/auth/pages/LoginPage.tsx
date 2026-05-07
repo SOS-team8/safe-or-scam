@@ -1,4 +1,5 @@
-import { Link } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 
@@ -7,8 +8,19 @@ import { toApiError } from '@/shared/api/error'
 import { useLogin } from '../hooks'
 import { loginSchema, type LoginFormValues } from '../schemas'
 
+type LoginLocationState = {
+  withdrawalComplete?: boolean
+}
+
 export function LoginPage() {
+  const location = useLocation()
+  const navigate = useNavigate()
   const loginMutation = useLogin()
+  const [notice, setNotice] = useState<string | null>(() =>
+    (location.state as LoginLocationState | null)?.withdrawalComplete
+      ? '탈퇴가 완료되었어요.'
+      : null,
+  )
   const {
     formState: { errors },
     handleSubmit,
@@ -24,12 +36,44 @@ export function LoginPage() {
 
   const serverError = loginMutation.error ? toApiError(loginMutation.error) : null
 
+  useEffect(() => {
+    if (!(location.state as LoginLocationState | null)?.withdrawalComplete) {
+      return
+    }
+
+    navigate(location.pathname, { replace: true, state: null })
+  }, [location.pathname, location.state, navigate])
+
+  useEffect(() => {
+    if (!notice) {
+      return
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setNotice(null)
+    }, 2000)
+
+    return () => {
+      window.clearTimeout(timeoutId)
+    }
+  }, [notice])
+
   const onSubmit = (values: LoginFormValues) => {
     loginMutation.mutate(values)
   }
 
   return (
     <section className="mx-auto max-w-md space-y-6 py-10">
+      {notice ? (
+        <div
+          role="status"
+          aria-live="polite"
+          className="fixed right-5 top-20 z-40 rounded-md border border-emerald-300/30 bg-emerald-400 px-4 py-3 text-sm font-semibold text-slate-950 shadow-lg shadow-slate-950/30"
+        >
+          {notice}
+        </div>
+      ) : null}
+
       <div className="space-y-2">
         <h1 className="text-3xl font-semibold text-white">로그인</h1>
         <p className="text-slate-300">학습 기록과 맞춤 시나리오를 이어서 확인합니다.</p>

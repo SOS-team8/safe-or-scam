@@ -77,13 +77,6 @@ export type ApiResponse<T> = {
   }
 }
 
-export type AuthUser = {
-  id?: number
-  email: string
-  name: string
-  role?: UserRole
-}
-
 export type SignupDraft = {
   email: string
   name: string
