@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLocation, useNavigate, type Location } from 'react-router-dom'
 
 import { toApiError } from '@/shared/api/error'
+import { userKeys } from '@/features/user/queryKeys'
 
 import { authApi } from './api'
 import { authKeys } from './queryKeys'
@@ -27,6 +28,8 @@ const getRedirectPath = (state: unknown) => {
 
 export const useAuthBootstrap = () => {
   const accessToken = useAuthStore((state) => state.accessToken)
+  const role = useAuthStore((state) => state.role)
+  const setRole = useAuthStore((state) => state.setRole)
   const clearAuth = useAuthStore((state) => state.clearAuth)
 
   const meQuery = useQuery({
@@ -41,6 +44,30 @@ export const useAuthBootstrap = () => {
       clearAuth()
     }
   }, [clearAuth, meQuery.error])
+
+  useEffect(() => {
+    if (!accessToken || role || meQuery.isPending) {
+      return
+    }
+
+    if (meQuery.data?.role) {
+      setRole(meQuery.data.role)
+      return
+    }
+
+    if (meQuery.isSuccess || meQuery.isError) {
+      clearAuth()
+    }
+  }, [
+    accessToken,
+    clearAuth,
+    meQuery.data?.role,
+    meQuery.isError,
+    meQuery.isPending,
+    meQuery.isSuccess,
+    role,
+    setRole,
+  ])
 
   return {
     isLoadingUser: Boolean(accessToken && meQuery.isPending),
@@ -128,6 +155,7 @@ export const useLogout = () => {
     mutationFn: () => authApi.logout({ refreshToken: refreshToken as string }),
     onSettled: () => {
       clearAuth()
+      queryClient.removeQueries({ queryKey: userKeys.me() })
       void queryClient.invalidateQueries({ queryKey: authKeys.session() })
       navigate('/login', { replace: true })
     },

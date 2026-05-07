@@ -124,7 +124,7 @@ const hasProfileChanges = (profile: UserProfile, form: ProfileForm) =>
 
 function ProfileSkeleton() {
   return (
-    <div className="space-y-5 rounded-lg border border-white/10 bg-white/3 p-6">
+    <div className="space-y-5 rounded-lg border border-white/10 bg-white/5 p-6">
       <div className="flex items-center gap-4">
         <div className="size-16 animate-pulse rounded-full bg-slate-800" />
         <div className="space-y-3">
@@ -170,7 +170,7 @@ function WithdrawDialog({ isSubmitting, onCancel, onConfirm }: WithdrawDialogPro
       const dialog = dialogRef.current
       const focusableElements = Array.from(
         dialog?.querySelectorAll<HTMLElement>(focusableSelector) ?? [],
-      ).filter((element) => !element.hasAttribute('disabled') && !element.getAttribute('aria-hidden'))
+      ).filter((element) => element.getAttribute('aria-hidden') !== 'true')
 
       if (!dialog || focusableElements.length === 0) {
         event.preventDefault()
@@ -394,7 +394,7 @@ export function MyPage() {
         <p className="text-slate-300">내 계정과 맞춤 훈련 설정을 확인합니다.</p>
       </div>
 
-      <section className="rounded-lg border border-white/10 bg-white/3 p-6">
+      <section className="rounded-lg border border-white/10 bg-white/5 p-6">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-4">
             <div className="flex size-16 items-center justify-center rounded-full border border-emerald-300/40 bg-emerald-300/10 text-2xl font-semibold text-emerald-200">
@@ -419,7 +419,7 @@ export function MyPage() {
         </div>
       </section>
 
-      <form className="space-y-5 rounded-lg border border-white/10 bg-white/3 p-6" onSubmit={handleSubmit}>
+      <form className="space-y-5 rounded-lg border border-white/10 bg-white/5 p-6" onSubmit={handleSubmit}>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <h2 className="text-lg font-semibold text-white">회원 정보</h2>
@@ -517,7 +517,7 @@ export function MyPage() {
         </div>
       </form>
 
-      <section className="space-y-4 rounded-lg border border-white/10 bg-white/3 p-6">
+      <section className="space-y-4 rounded-lg border border-white/10 bg-white/5 p-6">
         <div className="flex gap-2 border-b border-white/10 pb-3" role="tablist" aria-label="마이페이지 탭">
           <button
             type="button"
@@ -607,7 +607,7 @@ export function MyPage() {
         )}
       </section>
 
-      <section className="rounded-lg border border-red-300/30 bg-red-500/8 p-6">
+      <section className="rounded-lg border border-red-300/30 bg-red-500/10 p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-lg font-semibold text-red-100">계정 삭제</h2>

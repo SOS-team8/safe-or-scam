@@ -60,6 +60,7 @@ export type MeResponse = {
   occupation: string | null
   gender: string | null
   ageGroup: string | null
+  role?: UserRole
 }
 
 export type ApiResponse<T> = {

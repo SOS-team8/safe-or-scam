@@ -9,11 +9,15 @@ import { userKeys } from './queryKeys'
 import { useOnboardingDraftStore } from './store'
 import type { UpdateProfileRequest } from './types'
 
-export const useUserProfile = () =>
-  useQuery({
+export const useUserProfile = () => {
+  const accessToken = useAuthStore((state) => state.accessToken)
+
+  return useQuery({
     queryKey: userKeys.me(),
     queryFn: userApi.getMe,
+    enabled: Boolean(accessToken),
   })
+}
 
 export const useUpdateProfile = () => {
   const queryClient = useQueryClient()
