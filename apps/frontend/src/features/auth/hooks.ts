@@ -124,7 +124,7 @@ export const useSignup = () => {
       setAuth(response.accessToken, response.refreshToken, response.user.role)
       clearSignupDraft()
       void queryClient.invalidateQueries({ queryKey: authKeys.session() })
-      navigate('/onboarding', { replace: true })
+      navigate('/lobby', { replace: true })
     },
   })
 }
