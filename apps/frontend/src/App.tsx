@@ -18,36 +18,51 @@ function App() {
   const logoutMutation = useLogout()
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
+    <div className="min-h-screen bg-slate-950 font-sans text-slate-100">
       <header className="border-b border-white/10 bg-slate-950/90">
         <nav className="mx-auto flex w-full max-w-6xl items-center justify-between px-5 py-4">
-          <Link to={isAuthenticated ? '/lobby' : '/'} className="text-lg font-semibold tracking-normal">
+          <Link
+            to={isAuthenticated ? '/lobby' : '/'}
+            className="text-glow-cyan rounded-sm text-lg font-bold tracking-normal text-white transition hover:text-cyan-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+          >
             Safe or Scam
           </Link>
           <div className="flex items-center gap-4 text-sm text-slate-300">
             {isAuthenticated ? (
               <>
-                <Link to="/lobby" className="hover:text-white">
+                <Link
+                  to="/lobby"
+                  className="rounded-sm transition hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+                >
                   로비
                 </Link>
-                <Link to="/mypage" className="hover:text-white">
+                <Link
+                  to="/mypage"
+                  className="rounded-sm transition hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+                >
                   마이페이지
                 </Link>
                 <button
                   type="button"
                   disabled={logoutMutation.isPending}
                   onClick={() => logoutMutation.mutate()}
-                  className="rounded-md border border-white/10 px-3 py-1.5 text-slate-200 hover:border-emerald-300 hover:text-white disabled:cursor-not-allowed disabled:text-slate-500"
+                  className="rounded-md border border-white/10 px-3 py-1.5 text-slate-200 transition hover:border-emerald-300 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 disabled:cursor-not-allowed disabled:text-slate-500"
                 >
                   {logoutMutation.isPending ? '로그아웃 중...' : '로그아웃'}
                 </button>
               </>
             ) : (
               <>
-                <Link to="/login" className="hover:text-white">
+                <Link
+                  to="/login"
+                  className="rounded-sm transition hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+                >
                   로그인
                 </Link>
-                <Link to="/signup" className="hover:text-white">
+                <Link
+                  to="/signup"
+                  className="rounded-sm transition hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+                >
                   회원가입
                 </Link>
               </>

@@ -18,7 +18,7 @@ const getRedirectPathForRole = (role: UserRole) => {
     return '/'
   }
 
-  return '/mypage'
+  return '/lobby'
 }
 
 export function ProtectedRoute({ allowedRoles, children }: ProtectedRouteProps) {
