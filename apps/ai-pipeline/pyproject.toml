@@ -1,0 +1,26 @@
+[project]
+name = "ai-pipeline"
+version = "0.1.0"
+description = "Safe-or-Scam AI Pipeline (automated scenario generation)"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.30.0",
+    "pydantic>=2.0",
+    "pydantic-settings>=2.0",
+    "python-dotenv>=1.0.0",
+    "httpx>=0.27.0",
+    "litellm>=1.50.0",
+    "google-genai>=0.8.0",
+    "feedparser>=6.0.0",
+    "beautifulsoup4>=4.12.0",
+    "slowapi>=0.1.9",
+    "trafilatura>=1.12.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
