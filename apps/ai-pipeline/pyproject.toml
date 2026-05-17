@@ -16,6 +16,8 @@ dependencies = [
     "beautifulsoup4>=4.12.0",
     "slowapi>=0.1.9",
     "trafilatura>=1.12.0",
+    "scikit-learn>=1.5.0",
+    "numpy>=2.0.0",
 ]
 
 [build-system]

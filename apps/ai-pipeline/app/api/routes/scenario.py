@@ -17,6 +17,7 @@ router = APIRouter(prefix="/scenarios", tags=["scenarios"])
 
 SEED_SCENARIOS_DIR = Path(__file__).parent.parent.parent / "data" / "seed_scenarios"
 SCENARIOS_DIR = Path(__file__).parent.parent.parent / "data" / "scenarios"
+ENDING_CATEGORIES_DIR = Path(__file__).parent.parent.parent / "data" / "ending_categories"
 
 # 생성 작업 상태 저장
 generation_tasks: dict[str, dict] = {}
@@ -157,6 +158,33 @@ async def get_generation_status(request: Request, scenario_id: str) -> dict:
 
     task = generation_tasks[scenario_id]
     return task
+
+
+@router.get("/{scenario_id}/ending-category/{node_id}")
+@limiter.limit("60/minute")
+async def get_ending_category(request: Request, scenario_id: str, node_id: str) -> dict:
+    """엔딩 노드의 카테고리 정보 조회."""
+    category_file = ENDING_CATEGORIES_DIR / f"{scenario_id}.json"
+    if not category_file.exists():
+        raise HTTPException(status_code=404, detail="Ending categories not found for this scenario")
+
+    data = json.loads(category_file.read_text())
+    category_id = data.get("node_to_category", {}).get(node_id)
+    if not category_id:
+        raise HTTPException(status_code=404, detail="Category not found for this ending node")
+
+    category = next(
+        (c for c in data["categories"] if c["id"] == category_id), None
+    )
+    if not category:
+        raise HTTPException(status_code=404, detail="Category data not found")
+
+    return {
+        "category_id": category["id"],
+        "name": category["name"],
+        "type": category["type"],
+        "description": category["description"],
+    }
 
 
 @router.post("/{scenario_id}/regenerate-images", dependencies=[Depends(require_admin)])
