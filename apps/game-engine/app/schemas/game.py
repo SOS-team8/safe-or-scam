@@ -35,9 +35,24 @@ class ScenarioSummary(BaseModel):
 
 
 class CreateSessionRequest(BaseModel):
-    """game-engine-api v2 §3-3 Request body."""
+    """game-engine-api v2 §3-3 Request body.
+
+    `force_new`: True면 동일 user×scenario 활성 세션을 abandoned로 표시 후 새 세션 생성.
+    "처음부터" UX 지원. 기본 False는 idempotent resume.
+    """
 
     scenario_id: str
+    force_new: bool = False
+
+
+class ActiveSessionResponse(BaseModel):
+    """GET /game-sessions/active?scenario_id=...
+
+    활성 세션 정보 또는 null. LobbyPage가 다이얼로그 표시 여부 판단용.
+    """
+
+    active: bool
+    session: GameSessionResponse | None = None
 
 
 class MoveRequest(BaseModel):

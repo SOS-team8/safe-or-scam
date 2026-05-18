@@ -19,6 +19,7 @@ from app.models.play_log import PlayLog
 from app.models.scenario import Scenario
 from app.models.user_scenario_progress import UserScenarioProgress
 from app.schemas.game import (
+    ActiveSessionResponse,
     CreateSessionRequest,
     GameSessionResponse,
     MoveRequest,
@@ -203,33 +204,40 @@ async def create_session(
             status_code=status.HTTP_404_NOT_FOUND, detail="Scenario not found"
         )
 
-    # 활성 세션 idempotent 처리: 동일 user×scenario 활성 세션 있으면 그대로 resume.
-    # (contract v2 §2-6은 409였으나 UX 부담으로 idempotent 채택 — ADR 갱신 필요)
+    # 활성 세션 처리.
+    # - force_new=False (기본): idempotent resume — 활성 세션 그대로 반환.
+    # - force_new=True ("처음부터"): 기존 활성 세션을 abandoned로 표시 후 새 세션 생성.
+    #   abandoned 세션의 play_logs/progress는 아직 ending 미도달이라 비어있음 (자연 폐기).
     existing = await GameSession.find_one(
         GameSession.user_id == user_id,
         GameSession.scenario_id == body.scenario_id,
         GameSession.status == "playing",
     )
     if existing is not None:
-        current_node = scenario.nodes.get(existing.current_node_id)
-        if current_node is None:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Session points to missing node",
+        if body.force_new:
+            existing.status = "abandoned"
+            existing.completed_at = datetime.now(UTC)
+            await existing.save()
+        else:
+            current_node = scenario.nodes.get(existing.current_node_id)
+            if current_node is None:
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="Session points to missing node",
+                )
+            return GameSessionResponse(
+                session_id=existing.session_id,
+                scenario_id=existing.scenario_id,
+                user_id=existing.user_id,
+                current_node_id=existing.current_node_id,
+                current_node=current_node,
+                resources=existing.resources,
+                status=existing.status,
+                dangerous_count=existing.dangerous_count,
+                choices_history=existing.choices_history,
+                started_at=existing.started_at,
+                completed_at=existing.completed_at,
             )
-        return GameSessionResponse(
-            session_id=existing.session_id,
-            scenario_id=existing.scenario_id,
-            user_id=existing.user_id,
-            current_node_id=existing.current_node_id,
-            current_node=current_node,
-            resources=existing.resources,
-            status=existing.status,
-            dangerous_count=existing.dangerous_count,
-            choices_history=existing.choices_history,
-            started_at=existing.started_at,
-            completed_at=existing.completed_at,
-        )
 
     now = datetime.now(UTC)
     session = GameSession(
@@ -248,6 +256,48 @@ async def create_session(
     await session.insert()
 
     return _build_game_session_response(session, scenario)
+
+
+@router.get(
+    "/game-sessions/active",
+    response_model=ActiveSessionResponse,
+    summary="활성 세션 조회 (LobbyPage 다이얼로그용)",
+)
+async def get_active_session(
+    scenario_id: str,
+    user: dict = Depends(get_current_user),
+) -> ActiveSessionResponse:
+    """동일 user×scenario의 status=playing 세션이 있으면 반환, 없으면 active=false."""
+    user_id = user["user_id"]
+    existing = await GameSession.find_one(
+        GameSession.user_id == user_id,
+        GameSession.scenario_id == scenario_id,
+        GameSession.status == "playing",
+    )
+    if existing is None:
+        return ActiveSessionResponse(active=False, session=None)
+    scenario = await Scenario.find_one(Scenario.scenario_id == scenario_id)
+    if scenario is None:
+        return ActiveSessionResponse(active=False, session=None)
+    current_node = scenario.nodes.get(existing.current_node_id)
+    if current_node is None:
+        return ActiveSessionResponse(active=False, session=None)
+    return ActiveSessionResponse(
+        active=True,
+        session=GameSessionResponse(
+            session_id=existing.session_id,
+            scenario_id=existing.scenario_id,
+            user_id=existing.user_id,
+            current_node_id=existing.current_node_id,
+            current_node=current_node,
+            resources=existing.resources,
+            status=existing.status,
+            dangerous_count=existing.dangerous_count,
+            choices_history=existing.choices_history,
+            started_at=existing.started_at,
+            completed_at=existing.completed_at,
+        ),
+    )
 
 
 @router.get(
