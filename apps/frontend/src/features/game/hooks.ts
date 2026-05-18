@@ -20,10 +20,26 @@ export const useScenarioDetail = (scenarioId: string | undefined) =>
 
 export const useCreateGameSession = () => {
   const hydrateFromSession = useGameStore((s) => s.hydrateFromSession)
+  const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (scenarioId: string) => gameApi.createGameSession(scenarioId),
-    onSuccess: (session) => {
-      hydrateFromSession(session)
+    // mutationFn 안에서 session 생성과 scenario detail 사전 fetch를 함께 수행 →
+    // base onSuccess와 call-site onSuccess 사이의 race를 피하고, hydrateFromSession을
+    // mutate()의 callback이 호출되기 전에 끝낸다.
+    mutationFn: async (scenarioId: string) => {
+      const session = await gameApi.createGameSession(scenarioId)
+      let prologue: string | null
+      try {
+        const tree = await queryClient.fetchQuery({
+          queryKey: gameKeys.scenario(session.scenario_id),
+          queryFn: () => gameApi.fetchScenarioDetail(session.scenario_id),
+        })
+        prologue = tree.prologue ?? null
+      } catch {
+        // prologue fetch 실패는 치명적이지 않다 — phase는 자동으로 playing.
+        prologue = null
+      }
+      hydrateFromSession(session, { prologue })
+      return session
     },
   })
 }

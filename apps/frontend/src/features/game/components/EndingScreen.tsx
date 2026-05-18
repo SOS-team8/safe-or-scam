@@ -64,7 +64,7 @@ export function EndingScreen({
   }, [feedbackTarget, scenarioTree])
 
   return (
-    <section className="space-y-6">
+    <section className="space-y-6 animate-sos-fade-slide">
       <header
         className={`space-y-3 rounded-lg border p-6 ${
           isGood

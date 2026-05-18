@@ -121,4 +121,56 @@ describe('useGameStore', () => {
     useGameStore.getState().reset()
     expect(useGameStore.getState().snapshot).toBeNull()
   })
+
+  it('hydrateFromSession with prologue text sets phase=prologue', () => {
+    useGameStore
+      .getState()
+      .hydrateFromSession(baseSession, { prologue: '안녕하세요, 게임을 시작합니다.' })
+    expect(useGameStore.getState().snapshot?.phase).toBe('prologue')
+  })
+
+  it('hydrateFromSession without prologue (null/empty) sets phase=playing', () => {
+    useGameStore.getState().hydrateFromSession(baseSession, { prologue: null })
+    expect(useGameStore.getState().snapshot?.phase).toBe('playing')
+    useGameStore.getState().reset()
+    useGameStore.getState().hydrateFromSession(baseSession, { prologue: '   ' })
+    expect(useGameStore.getState().snapshot?.phase).toBe('playing')
+  })
+
+  it('startGameAfterPrologue moves prologue → playing; no-op otherwise', () => {
+    useGameStore
+      .getState()
+      .hydrateFromSession(baseSession, { prologue: '시작 안내' })
+    expect(useGameStore.getState().snapshot?.phase).toBe('prologue')
+
+    useGameStore.getState().startGameAfterPrologue()
+    expect(useGameStore.getState().snapshot?.phase).toBe('playing')
+
+    // Repeating once playing is a no-op.
+    useGameStore.getState().startGameAfterPrologue()
+    expect(useGameStore.getState().snapshot?.phase).toBe('playing')
+  })
+
+  it('applyMove transitions phase to ended when is_finished', () => {
+    useGameStore.getState().hydrateFromSession(baseSession)
+    const move: MoveResponse = {
+      session_id: 'sess1',
+      scenario_id: 'scn1',
+      current_node_id: 'n_end',
+      current_node: { ...baseNode, id: 'n_end', type: 'ending_good' },
+      resources: { trust: 3, money: 3, awareness: 2 },
+      status: 'completed',
+      dangerous_count: 0,
+      choices_history: [],
+      danger_feedback: null,
+      educational_content: null,
+      is_finished: true,
+      ending_type: 'ending_good',
+      ending_category: null,
+      started_at: '2026-05-18T00:00:00Z',
+      completed_at: '2026-05-18T00:00:10Z',
+    }
+    useGameStore.getState().applyMove(move)
+    expect(useGameStore.getState().snapshot?.phase).toBe('ended')
+  })
 })

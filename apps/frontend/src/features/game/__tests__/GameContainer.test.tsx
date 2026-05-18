@@ -174,12 +174,53 @@ describe('GameContainer integration', () => {
     const { Wrapper } = createWrapper()
     render(<GameContainer sessionId="sess1" />, { wrapper: Wrapper })
 
+    // Skip the narration typing by clicking on the narration panel.
+    const user = userEvent.setup()
+    await waitFor(() => {
+      expect(
+        screen.getByLabelText('시나리오 나레이션'),
+      ).toBeInTheDocument()
+    })
+    await user.click(screen.getByLabelText('시나리오 나레이션'))
+
     await waitFor(() => {
       expect(screen.getByText('의심스러운 문자가 도착했습니다.')).toBeInTheDocument()
     })
-    expect(screen.getByRole('button', { name: /링크를 클릭한다/ })).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: /링크를 클릭한다/ })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /무시한다/ })).toBeInTheDocument()
     expect(screen.getByLabelText('자원 현황')).toBeInTheDocument()
+  })
+
+  it('renders prologue screen first when scenario has prologue text', async () => {
+    const treeWithPrologue: ScenarioTree = {
+      ...tree,
+      prologue: '오늘은 평범한 하루입니다. 곧 의심스러운 문자가 도착할 거예요.',
+    }
+    mockedGet.mockResolvedValueOnce(sessionAsMove)
+    mockedDetail.mockResolvedValue(treeWithPrologue)
+    useGameStore.getState().hydrateFromSession(session, {
+      prologue: treeWithPrologue.prologue,
+    })
+
+    const { Wrapper } = createWrapper()
+    render(<GameContainer sessionId="sess1" />, { wrapper: Wrapper })
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('시나리오 프롤로그')).toBeInTheDocument()
+    })
+
+    const user = userEvent.setup()
+    // 클릭으로 typing skip → 시작 버튼 활성화.
+    await user.click(screen.getByLabelText('시나리오 프롤로그'))
+
+    const startButton = screen.getByRole('button', { name: '게임 시작하기' })
+    expect(startButton).not.toBeDisabled()
+    await user.click(startButton)
+
+    // 시작 버튼 클릭 후 narration panel로 전환.
+    await waitFor(() => {
+      expect(screen.getByLabelText('시나리오 나레이션')).toBeInTheDocument()
+    })
   })
 
   it('shows EducationalPopup after a dangerous choice; closes on dismiss', async () => {
@@ -215,6 +256,8 @@ describe('GameContainer integration', () => {
     render(<GameContainer sessionId="sess1" />, { wrapper: Wrapper })
 
     const user = userEvent.setup()
+    // narration typing skip
+    await user.click(await screen.findByLabelText('시나리오 나레이션'))
     await user.click(await screen.findByRole('button', { name: /링크를 클릭한다/ }))
 
     await waitFor(() => {
@@ -256,6 +299,8 @@ describe('GameContainer integration', () => {
     render(<GameContainer sessionId="sess1" />, { wrapper: Wrapper })
 
     const user = userEvent.setup()
+    // narration typing skip
+    await user.click(await screen.findByLabelText('시나리오 나레이션'))
     await user.click(await screen.findByRole('button', { name: /무시한다/ }))
 
     await waitFor(() => {

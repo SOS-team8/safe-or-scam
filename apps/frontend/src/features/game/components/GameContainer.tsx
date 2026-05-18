@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { toGameEngineError } from '../api'
@@ -12,6 +12,7 @@ import { ChoicePanel } from './ChoicePanel'
 import { EducationalPopup } from './EducationalPopup'
 import { EndingScreen } from './EndingScreen'
 import { NarrationPanel } from './NarrationPanel'
+import { PrologueScreen } from './PrologueScreen'
 import { ResourceBar } from './ResourceBar'
 
 type GameContainerProps = {
@@ -22,11 +23,27 @@ export function GameContainer({ sessionId }: GameContainerProps) {
   const navigate = useNavigate()
   const snapshot = useGameStore((s) => s.snapshot)
   const dismissPopup = useGameStore((s) => s.dismissPopup)
+  const startGameAfterPrologue = useGameStore((s) => s.startGameAfterPrologue)
   const resetStore = useGameStore((s) => s.reset)
 
   const sessionQuery = useGameSession(sessionId)
   const scenarioQuery = useScenarioDetail(snapshot?.scenarioId)
   const submitMutation = useSubmitChoice(sessionId)
+
+  // 현재 노드의 narration 타이핑 완료 여부.
+  // 노드가 바뀌면 false로 초기화돼 ChoicePanel을 일시 숨김 — 스포일러 방지.
+  // useState로 lastNodeId를 함께 추적해 useEffect setState 패턴을 피한다.
+  const currentNodeId = snapshot?.currentNode.id ?? null
+  const [narrationState, setNarrationState] = useState<{
+    isComplete: boolean
+    lastNodeId: string | null
+  }>({ isComplete: false, lastNodeId: currentNodeId })
+  if (narrationState.lastNodeId !== currentNodeId) {
+    setNarrationState({ isComplete: false, lastNodeId: currentNodeId })
+  }
+  const isNarrationComplete = narrationState.isComplete
+  const markNarrationComplete = () =>
+    setNarrationState({ isComplete: true, lastNodeId: currentNodeId })
 
   useEffect(() => () => resetStore(), [resetStore])
 
@@ -74,6 +91,26 @@ export function GameContainer({ sessionId }: GameContainerProps) {
   const popupContent = snapshot.pendingEducationalContent
   const isPopupOpen = Boolean(popupContent)
 
+  // Prologue 화면 — 시작 전 시나리오 설명.
+  // scenarioQuery가 완료되어 prologue가 비어있는 게 확인되면 자동 진행
+  // (안전 분기). 사용자가 hydrateFromSession에서 prologue를 받지 못한 케이스 보완.
+  if (snapshot.phase === 'prologue') {
+    const prologueText = scenarioQuery.data?.prologue ?? null
+    if (scenarioQuery.isSuccess && (!prologueText || prologueText.trim() === '')) {
+      // 다음 렌더에서 곧장 playing으로 진행.
+      queueMicrotask(() => startGameAfterPrologue())
+      return null
+    }
+    return (
+      <PrologueScreen
+        title={scenarioQuery.data?.title ?? ''}
+        prologue={prologueText ?? ''}
+        onStart={() => startGameAfterPrologue()}
+        isLoading={scenarioQuery.isPending}
+      />
+    )
+  }
+
   if (snapshot.isFinished && snapshot.endingType) {
     return (
       <EndingScreen
@@ -110,6 +147,7 @@ export function GameContainer({ sessionId }: GameContainerProps) {
       <NarrationPanel
         text={snapshot.currentNode.text}
         imageUrl={snapshot.currentNode.image_url}
+        onTypingComplete={markNarrationComplete}
       />
 
       {submitError ? (
@@ -121,13 +159,18 @@ export function GameContainer({ sessionId }: GameContainerProps) {
         </p>
       ) : null}
 
-      <ChoicePanel
-        choices={snapshot.currentNode.choices}
-        disabled={submitMutation.isPending || isPopupOpen}
-        onChoose={(choiceId) => {
-          submitMutation.mutate(choiceId)
-        }}
-      />
+      {/* 타이핑 진행 중이면 선택지를 숨겨 스포일러 방지. ending 노드는 choices=[] 라 자연스럽게 비표시. */}
+      {isNarrationComplete ? (
+        <div className="animate-sos-fade-slide">
+          <ChoicePanel
+            choices={snapshot.currentNode.choices}
+            disabled={submitMutation.isPending || isPopupOpen}
+            onChoose={(choiceId) => {
+              submitMutation.mutate(choiceId)
+            }}
+          />
+        </div>
+      ) : null}
 
       {popupContent ? (
         <EducationalPopup

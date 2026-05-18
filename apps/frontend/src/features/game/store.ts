@@ -12,6 +12,16 @@ import type {
   SessionStatus,
 } from './types'
 
+/**
+ * 게임 진행 단계.
+ * - prologue: 시나리오의 prologue를 표시하는 시작 화면.
+ * - playing: 노드 → 선택 → 노드 진행 중.
+ * - ended: isFinished=true (EndingScreen에서 처리).
+ *
+ * prologue가 null/공백이면 hydrateFromSession이 곧장 playing으로 들어간다.
+ */
+export type GamePhase = 'prologue' | 'playing' | 'ended'
+
 type GameSnapshot = {
   sessionId: string
   scenarioId: string
@@ -26,14 +36,19 @@ type GameSnapshot = {
   endingCategory: string | null
   pendingEducationalContent: EducationalContent | null
   pendingDangerFeedback: DangerFeedback | null
+  phase: GamePhase
 }
 
 type GameStoreState = GameSnapshot | null
 
 type GameStoreActions = {
-  hydrateFromSession: (session: GameSessionResponse) => void
+  hydrateFromSession: (
+    session: GameSessionResponse,
+    options?: { prologue?: string | null },
+  ) => void
   applyMove: (response: MoveResponse) => void
   dismissPopup: () => void
+  startGameAfterPrologue: () => void
   reset: () => void
 }
 
@@ -41,7 +56,13 @@ type GameStore = {
   snapshot: GameStoreState
 } & GameStoreActions
 
-const buildSnapshotFromSession = (session: GameSessionResponse): GameSnapshot => ({
+const hasMeaningfulText = (s: string | null | undefined): s is string =>
+  typeof s === 'string' && s.trim().length > 0
+
+const buildSnapshotFromSession = (
+  session: GameSessionResponse,
+  prologue?: string | null,
+): GameSnapshot => ({
   sessionId: session.session_id,
   scenarioId: session.scenario_id,
   currentNode: session.current_node,
@@ -55,6 +76,7 @@ const buildSnapshotFromSession = (session: GameSessionResponse): GameSnapshot =>
   endingCategory: null,
   pendingEducationalContent: null,
   pendingDangerFeedback: null,
+  phase: hasMeaningfulText(prologue) ? 'prologue' : 'playing',
 })
 
 const buildSnapshotFromMove = (
@@ -74,12 +96,17 @@ const buildSnapshotFromMove = (
   endingCategory: move.ending_category,
   pendingEducationalContent: move.educational_content,
   pendingDangerFeedback: move.danger_feedback,
+  // is_finished면 ended로. 아니면 이전 phase를 유지 — prologue 중 GET /session 응답이
+  // 들어와도 phase가 'prologue'로 보존된다 (사용자가 명시 시작 버튼을 눌러야 playing 진입).
+  phase: move.is_finished ? 'ended' : prev.phase,
 })
 
 export const useGameStore = create<GameStore>((set) => ({
   snapshot: null,
-  hydrateFromSession: (session) =>
-    set({ snapshot: buildSnapshotFromSession(session) }),
+  hydrateFromSession: (session, options) =>
+    set({
+      snapshot: buildSnapshotFromSession(session, options?.prologue),
+    }),
   applyMove: (response) =>
     set((state) => {
       if (!state.snapshot) {
@@ -99,6 +126,7 @@ export const useGameStore = create<GameStore>((set) => ({
             endingCategory: response.ending_category,
             pendingEducationalContent: response.educational_content,
             pendingDangerFeedback: response.danger_feedback,
+            phase: response.is_finished ? 'ended' : 'playing',
           },
         }
       }
@@ -112,6 +140,17 @@ export const useGameStore = create<GameStore>((set) => ({
           ...state.snapshot,
           pendingEducationalContent: null,
           pendingDangerFeedback: null,
+        },
+      }
+    }),
+  startGameAfterPrologue: () =>
+    set((state) => {
+      if (!state.snapshot) return state
+      if (state.snapshot.phase !== 'prologue') return state
+      return {
+        snapshot: {
+          ...state.snapshot,
+          phase: 'playing',
         },
       }
     }),

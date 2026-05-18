@@ -80,7 +80,7 @@ export function EducationalPopup({ content, isOpen, onDismiss }: EducationalPopu
         aria-labelledby="educational-popup-title"
         aria-describedby="educational-popup-description"
         tabIndex={-1}
-        className="w-full max-w-lg space-y-5 rounded-lg border border-emerald-300/30 bg-slate-900 p-6 shadow-2xl shadow-slate-950/50"
+        className="w-full max-w-lg space-y-5 rounded-lg border border-emerald-300/30 bg-slate-900 p-6 shadow-2xl shadow-slate-950/50 animate-sos-fade-slide"
       >
         <p className="text-sm font-semibold text-emerald-300">학습 포인트</p>
         <h2 id="educational-popup-title" className="text-2xl font-semibold text-white">
