@@ -22,8 +22,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -65,7 +63,7 @@ public class UserService {
             request.communicateChannels().stream().map(CommunicateChannel::code).toList(),
             request.onlineActivities().stream().map(OnlineActivity::code).toList(),
             request.financialChannels().stream().map(FinancialChannel::code).toList(),
-            List.of(request.familyType().code())
+            request.familyType()
         );
         user.changeRole(Role.USER);
 

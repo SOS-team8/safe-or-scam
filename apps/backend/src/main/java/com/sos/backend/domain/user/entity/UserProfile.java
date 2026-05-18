@@ -1,7 +1,8 @@
 package com.sos.backend.domain.user.entity;
 
-import com.sos.backend.domain.user.enums.Gender;
 import com.sos.backend.domain.user.enums.AgeGroup;
+import com.sos.backend.domain.user.enums.FamilyType;
+import com.sos.backend.domain.user.enums.Gender;
 import com.sos.backend.domain.user.enums.Occupation;
 import com.sos.backend.global.common.entity.BaseEntity;
 import jakarta.persistence.*;
@@ -61,9 +62,9 @@ public class UserProfile extends BaseEntity {
     @Column(name = "financial_channels", columnDefinition = "text[]")
     private List<String> financialChannels;
 
-    @JdbcTypeCode(SqlTypes.ARRAY)
-    @Column(name = "family_type", columnDefinition = "text[]")
-    private List<String> familyType;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "family_type", length = 50)
+    private FamilyType familyType;
 
     public void updateBasicInfo(Occupation occupation, Gender gender, AgeGroup ageGroup) {
         this.occupation = occupation;
@@ -79,7 +80,7 @@ public class UserProfile extends BaseEntity {
         List<String> communicateChannels,
         List<String> onlineActivities,
         List<String> financialChannels,
-        List<String> familyType
+        FamilyType familyType
     ) {
         this.occupation = occupation;
         this.gender = gender;

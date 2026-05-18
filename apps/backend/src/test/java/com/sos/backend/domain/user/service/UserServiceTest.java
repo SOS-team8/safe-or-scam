@@ -206,7 +206,7 @@ class UserServiceTest {
             .communicateChannels(List.of())
             .onlineActivities(List.of())
             .financialChannels(List.of())
-            .familyType(List.of())
+            .familyType(FamilyType.WITH_PARENTS)
             .build();
     }
 
