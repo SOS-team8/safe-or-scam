@@ -17,6 +17,7 @@ from app.models.news import PhishingArticle
 from app.pipeline.tree_builder import ScenarioTreeBuilder
 from app.api.routes.scenario import _save_scenario
 from app.api.deps import require_admin, limiter, acquire_task_slot, release_task_slot, cleanup_task_dict, sanitize_error
+from app.db import mongo as mongo_mod
 
 logger = logging.getLogger("api.crawler")
 router = APIRouter(prefix="/crawler", tags=["crawler"])
@@ -32,9 +33,28 @@ crawler_tasks: dict[str, dict] = {}
 analyzed_articles: dict[str, PhishingArticle] = {}
 
 
+async def _upsert_articles_to_mongo(articles: list[PhishingArticle]) -> None:
+    """크롤링 결과를 news_articles 컬렉션에 upsert (news-article contract §4).
+
+    실패 시 로그만 남기고 진행 (JSON 캐시가 fallback 진실).
+    """
+    for article in articles:
+        try:
+            result = await mongo_mod.upsert_phishing_article(article)
+            logger.debug(
+                "news_articles upsert: url=%s, matched=%d, modified=%d, upserted=%s",
+                article.url, result["matched"], result["modified"], result["upserted_id"],
+            )
+        except Exception as e:
+            logger.warning(
+                "news_articles upsert 실패 (url=%s): %s — JSON 캐시는 유지됨",
+                article.url, str(e)[:200],
+            )
+
+
 def _save_articles_to_file(articles: list[PhishingArticle]) -> str:
     """분석된 기사들을 JSON 파일로 저장
-    
+
     Returns:
         저장된 파일 경로
     """
@@ -167,9 +187,12 @@ async def _run_refresh(task_id: str, keywords: list[str] | None):
 
         # dict로 저장 (id -> article)
         analyzed_articles = {a.id: a for a in articles}
-        
-        # JSON 파일로 저장
+
+        # JSON 파일로 저장 (캐시)
         _save_articles_to_file(articles)
+
+        # MongoDB news_articles 컬렉션에 upsert (news-article contract §4)
+        await _upsert_articles_to_mongo(articles)
 
         crawler_tasks[task_id]["articles_count"] = len(articles)
         crawler_tasks[task_id]["status"] = "completed"
@@ -326,6 +349,15 @@ async def _run_generate_from_article(
 
         _save_scenario(scenario)
 
+        # news_articles 추적 정보 갱신 (contract §4 후반)
+        try:
+            await mongo_mod.mark_article_scenario_generated(article.id, scenario.scenario_id)
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(
+                "mark_article_scenario_generated 실패 (article_id=%s): %s",
+                article.id, str(exc)[:200],
+            )
+
         crawler_tasks[task_id]["status"] = "completed"
         crawler_tasks[task_id]["scenario_id"] = scenario.scenario_id
         logger.info("[%s] 시나리오 생성 완료: %s", task_id, scenario.scenario_id)
@@ -418,9 +450,12 @@ async def _run_generate_scenarios(task_id: str, request: GenerateScenariosReques
 
         articles = await crawl_and_analyze(request.keywords)
         analyzed_articles = {a.id: a for a in articles}
-        
-        # JSON 파일로 저장
+
+        # JSON 파일로 저장 (캐시)
         _save_articles_to_file(articles)
+
+        # MongoDB news_articles 컬렉션에 upsert (news-article contract §4)
+        await _upsert_articles_to_mongo(articles)
 
         crawler_tasks[task_id]["articles_count"] = len(articles)
         logger.info("[%s] 분석 완료: %d개 기사", task_id, len(articles))
