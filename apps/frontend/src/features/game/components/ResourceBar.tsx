@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import type { Resources } from '../types'
 
@@ -35,27 +35,46 @@ const computeFlash = (
   return current > previous ? 'up' : 'down'
 }
 
+const emptyFlash: Record<ResourceKey, FlashTone> = {
+  trust: null,
+  money: null,
+  awareness: null,
+}
+
+const buildFlashSnapshot = (
+  resources: Resources,
+  previousResources: Resources | null | undefined,
+): Record<ResourceKey, FlashTone> => {
+  if (!previousResources) return emptyFlash
+  return {
+    trust: computeFlash(resources.trust, previousResources.trust),
+    money: computeFlash(resources.money, previousResources.money),
+    awareness: computeFlash(resources.awareness, previousResources.awareness),
+  }
+}
+
+const flashKey = (resources: Resources) =>
+  `${resources.trust}.${resources.money}.${resources.awareness}`
+
 export function ResourceBar({ resources, previousResources }: ResourceBarProps) {
-  const [flash, setFlash] = useState<Record<ResourceKey, FlashTone>>({
-    trust: null,
-    money: null,
-    awareness: null,
-  })
+  // Derive an identity for the current resource snapshot. When the timer fires
+  // and we record this identity as "cleared", we suppress the flash without
+  // racing the next render.
+  const currentKey = flashKey(resources)
+  const [clearedKey, setClearedKey] = useState<string | null>(null)
+
+  const flash = useMemo(() => {
+    if (clearedKey === currentKey) return emptyFlash
+    return buildFlashSnapshot(resources, previousResources)
+  }, [clearedKey, currentKey, resources, previousResources])
 
   useEffect(() => {
     if (!previousResources) return
-    const next: Record<ResourceKey, FlashTone> = {
-      trust: computeFlash(resources.trust, previousResources.trust),
-      money: computeFlash(resources.money, previousResources.money),
-      awareness: computeFlash(resources.awareness, previousResources.awareness),
-    }
-    setFlash(next)
-    const timer = window.setTimeout(
-      () => setFlash({ trust: null, money: null, awareness: null }),
-      FLASH_MS,
-    )
+    const snapshot = buildFlashSnapshot(resources, previousResources)
+    if (!Object.values(snapshot).some((tone) => tone !== null)) return
+    const timer = window.setTimeout(() => setClearedKey(currentKey), FLASH_MS)
     return () => window.clearTimeout(timer)
-  }, [resources, previousResources])
+  }, [resources, previousResources, currentKey])
 
   return (
     <div

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link, Navigate, Route, Routes } from 'react-router-dom'
 
 import { useAuthBootstrap, useLogout } from '@/features/auth/hooks'
@@ -18,13 +18,8 @@ function App() {
 
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const logoutMutation = useLogout()
-  const [isIntegrityToastVisible, setIsIntegrityToastVisible] = useState(false)
-
-  useEffect(() => {
-    if (hasMeIntegrityError) {
-      setIsIntegrityToastVisible(true)
-    }
-  }, [hasMeIntegrityError])
+  const [isIntegrityToastDismissed, setIsIntegrityToastDismissed] = useState(false)
+  const isIntegrityToastVisible = hasMeIntegrityError && !isIntegrityToastDismissed
 
   return (
     <div className="min-h-screen bg-slate-950 font-sans text-slate-100">
@@ -135,7 +130,7 @@ function App() {
           <div className="flex justify-end gap-2">
             <button
               type="button"
-              onClick={() => setIsIntegrityToastVisible(false)}
+              onClick={() => setIsIntegrityToastDismissed(true)}
               className="rounded-md border border-white/10 px-3 py-1.5 text-xs font-semibold text-slate-300 hover:border-emerald-300 hover:text-white"
             >
               닫기
@@ -143,7 +138,7 @@ function App() {
             <button
               type="button"
               onClick={() => {
-                setIsIntegrityToastVisible(false)
+                setIsIntegrityToastDismissed(true)
                 void retryMe()
               }}
               className="rounded-md bg-emerald-400 px-3 py-1.5 text-xs font-semibold text-slate-950 hover:bg-emerald-300"
