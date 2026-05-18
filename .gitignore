@@ -77,3 +77,10 @@ logs/
 .claude/
 CLAUDE.md
 _workspace/
+
+# ========================
+# Credentials
+# ========================
+credentials/
+*.pem
+*.key
