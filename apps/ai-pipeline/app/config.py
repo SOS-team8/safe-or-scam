@@ -24,6 +24,11 @@ class Settings(BaseSettings):
     # 백그라운드 작업 제한
     max_concurrent_tasks: int = 1
 
+    # 시나리오 이미지 정적 서빙 경로 (StaticFiles로 마운트)
+    # MongoDB scenarios.nodes[*].image_url 은 "/api/v1/images/..." 상대 경로이며
+    # 본 디렉토리 하위에 scenario_xxx/node_xxx.png 형태로 저장됨.
+    images_dir: str | None = None
+
     # 관리자 인증
     admin_password: str = ""
 
