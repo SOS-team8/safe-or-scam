@@ -4,6 +4,7 @@ from pymongo import AsyncMongoClient
 
 from app.core.config import settings
 from app.models.game_session import GameSession
+from app.models.news_article import NewsArticle
 from app.models.play_log import PlayLog
 from app.models.scenario import Scenario
 from app.models.user_scenario_progress import UserScenarioProgress
@@ -25,6 +26,7 @@ async def init_mongo() -> None:
             GameSession,
             PlayLog,
             UserScenarioProgress,
+            NewsArticle,
         ],
     )
 
