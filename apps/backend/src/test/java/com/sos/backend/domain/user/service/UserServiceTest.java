@@ -161,7 +161,7 @@ class UserServiceTest {
             assertThat(profile.getCommunicateChannels()).containsExactly("phone", "email");
             assertThat(profile.getOnlineActivities()).containsExactly("delivery", "government");
             assertThat(profile.getFinancialChannels()).containsExactly("mobile_banking", "easy_pay");
-            assertThat(profile.getFamilyType()).containsExactly("with_parents");
+            assertThat(profile.getFamilyType()).isEqualTo(FamilyType.WITH_PARENTS);
         }
 
         @Test
