@@ -79,6 +79,6 @@ class UserMeResponseTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.data.name").value("미리스폰테스트"))
             .andExpect(jsonPath("$.data.role").value("USER"))
             .andExpect(jsonPath("$.data.status").value("ACTIVE"))
-            .andExpect(jsonPath("$.data.created_at").exists());
+            .andExpect(jsonPath("$.data.createdAt").exists());
     }
 }
