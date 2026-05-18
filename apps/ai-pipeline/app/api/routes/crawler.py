@@ -327,8 +327,8 @@ async def _run_generate_from_article(
         _save_scenario(scenario)
 
         crawler_tasks[task_id]["status"] = "completed"
-        crawler_tasks[task_id]["scenario_id"] = scenario.id
-        logger.info("[%s] 시나리오 생성 완료: %s", task_id, scenario.id)
+        crawler_tasks[task_id]["scenario_id"] = scenario.scenario_id
+        logger.info("[%s] 시나리오 생성 완료: %s", task_id, scenario.scenario_id)
 
     except Exception as e:
         crawler_tasks[task_id]["status"] = "failed"
@@ -469,10 +469,10 @@ async def _run_generate_scenarios(task_id: str, request: GenerateScenariosReques
             )
 
             _save_scenario(scenario)
-            scenario_ids.append(scenario.id)
+            scenario_ids.append(scenario.scenario_id)
             scenarios_generated += 1
 
-            logger.info("[%s] 시나리오 생성 완료: %s", task_id, scenario.id)
+            logger.info("[%s] 시나리오 생성 완료: %s", task_id, scenario.scenario_id)
 
         crawler_tasks[task_id]["scenario_ids"] = scenario_ids
         crawler_tasks[task_id]["status"] = "completed"

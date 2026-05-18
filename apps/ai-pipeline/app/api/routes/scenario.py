@@ -38,9 +38,13 @@ def _load_scenario(file_path: Path) -> ScenarioTree:
 
 
 def _save_scenario(scenario: ScenarioTree):
-    """시나리오를 JSON 파일로 저장"""
+    """시나리오를 JSON 파일로 저장 (캐시).
+
+    MongoDB upsert는 별도 헬퍼(`app.db.mongo.upsert_scenario`)가 담당.
+    JSON 캐시는 디버깅·재현용으로 유지.
+    """
     SCENARIOS_DIR.mkdir(parents=True, exist_ok=True)
-    file_path = SCENARIOS_DIR / f"{scenario.id}.json"
+    file_path = SCENARIOS_DIR / f"{scenario.scenario_id}.json"
     with open(file_path, "w", encoding="utf-8") as f:
         json.dump(scenario.model_dump(mode="json"), f, ensure_ascii=False, indent=2)
 
@@ -75,7 +79,7 @@ async def list_scenarios(request: Request) -> list[dict]:
     scenarios = _get_all_scenarios()
     return [
         {
-            "id": s.id,
+            "scenario_id": s.scenario_id,
             "title": s.title,
             "description": s.description,
             "phishing_type": s.phishing_type,
@@ -92,7 +96,7 @@ async def get_scenario(request: Request, scenario_id: str) -> ScenarioTree:
     """시나리오 상세 조회"""
     scenarios = _get_all_scenarios()
     for scenario in scenarios:
-        if scenario.id == scenario_id:
+        if scenario.scenario_id == scenario_id:
             return scenario
     raise HTTPException(status_code=404, detail="Scenario not found")
 
@@ -113,8 +117,8 @@ async def _run_generation(task_id: str, request: GenerateRequest):
         _save_scenario(scenario)
 
         generation_tasks[task_id]["status"] = "completed"
-        generation_tasks[task_id]["scenario_id"] = scenario.id
-        logger.info("생성 완료: task=%s, scenario=%s", task_id, scenario.id)
+        generation_tasks[task_id]["scenario_id"] = scenario.scenario_id
+        logger.info("생성 완료: task=%s, scenario=%s", task_id, scenario.scenario_id)
 
     except Exception as e:
         generation_tasks[task_id]["status"] = "failed"
