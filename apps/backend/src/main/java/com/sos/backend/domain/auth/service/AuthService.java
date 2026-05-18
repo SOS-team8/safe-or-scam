@@ -165,14 +165,31 @@ public class AuthService {
         );
     }
 
+    /**
+     * Refresh token으로 새 access/refresh token 발급.
+     *
+     * P1-4 (backend-104) + auth-boundary.md §5 적용:
+     *  - {@link Transactional} 보장: refresh token revoke + 새 token 발급이 한 트랜잭션
+     *  - 새 access token에 role claim 명시: DB에서 user.getRole()을 재조회해 발급
+     *    (기존 토큰의 role 복사가 아니므로 role 변경이 즉시 반영)
+     */
+    @Transactional
     public RefreshResponse refresh(RefreshRequest request) {
         // 1. Refresh Token Rotation (검증 + 재사용 감지 + 새 refresh token 발급)
         String newRefreshToken = refreshTokenService.rotate(request.refreshToken());
 
-        // 2. 새 refresh token에서 user 정보 추출하여 access token 발급
+        // 2. 새 refresh token에서 user id 추출
         Long userId = jwtProvider.getUserId(newRefreshToken);
-        String email = jwtProvider.getEmail(newRefreshToken);
-        String newAccessToken = jwtProvider.createAccessToken(userId, email);
+
+        // 3. DB에서 user 재조회 → role claim에 반영 (P1-4 + ADR-006)
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        String newAccessToken = jwtProvider.createAccessToken(
+            user.getId(),
+            user.getEmail(),
+            user.getRole()
+        );
 
         return new RefreshResponse(newAccessToken, newRefreshToken);
     }
