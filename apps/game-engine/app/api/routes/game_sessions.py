@@ -203,16 +203,32 @@ async def create_session(
             status_code=status.HTTP_404_NOT_FOUND, detail="Scenario not found"
         )
 
-    # 활성 세션 충돌 검사 (game-engine-api v2 §2-6)
+    # 활성 세션 idempotent 처리: 동일 user×scenario 활성 세션 있으면 그대로 resume.
+    # (contract v2 §2-6은 409였으나 UX 부담으로 idempotent 채택 — ADR 갱신 필요)
     existing = await GameSession.find_one(
         GameSession.user_id == user_id,
         GameSession.scenario_id == body.scenario_id,
         GameSession.status == "playing",
     )
     if existing is not None:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Active session already exists for this scenario",
+        current_node = scenario.nodes.get(existing.current_node_id)
+        if current_node is None:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Session points to missing node",
+            )
+        return GameSessionResponse(
+            session_id=existing.session_id,
+            scenario_id=existing.scenario_id,
+            user_id=existing.user_id,
+            current_node_id=existing.current_node_id,
+            current_node=current_node,
+            resources=existing.resources,
+            status=existing.status,
+            dangerous_count=existing.dangerous_count,
+            choices_history=existing.choices_history,
+            started_at=existing.started_at,
+            completed_at=existing.completed_at,
         )
 
     now = datetime.now(UTC)

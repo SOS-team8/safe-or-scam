@@ -67,21 +67,23 @@ async def test_create_session_scenario_not_found(client: httpx.AsyncClient, test
     assert res.json() == {"detail": "Scenario not found"}
 
 
-async def test_create_session_conflict_when_playing_session_exists(
+async def test_create_session_resumes_existing_active_session(
     client: httpx.AsyncClient, _seeded_scenario
 ):
+    """동일 user×scenario 활성 세션이 있으면 그것을 resume (idempotent)."""
     res1 = await client.post(
         "/api/v1/game-sessions", json={"scenario_id": REGRESSION_SCENARIO_ID}
     )
     assert res1.status_code == 201
+    first_session_id = res1.json()["session_id"]
 
     res2 = await client.post(
         "/api/v1/game-sessions", json={"scenario_id": REGRESSION_SCENARIO_ID}
     )
-    assert res2.status_code == 409
-    assert res2.json() == {
-        "detail": "Active session already exists for this scenario"
-    }
+    # idempotent: 새 세션 생성하지 않고 기존 세션을 200으로 반환
+    assert res2.status_code in (200, 201)
+    assert res2.json()["session_id"] == first_session_id
+    assert res2.json()["status"] == "playing"
 
 
 async def test_create_session_different_scenario_no_conflict(
