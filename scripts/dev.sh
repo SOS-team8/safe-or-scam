@@ -41,8 +41,11 @@ wait_for_url() {
   local url="$1" name="$2" timeout="${3:-60}"
   local i=0
   while [ "$i" -lt "$timeout" ]; do
-    if curl -sf -o /dev/null --max-time 2 "$url" 2>/dev/null; then
-      ok "$name ready ($url)"
+    # -f 제거: 401/404 같은 HTTP 응답도 "서버 살아있음"으로 인정 (Spring Security / 차단 등)
+    local code
+    code=$(curl -s -o /dev/null --max-time 2 -w "%{http_code}" "$url" 2>/dev/null || echo "000")
+    if [ "$code" != "000" ]; then
+      ok "$name ready ($url, HTTP $code)"
       return 0
     fi
     sleep 1
@@ -50,6 +53,20 @@ wait_for_url() {
   done
   warn "$name not ready after ${timeout}s ($url) — 로그 확인 권장"
   return 1
+}
+
+# 포트가 점유 중이면 그 프로세스를 죽인다 (재시작 안전성)
+ensure_port_free() {
+  local port="$1" name="$2"
+  local pid
+  pid=$(lsof -nP -iTCP:"$port" -sTCP:LISTEN 2>/dev/null | awk 'NR>1 {print $2; exit}')
+  if [ -n "$pid" ]; then
+    warn "port $port busy (pid=$pid) — killing before starting $name"
+    kill "$pid" 2>/dev/null || true
+    sleep 1
+    kill -9 "$pid" 2>/dev/null || true
+    sleep 1
+  fi
 }
 
 start_infra() {
@@ -72,6 +89,7 @@ start_infra() {
 }
 
 start_backend() {
+  ensure_port_free 8080 "backend"
   log "Starting backend (8080)..."
   ( cd "$ROOT/apps/backend"
     load_env "$INFRA_ENV"
@@ -79,10 +97,11 @@ start_backend() {
       > "$LOG_DIR/backend.log" 2>&1 &
     echo $! > "$PID_DIR/backend.pid"
   )
-  wait_for_url "http://localhost:8080/" "backend" 90 || true
+  wait_for_url "http://localhost:8080/" "backend" 120 || true
 }
 
 start_game_engine() {
+  ensure_port_free 8000 "game-engine"
   log "Starting game-engine (8000)..."
   ( cd "$ROOT/apps/game-engine"
     load_env "$ROOT/apps/game-engine/.env"
@@ -94,6 +113,7 @@ start_game_engine() {
 }
 
 start_ai_pipeline() {
+  ensure_port_free 8001 "ai-pipeline"
   log "Starting ai-pipeline (8001)..."
   ( cd "$ROOT/apps/ai-pipeline"
     load_env "$ROOT/apps/ai-pipeline/.env"
@@ -105,6 +125,7 @@ start_ai_pipeline() {
 }
 
 start_frontend() {
+  ensure_port_free 5173 "frontend"
   log "Starting frontend (5173)..."
   ( cd "$ROOT/apps/frontend"
     if [ ! -d node_modules ]; then
