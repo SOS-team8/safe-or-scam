@@ -6,7 +6,7 @@ class Settings(BaseSettings):
     """환경변수 기반 설정"""
     # Google Gemini API (LLM용)
     gemini_api_key: str = ""
-    llm_model: str = "gemini/gemini-3-flash-preview"
+    llm_model: str = "gemini/gemini-3.1-flash-lite"
     image_model: str = "imagen-4.0-fast-generate-001"
 
     # Google Cloud Vertex AI (Imagen 이미지 생성용)
@@ -46,7 +46,7 @@ class Settings(BaseSettings):
     image_batch_size: int = 10      # 배치 크기
     image_batch_wait: float = 12.0  # 배치 간 대기 (초)
 
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
 
 settings = Settings()
