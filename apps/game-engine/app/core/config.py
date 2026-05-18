@@ -21,5 +21,11 @@ class Settings(BaseSettings):
     mongo_db: str = "safe_or_scam"
     scenarios_dir: str | None = None
 
+    # JWT (auth-boundary v1 §7). backend (JJWT) 와 동일 secret 공유.
+    # default 는 CI import smoke 통과용. 운영/dev 환경은 반드시 JWT_SECRET 환경변수로 override.
+    jwt_secret: str = (
+        "ci-smoke-default-secret-please-override-min-32-bytes-long-string"
+    )
+
 
 settings = Settings()  # type: ignore[call-arg]
