@@ -34,9 +34,10 @@ def decode_access_token(token: str) -> dict:
             headers={"WWW-Authenticate": "Bearer"},
         ) from e
     except InvalidTokenError as e:
+        # 임시 디버깅: 정확한 사유 노출
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not validate credentials",
+            detail=f"Could not validate credentials: {type(e).__name__}: {e}",
             headers={"WWW-Authenticate": "Bearer"},
         ) from e
 
