@@ -39,38 +39,35 @@ export const useAuthBootstrap = () => {
     retry: false,
   })
 
+  // 401 → force logout. The axios interceptor already retried with refresh;
+  // a 401 reaching this hook means refresh also failed.
   useEffect(() => {
     if (meQuery.error && toApiError(meQuery.error).status === 401) {
       clearAuth()
     }
   }, [clearAuth, meQuery.error])
 
+  // 200 → sync role into the auth store. Per auth-boundary §6, a 200 response
+  // missing `role` MUST NOT force logout (the server payload is corrupted, not
+  // the session). Surface an integrity flag instead so the UI can prompt retry.
   useEffect(() => {
-    if (!accessToken || role || meQuery.isPending) {
+    if (!accessToken || role || !meQuery.data) {
       return
     }
 
-    if (meQuery.data?.role) {
+    if (meQuery.data.role) {
       setRole(meQuery.data.role)
-      return
     }
+  }, [accessToken, meQuery.data, role, setRole])
 
-    if (meQuery.isSuccess || meQuery.isError) {
-      clearAuth()
-    }
-  }, [
-    accessToken,
-    clearAuth,
-    meQuery.data?.role,
-    meQuery.isError,
-    meQuery.isPending,
-    meQuery.isSuccess,
-    role,
-    setRole,
-  ])
+  const hasMeIntegrityError = Boolean(
+    accessToken && meQuery.isSuccess && meQuery.data && !meQuery.data.role,
+  )
 
   return {
     isLoadingUser: Boolean(accessToken && meQuery.isPending),
+    hasMeIntegrityError,
+    retryMe: meQuery.refetch,
   }
 }
 
