@@ -57,7 +57,7 @@ public class JwtProvider {
             .claim("email", email)
             .issuedAt(new Date())
             .expiration(new Date(System.currentTimeMillis() + expiration))
-            .signWith(secretKey);
+            .signWith(secretKey, Jwts.SIG.HS256);
 
         if (role != null) {
             builder.claim("role", role.name());
