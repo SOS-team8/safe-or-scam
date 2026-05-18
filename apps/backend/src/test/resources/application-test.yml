@@ -1,12 +1,19 @@
 spring:
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: validate
     properties:
       hibernate:
         format_sql: true
     show-sql: false
     open-in-view: false
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: false
+    validate-on-migrate: true
+    clean-disabled: false
 
 jwt:
   secret: testSecretKeyForIntegrationTestingOnlyDoNotUseInProduction1234567890

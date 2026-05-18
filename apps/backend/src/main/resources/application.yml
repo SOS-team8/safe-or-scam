@@ -5,6 +5,14 @@ spring:
   application:
     name: sos-backend
 
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    baseline-version: 0
+    validate-on-migrate: true
+    out-of-order: false
+
 springdoc:
   swagger-ui:
     path: /swagger-ui.html
