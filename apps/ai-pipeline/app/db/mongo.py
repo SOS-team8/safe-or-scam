@@ -5,9 +5,8 @@ contract `news-article.md` v1 §4 / `scenario-tree.md` v2 §1 준수.
 - writer: ai-pipeline. upsert filter = `{"url": ...}` (news) / `{"scenario_id": ...}` (scenarios).
 - `$set` / `$setOnInsert` 분리로 재크롤링 시 시나리오 생성 추적 필드 보호.
 - game-engine의 Beanie Document를 직접 import하지 않음 (서비스 결합 회피); 동일 스키마 미러 사용.
-- motor `AsyncIOMotorClient`로 raw mongo update_one 호출 (Beanie 미경유) — 인덱스는
-  game-engine init_beanie가 owner이지만 ai-pipeline도 동일 인덱스 정의를 갖고 있어
-  init 순서 무관하게 idempotent.
+- pymongo `AsyncMongoClient` (motor를 대체한 pymongo 내장 async client) 사용 — Beanie 2.x와
+  호환. game-engine의 `app/db/mongo.py`와 동일 패턴.
 """
 from __future__ import annotations
 
@@ -16,7 +15,8 @@ from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any
 
 from beanie import init_beanie
-from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
+from pymongo import AsyncMongoClient
+from pymongo.asynchronous.database import AsyncDatabase
 
 from app.config import settings
 from app.models.news_article_db import NewsArticle
@@ -28,8 +28,8 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger("db.mongo")
 
-_client: AsyncIOMotorClient | None = None
-_db: AsyncIOMotorDatabase | None = None
+_client: AsyncMongoClient | None = None
+_db: AsyncDatabase | None = None
 
 
 async def init_mongo() -> None:
@@ -38,7 +38,7 @@ async def init_mongo() -> None:
     Cloud Run cold start 시 재호출됨. 실패 시 RuntimeError. 호출 측이 try/except 책임.
     """
     global _client, _db
-    _client = AsyncIOMotorClient(settings.mongodb_url)
+    _client = AsyncMongoClient(settings.mongodb_url)
     _db = _client[settings.mongodb_db]
     await init_beanie(
         database=_db,
@@ -51,20 +51,23 @@ async def close_mongo() -> None:
     """FastAPI shutdown에서 호출."""
     global _client, _db
     if _client is not None:
-        _client.close()
+        await _client.close()
         _client = None
         _db = None
         logger.info("MongoDB connection closed")
 
 
-def get_db() -> AsyncIOMotorDatabase:
-    """raw motor DB. init_mongo() 이후에만 호출 가능."""
+def get_db():
+    """raw mongo DB. init_mongo() 이후에만 호출 가능.
+
+    Returns: pymongo `AsyncDatabase` 또는 (테스트용) mongomock-motor MockDatabase.
+    """
     if _db is None:
         raise RuntimeError("MongoDB not initialized. Call init_mongo() first.")
     return _db
 
 
-def set_db_for_testing(db: AsyncIOMotorDatabase | None) -> None:
+def set_db_for_testing(db) -> None:
     """테스트용 의존성 주입 (mongomock-motor 등).
 
     실제 코드에서는 호출하지 않는다. 호출 후 close_mongo()는 무시될 수 있음.
