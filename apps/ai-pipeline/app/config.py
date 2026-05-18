@@ -27,6 +27,10 @@ class Settings(BaseSettings):
     # 관리자 인증
     admin_password: str = ""
 
+    # MongoDB (game-engine과 공유; news-article / scenario-tree contract)
+    mongodb_url: str = "mongodb://localhost:27017"
+    mongodb_db: str = "safe_or_scam"
+
     # 파이프라인 설정
     max_depth: int = 5
     max_choices: int = 3
