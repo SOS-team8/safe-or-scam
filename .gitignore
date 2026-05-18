@@ -70,3 +70,10 @@ desktop.ini
 # ========================
 *.log
 logs/
+
+# ========================
+# Claude Code
+# ========================
+.claude/
+CLAUDE.md
+_workspace/
