@@ -1,6 +1,6 @@
 export type VerificationPurpose = 'SIGNUP' | 'RESET_PASSWORD'
 
-export type UserRole = 'GUEST' | 'USER' | 'ADMIN'
+export type UserRole = 'GUEST' | 'USER'
 
 export type LoginRequest = {
   email: string

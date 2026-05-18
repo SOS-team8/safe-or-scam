@@ -14,10 +14,6 @@ const getRedirectPathForRole = (role: UserRole) => {
     return '/onboarding'
   }
 
-  if (role === 'ADMIN') {
-    return '/'
-  }
-
   return '/lobby'
 }
 

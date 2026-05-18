@@ -41,7 +41,7 @@ const getStoredRole = () => {
 
   const role = sessionStorage.getItem('userRole')
 
-  return role === 'GUEST' || role === 'USER' || role === 'ADMIN' ? role : null
+  return role === 'GUEST' || role === 'USER' ? role : null
 }
 
 const persistTokens = (accessToken: string, refreshToken: string) => {
