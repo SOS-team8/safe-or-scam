@@ -36,6 +36,7 @@ public record UserInfoResponse(
     UserStatus status,
 
     @Schema(description = "가입일", example = "2026-05-18T12:34:56")
+    @JsonProperty("created_at")
     LocalDateTime createdAt,
 
     @Schema(description = "직업", example = "EMPLOYEE")
@@ -45,6 +46,7 @@ public record UserInfoResponse(
     Gender gender,
 
     @Schema(description = "연령대", example = "TWENTIES")
+    @JsonProperty("age_group")
     AgeGroup ageGroup
 ) {
     public static UserInfoResponse from(User user, UserProfile profile) {

@@ -15,10 +15,34 @@ spring:
     validate-on-migrate: true
     clean-disabled: false
 
+  # Mail: 통합 테스트 ApplicationContext 로드를 위해 더미 host 지정.
+  # 실제 메일 송신은 발생하지 않음 (host=localhost:1025는 MailHog 포트 — 미기동이면 send() 호출 시 fail).
+  mail:
+    host: localhost
+    port: 1025
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+
+  # Redis: ApplicationContext 로드 단계에선 lazy connection이라 fail하지 않음.
+  # 명시적으로 host/port 지정하여 의도를 분명히.
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
 jwt:
   secret: testSecretKeyForIntegrationTestingOnlyDoNotUseInProduction1234567890
   access-token-expiration: 3600000
   refresh-token-expiration: 604800000
+
+auth:
+  verification-token:
+    secret: testVerificationTokenSecretForIntegrationTestingOnly1234567890
+    expires-in-seconds: 300
 
 logging:
   level:

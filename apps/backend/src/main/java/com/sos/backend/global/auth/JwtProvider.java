@@ -15,6 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.UUID;
 
 @Component
 public class JwtProvider {
@@ -44,8 +45,14 @@ public class JwtProvider {
     }
 
     // 토큰 생성
+    //
+    // jti (JWT ID, RFC 7519 §4.1.7) — 매 호출마다 고유 UUID.
+    // - refresh token rotation 시 동일 ms 내 재발급되어도 tokenHash 충돌 없음
+    //   (refresh_tokens.token_hash UNIQUE 제약 만족)
+    // - access token에는 logically 불필요하지만, 정책 단순화 위해 동일하게 부여
     private String createToken(Long userId, String email, Role role, long expiration) {
         var builder = Jwts.builder()
+            .id(UUID.randomUUID().toString())
             .subject(String.valueOf(userId))
             .claim("email", email)
             .issuedAt(new Date())
