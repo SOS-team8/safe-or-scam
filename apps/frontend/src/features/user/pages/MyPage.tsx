@@ -51,29 +51,18 @@ const genderOptions: Option<Gender>[] = [
   { value: 'MALE', label: '남성' },
 ]
 
-const scenarioHistory = [
-  {
-    title: '택배 배송 주소 확인',
-    lastPlayedAt: '2026.05.06',
-    result: '안전 대응',
-    endingsCollected: 2,
-    endingsTotal: 4,
-  },
-  {
-    title: '회사 보안 메일 점검',
-    lastPlayedAt: '2026.05.04',
-    result: '위험 링크 차단',
-    endingsCollected: 1,
-    endingsTotal: 3,
-  },
-  {
-    title: '계좌 이상 거래 알림',
-    lastPlayedAt: '2026.05.01',
-    result: '추가 확인 필요',
-    endingsCollected: 3,
-    endingsTotal: 5,
-  },
-]
+// TODO(Phase 5): Replace this placeholder list with real `user_stats` data.
+// The backend stats-sync route (`POST /api/v1/internal/stats/game-completed`) +
+// `user_stats` endpoint are deferred to Phase 5 (`plan.md` §8 Phase 5).
+// Until they ship, surface a clearly-disabled "Coming soon" placeholder so the
+// UI does not lie about completed scenarios.
+const scenarioHistory: Array<{
+  title: string
+  lastPlayedAt: string
+  result: string
+  endingsCollected: number
+  endingsTotal: number
+}> = []
 
 const achievements = [
   { title: '첫 판별 완료', description: '첫 시나리오를 끝까지 플레이하면 열립니다.' },
@@ -549,6 +538,11 @@ export function MyPage() {
 
         {activeTab === 'history' ? (
           <div role="tabpanel" className="space-y-3">
+            {scenarioHistory.length === 0 ? (
+              <p className="rounded-md border border-dashed border-white/15 bg-slate-900 p-6 text-center text-sm text-slate-400">
+                플레이 통계는 곧 제공돼요. 시나리오를 플레이하면 결과가 여기에 모입니다.
+              </p>
+            ) : null}
             {scenarioHistory.map((scenario) => {
               const collectionRate = Math.round(
                 (scenario.endingsCollected / scenario.endingsTotal) * 100,
