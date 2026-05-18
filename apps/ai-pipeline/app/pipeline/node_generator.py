@@ -61,9 +61,10 @@ async def generate_root_node(
     difficulty: str,
     seed_info: str | None = None
 ) -> GenerationResult:
-    """루트 노드 생성"""
+    """루트 노드 생성 (P0-012: None fallthrough 차단)."""
     user_prompt = build_root_prompt(phishing_type, difficulty, seed_info)
 
+    last_error: Exception | None = None
     for attempt in range(settings.retry_count + 1):
         try:
             response = await litellm.acompletion(
@@ -84,6 +85,7 @@ async def generate_root_node(
             return result
 
         except Exception as e:
+            last_error = e
             if attempt == settings.retry_count:
                 # 폴백: 기본 루트 노드
                 logger.warning("Root 생성 실패, 폴백 사용: %s", str(e)[:100])
@@ -102,9 +104,16 @@ async def generate_root_node(
             logger.warning("Root 생성 attempt %d 실패, %ds 후 재시도...", attempt + 1, delay)
             await asyncio.sleep(delay)
 
+    # P0-012: retry loop이 0회 실행되는 경우 (retry_count < 0) 또는 정적 분석상
+    # None fallthrough 가능성 차단. 정상 흐름에서는 도달 불가.
+    raise RuntimeError(
+        f"generate_root_node: retry loop completed without return "
+        f"(retry_count={settings.retry_count}, last_error={last_error})"
+    )
+
 
 async def generate_node(context: GenerationContext) -> GenerationResult:
-    """다음 노드 생성"""
+    """다음 노드 생성 (P0-012: None fallthrough 차단)."""
     user_prompt = build_node_prompt(
         phishing_type=context.phishing_type,
         difficulty=context.difficulty,
@@ -119,6 +128,7 @@ async def generate_node(context: GenerationContext) -> GenerationResult:
         protagonist=context.protagonist,
     )
 
+    last_error: Exception | None = None
     for attempt in range(settings.retry_count + 1):
         try:
             response = await litellm.acompletion(
@@ -142,6 +152,7 @@ async def generate_node(context: GenerationContext) -> GenerationResult:
             return result
 
         except Exception as e:
+            last_error = e
             if attempt == settings.retry_count:
                 # 폴백: 강제 종료가 필요하거나 최대 깊이에 도달한 경우에만 엔딩 노드 생성
                 if context.force_end or context.current_depth >= context.max_depth - 1:
@@ -193,6 +204,14 @@ async def generate_node(context: GenerationContext) -> GenerationResult:
             delay = 1 * (2 ** attempt)
             logger.warning("노드 생성 attempt %d 실패 (depth=%d), %ds 후 재시도...", attempt + 1, context.current_depth, delay)
             await asyncio.sleep(delay)
+
+    # P0-012: retry loop이 0회 실행되는 경우 또는 정적 분석상 None fallthrough 차단.
+    # 정상 흐름에서는 도달 불가 (last attempt는 항상 return).
+    raise RuntimeError(
+        f"generate_node: retry loop completed without return "
+        f"(retry_count={settings.retry_count}, depth={context.current_depth}, "
+        f"last_error={last_error})"
+    )
 
 
 def result_to_node(
