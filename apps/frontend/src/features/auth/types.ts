@@ -43,7 +43,7 @@ export type SignupResponse = {
   accessToken: string
   refreshToken: string
   user: {
-    userId: number
+    id: number
     email: string
     name: string
     role: UserRole
