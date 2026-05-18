@@ -347,7 +347,7 @@ async def _run_generate_from_article(
             seed_info=seed_info,
         )
 
-        _save_scenario(scenario)
+        await _save_scenario(scenario)
 
         # news_articles 추적 정보 갱신 (contract §4 후반)
         try:
@@ -503,7 +503,7 @@ async def _run_generate_scenarios(task_id: str, request: GenerateScenariosReques
                 seed_info=seed_info,
             )
 
-            _save_scenario(scenario)
+            await _save_scenario(scenario)
             scenario_ids.append(scenario.scenario_id)
             scenarios_generated += 1
 

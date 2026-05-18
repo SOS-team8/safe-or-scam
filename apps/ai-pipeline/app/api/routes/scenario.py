@@ -2,14 +2,17 @@
 import json
 import asyncio
 import logging
+from datetime import datetime, timezone
 from pathlib import Path
 from uuid import uuid4
 from pydantic import BaseModel, Field
 from fastapi import APIRouter, HTTPException, BackgroundTasks, Depends, Request
 
-from app.models.scenario import ScenarioTree
+from app.models.scenario import ScenarioTree, compute_ending_counts
 from app.pipeline.tree_builder import ScenarioTreeBuilder
 from app.api.deps import require_admin, limiter, acquire_task_slot, release_task_slot, cleanup_task_dict, sanitize_error
+from app.db import mongo as mongo_mod
+from app.pipeline import ending_classifier
 
 logger = logging.getLogger("api.scenario")
 
@@ -37,12 +40,43 @@ def _load_scenario(file_path: Path) -> ScenarioTree:
     return ScenarioTree.model_validate(data)
 
 
-def _save_scenario(scenario: ScenarioTree):
-    """시나리오를 JSON 파일로 저장 (캐시).
+async def _save_scenario(scenario: ScenarioTree) -> None:
+    """시나리오를 ending_classifier 호출 + MongoDB upsert + JSON 캐시 순으로 저장.
 
-    MongoDB upsert는 별도 헬퍼(`app.db.mongo.upsert_scenario`)가 담당.
-    JSON 캐시는 디버깅·재현용으로 유지.
+    1) total_endings 등 자동 계산 (scenario-tree §8-#7).
+    2) ending_classifier in-memory 호출 (P0-006) — 비용 회피를 위해
+       ENABLE_ENDING_CLASSIFIER 환경변수 가드 적용.
+    3) MongoDB scenarios 컬렉션에 upsert (filter=scenario_id, $set + $setOnInsert).
+    4) JSON 파일 캐시 (디버깅·재현용).
+
+    MongoDB 실패는 로그만 남기고 JSON 캐시는 항상 저장 (graceful degradation).
     """
+    # 1) total_endings 자동 계산
+    total, good, bad = compute_ending_counts(scenario)
+    scenario.total_endings = total
+    scenario.total_good_endings = good
+    scenario.total_bad_endings = bad
+    scenario.updated_at = datetime.now(timezone.utc)
+
+    # 2) ending_classifier (no-op when ENABLE_ENDING_CLASSIFIER=false)
+    try:
+        await ending_classifier.classify_tree_in_memory(scenario)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(
+            "ending_classifier 실패 (scenario_id=%s): %s — ending_categories 미설정 진행",
+            scenario.scenario_id, str(exc)[:200],
+        )
+
+    # 3) MongoDB upsert (실패 시 로그만)
+    try:
+        await mongo_mod.upsert_scenario(scenario)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(
+            "scenarios upsert 실패 (scenario_id=%s): %s — JSON 캐시는 유지됨",
+            scenario.scenario_id, str(exc)[:200],
+        )
+
+    # 4) JSON 캐시 (디버깅·재현용)
     SCENARIOS_DIR.mkdir(parents=True, exist_ok=True)
     file_path = SCENARIOS_DIR / f"{scenario.scenario_id}.json"
     with open(file_path, "w", encoding="utf-8") as f:
@@ -114,7 +148,7 @@ async def _run_generation(task_id: str, request: GenerateRequest):
             seed_info=request.seed_info,
         )
 
-        _save_scenario(scenario)
+        await _save_scenario(scenario)
 
         generation_tasks[task_id]["status"] = "completed"
         generation_tasks[task_id]["scenario_id"] = scenario.scenario_id
@@ -296,8 +330,8 @@ async def _run_image_regeneration(task_id: str, scenario_id: str):
                 await asyncio.sleep(settings.image_batch_wait)
         
         # 시나리오 저장
-        _save_scenario(scenario)
-        
+        await _save_scenario(scenario)
+
         generation_tasks[task_id]["status"] = "completed"
         generation_tasks[task_id]["success_count"] = success_count
         generation_tasks[task_id]["total_attempted"] = total

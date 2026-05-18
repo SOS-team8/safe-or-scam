@@ -1,8 +1,15 @@
-"""기존 시나리오의 엔딩 노드를 K-means로 클러스터링하여 카테고리 라벨을 부여"""
+"""기존 시나리오의 엔딩 노드를 K-means로 클러스터링하여 카테고리 라벨을 부여.
+
+- `classify_scenario_endings(path)` / `classify_all_scenarios()` — 디스크 JSON 기반 (CLI 호환).
+- `classify_tree_in_memory(tree)` — Pydantic ScenarioTree in-memory 분류.
+  파이프라인 통합(P0-006)을 위해 tree_builder/_save_scenario 직전에 호출.
+  결과를 `tree.ending_categories` + 각 ending 노드 `ending_category`에 채움.
+"""
 
 import json
 import asyncio
 import logging
+import os
 import numpy as np
 from pathlib import Path
 from dataclasses import dataclass
@@ -13,6 +20,7 @@ from sklearn.cluster import KMeans
 from sklearn.preprocessing import normalize
 
 from app.config import settings
+from app.models.scenario import EndingCategory, ScenarioTree
 
 logger = logging.getLogger("pipeline.ending_classifier")
 
@@ -505,6 +513,84 @@ async def fix_fallback_names(scenario_ids: list[str] | None = None):
         print(f"  {scenario_id}: 저장 완료\n")
 
     print("=== 폴백 이름 재생성 완료 ===")
+
+
+async def classify_tree_in_memory(tree: ScenarioTree) -> ScenarioTree:
+    """In-memory ScenarioTree의 ending 노드를 클러스터링하여 tree.ending_categories + node.ending_category에 결과 저장.
+
+    P0-006: tree_builder/_save_scenario 직전에 자동 호출.
+
+    환경변수 `ENABLE_ENDING_CLASSIFIER`가 "1"/"true"가 아닐 경우 no-op (LLM 비용 회피).
+    엔딩 노드 < 2개일 경우 클러스터링 의미 없음 — no-op.
+    LLM/embedding 호출 실패 시 ending_categories=None 유지 (graceful degradation).
+
+    Returns: 동일 tree 객체 (in-place 갱신).
+    """
+    enabled = os.getenv("ENABLE_ENDING_CLASSIFIER", "false").lower() in ("1", "true", "yes")
+    if not enabled:
+        logger.info(
+            "ending_classifier 비활성 (ENABLE_ENDING_CLASSIFIER 미설정). tree=%s",
+            tree.scenario_id,
+        )
+        return tree
+
+    ending_nodes = {nid: n for nid, n in tree.nodes.items() if n.type.startswith("ending_")}
+    if len(ending_nodes) < 2:
+        logger.info(
+            "ending_classifier 스킵: ending 노드 %d개 (최소 2개 필요). tree=%s",
+            len(ending_nodes), tree.scenario_id,
+        )
+        return tree
+
+    # ScenarioTree → 디스크 JSON 형태 dict로 변환하여 기존 함수 재사용
+    nodes_dict = {
+        nid: n.model_dump(mode="json")
+        for nid, n in tree.nodes.items()
+    }
+    try:
+        features = extract_features(nodes_dict)
+        if not features:
+            return tree
+
+        # 클러스터 수 조정
+        actual_k = min(10, len(features))
+
+        # 임베딩 + LLM 호출은 비용 큼 — 본 in-memory 경로에서도 동일 흐름
+        texts = [f"{f.ending_text} {f.path_summary}" for f in features]
+        embeddings = await get_embeddings(texts, settings.gemini_api_key)
+        matrix = build_feature_matrix(features, embeddings)
+        labels = cluster_endings(matrix, n_clusters=actual_k)
+        categories_raw = await generate_category_names(
+            features, labels, actual_k, tree.phishing_type,
+        )
+
+        # categories_raw (list[dict]) → dict[str, EndingCategory]
+        ending_categories: dict[str, EndingCategory] = {}
+        for cat in categories_raw:
+            cid = cat["id"]
+            ending_categories[cid] = EndingCategory(
+                category_id=cid,
+                label=cat["name"],
+                description=cat["description"],
+                node_ids=cat.get("ending_node_ids", []),
+            )
+
+        # 각 ending 노드에 category_id 부여
+        for f, label in zip(features, labels):
+            cid = f"C{label + 1}"
+            if f.node_id in tree.nodes:
+                tree.nodes[f.node_id].ending_category = cid
+
+        tree.ending_categories = ending_categories
+        logger.info(
+            "ending_classifier 완료: tree=%s, %d categories", tree.scenario_id, len(ending_categories),
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(
+            "ending_classifier 실패 (tree=%s): %s — ending_categories=None 유지",
+            tree.scenario_id, str(exc)[:200],
+        )
+    return tree
 
 
 # CLI 실행
