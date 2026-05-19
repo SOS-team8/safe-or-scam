@@ -87,7 +87,15 @@ export const useGameSession = (sessionId: string | undefined) => {
     queryKey: gameKeys.session(sessionId ?? ''),
     queryFn: async () => {
       const data = await gameApi.getGameSession(sessionId as string)
-      hydrateApply(data)
+      // snapshot 이 이미 있으면 hydrate 건너뛴다. mutation 이 prologue 정보까지
+      // 포함해서 hydrateFromSession 으로 세팅했을 가능성이 높기 때문 — 여기서
+      // applyMove 를 호출하면 `!state.snapshot` 분기가 아니더라도 phase 외 다른
+      // 필드가 덮어쓰여 prologue 화면이 사라질 수 있다.
+      // resume 케이스(reset 후 navigate)는 snapshot=null 이므로 정상적으로 hydrate.
+      const currentSnapshot = useGameStore.getState().snapshot
+      if (!currentSnapshot || currentSnapshot.sessionId !== data.session_id) {
+        hydrateApply(data)
+      }
       return data
     },
     enabled: Boolean(sessionId),

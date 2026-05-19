@@ -124,27 +124,30 @@ export function ResumeOrRestartDialog({
           게임이 있어요. 이어서 마저 풀거나 새로 시작할 수 있어요.
         </p>
 
-        <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
-          <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <div className="flex flex-1 flex-col gap-1">
             <button
               type="button"
               onClick={onRestart}
               disabled={isBusy}
-              className="rounded-md border border-white/10 px-4 py-3 text-sm font-semibold text-slate-200 transition hover:border-emerald-300 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200 disabled:cursor-not-allowed disabled:opacity-50"
+              className="w-full rounded-md border border-white/10 px-4 py-3 text-sm font-semibold text-slate-200 transition hover:border-emerald-300 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200 disabled:cursor-not-allowed disabled:opacity-50"
             >
               처음부터
             </button>
             <p className="text-xs text-slate-400/80">기존 진행 기록은 사라집니다</p>
           </div>
-          <button
-            ref={primaryButtonRef}
-            type="button"
-            onClick={onResume}
-            disabled={isBusy}
-            className="rounded-md bg-emerald-400 px-4 py-3 text-sm font-semibold text-slate-950 transition hover:bg-emerald-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200 disabled:cursor-not-allowed disabled:bg-emerald-400/40 disabled:text-slate-900/60"
-          >
-            이어하기
-          </button>
+          <div className="flex flex-1 flex-col gap-1">
+            <button
+              ref={primaryButtonRef}
+              type="button"
+              onClick={onResume}
+              disabled={isBusy}
+              className="w-full rounded-md bg-emerald-400 px-4 py-3 text-sm font-semibold text-slate-950 transition hover:bg-emerald-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200 disabled:cursor-not-allowed disabled:bg-emerald-400/40 disabled:text-slate-900/60"
+            >
+              이어하기
+            </button>
+            <p className="text-xs text-slate-400/80" aria-hidden="true">&nbsp;</p>
+          </div>
         </div>
       </div>
     </div>
