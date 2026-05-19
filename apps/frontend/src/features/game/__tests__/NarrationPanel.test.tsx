@@ -57,6 +57,40 @@ describe('NarrationPanel', () => {
     expect(onComplete).toHaveBeenCalledTimes(1)
   })
 
+  it('클릭 후 timer가 진행돼도 전체 텍스트가 유지된다 (race regression)', () => {
+    const onComplete = vi.fn()
+    render(
+      <NarrationPanel
+        text="abcdef"
+        typingSpeed={50}
+        onTypingComplete={onComplete}
+      />,
+    )
+
+    act(() => {
+      vi.advanceTimersByTime(50)
+    })
+    fireEvent.click(screen.getByLabelText('시나리오 나레이션'))
+    expect(screen.getByLabelText('시나리오 나레이션').textContent).toContain('abcdef')
+
+    // 클릭 이후 timer chain이 살아남아 setState로 덮어쓰지 않아야 한다.
+    act(() => {
+      vi.advanceTimersByTime(50 * 10)
+    })
+    expect(screen.getByLabelText('시나리오 나레이션').textContent).toContain('abcdef')
+    expect(onComplete).toHaveBeenCalledTimes(1)
+  })
+
+  it('Enter/Space 키로도 즉시 전체 표시된다', () => {
+    render(<NarrationPanel text="abcdef" typingSpeed={100} />)
+    act(() => {
+      vi.advanceTimersByTime(100)
+    })
+    const article = screen.getByLabelText('시나리오 나레이션')
+    fireEvent.keyDown(article, { key: ' ' })
+    expect(article.textContent).toContain('abcdef')
+  })
+
   it('타이핑 중에는 "클릭하면..." 안내가 보이고 완료되면 사라진다', () => {
     render(<NarrationPanel text="abcdef" typingSpeed={50} />)
 

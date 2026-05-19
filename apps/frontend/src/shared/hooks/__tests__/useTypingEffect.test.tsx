@@ -71,6 +71,37 @@ describe('useTypingEffect', () => {
     expect(onComplete).toHaveBeenCalledTimes(1)
   })
 
+  it('skip() 이후 timer가 진행되어도 부분 텍스트로 덮어쓰지 않는다 (race fix)', () => {
+    // 회귀: skip 호출 후에도 setTimeout 체인이 살아 있어 다음 tick에서
+    // setState(prev → 부분 슬라이스)로 isComplete=true를 다시 false로 만드는 버그.
+    const onComplete = vi.fn()
+    const { result } = renderHook(() =>
+      useTypingEffect('abcdef', { speed: 50, onComplete }),
+    )
+
+    // 첫 글자 진행 (index=1).
+    act(() => {
+      vi.advanceTimersByTime(50)
+    })
+    expect(result.current.displayedText).toBe('a')
+
+    // skip 호출 — 즉시 전체 표시.
+    act(() => {
+      result.current.skip()
+    })
+    expect(result.current.displayedText).toBe('abcdef')
+    expect(result.current.isComplete).toBe(true)
+
+    // 충분히 시간이 흘러 timer chain이 더 실행돼도 부분 텍스트로 덮어쓰면 안 된다.
+    act(() => {
+      vi.advanceTimersByTime(50 * 10)
+    })
+    expect(result.current.displayedText).toBe('abcdef')
+    expect(result.current.isComplete).toBe(true)
+    // onComplete는 skip 시점에만 1회 호출되어야 함 (timer chain이 추가 호출 X).
+    expect(onComplete).toHaveBeenCalledTimes(1)
+  })
+
   it('text 변경 시 다시 시작', () => {
     const { result, rerender } = renderHook(
       ({ text }: { text: string }) => useTypingEffect(text, { speed: 10 }),

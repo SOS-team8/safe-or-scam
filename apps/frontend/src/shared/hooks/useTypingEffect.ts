@@ -71,8 +71,16 @@ export function useTypingEffect(
     onCompleteRef.current = onComplete
   }, [onComplete])
 
+  // skip() 호출 시 진행 중인 timer chain을 즉시 중단하기 위한 ref.
+  // skip은 setState로 isComplete=true를 만들지만, 동시에 진행 중인 setTimeout 콜백이
+  // 다음 tick에 부분 텍스트로 덮어쓰는 race를 막아야 한다. text/enabled가 바뀌면
+  // useEffect 안에서 false로 리셋한다.
+  const skippedRef = useRef(false)
+
   // text/enabled가 바뀌면 timer 새로 시작. isComplete=true면 timer 없이 onComplete 호출.
   useEffect(() => {
+    skippedRef.current = false
+
     if (text.length === 0) {
       onCompleteRef.current?.()
       return
@@ -85,10 +93,11 @@ export function useTypingEffect(
     let cancelled = false
     let index = 0
     const step = () => {
-      if (cancelled) return
+      if (cancelled || skippedRef.current) return
       index += 1
       setState((prev) => {
         if (prev.lastText !== text || prev.lastEnabled !== enabled) return prev
+        if (prev.isComplete) return prev
         const sliced = text.slice(0, index)
         return {
           ...prev,
@@ -111,11 +120,16 @@ export function useTypingEffect(
 
   const skip = () => {
     if (text.length === 0) return
-    setState((prev) => ({
-      ...prev,
-      displayedText: text,
-      isComplete: true,
-    }))
+    // 다음 tick에 timer가 prev를 부분 텍스트로 덮어쓰지 않도록 즉시 차단.
+    skippedRef.current = true
+    setState((prev) => {
+      if (prev.isComplete && prev.displayedText === text) return prev
+      return {
+        ...prev,
+        displayedText: text,
+        isComplete: true,
+      }
+    })
     onCompleteRef.current?.()
   }
 

@@ -74,6 +74,32 @@ describe('PrologueScreen', () => {
     expect(button).not.toBeDisabled()
   })
 
+  it('클릭 후 timer가 진행돼도 전체 텍스트가 유지된다 (race regression)', () => {
+    render(
+      <PrologueScreen
+        title="t"
+        prologue="long-prologue"
+        onStart={() => {}}
+      />,
+    )
+    act(() => {
+      vi.advanceTimersByTime(25)
+    })
+    fireEvent.click(screen.getByLabelText('시나리오 프롤로그'))
+    expect(
+      screen.getByLabelText('시나리오 프롤로그').textContent,
+    ).toContain('long-prologue')
+
+    act(() => {
+      vi.advanceTimersByTime(25 * 30)
+    })
+    expect(
+      screen.getByLabelText('시나리오 프롤로그').textContent,
+    ).toContain('long-prologue')
+    const button = screen.getByRole('button', { name: '게임 시작하기' })
+    expect(button).not.toBeDisabled()
+  })
+
   it('시작 버튼 클릭 시 onStart 호출', () => {
     const onStart = vi.fn()
     render(
@@ -112,5 +138,33 @@ describe('PrologueScreen', () => {
       />,
     )
     expect(screen.getByRole('button', { name: '게임 시작하기' })).not.toBeDisabled()
+  })
+
+  it('imageUrl prop을 전달하면 본문에 img가 렌더된다', () => {
+    const { container } = render(
+      <PrologueScreen
+        title="t"
+        prologue="hi"
+        onStart={() => {}}
+        imageUrl="/api/v1/images/foo/root.png"
+      />,
+    )
+    const img = container.querySelector('img')
+    expect(img).not.toBeNull()
+    expect(img).toHaveAttribute('src', '/api/v1/images/foo/root.png')
+  })
+
+  it('imageUrl 로드 실패 시 img가 사라진다', () => {
+    const { container } = render(
+      <PrologueScreen
+        title="t"
+        prologue="hi"
+        onStart={() => {}}
+        imageUrl="/api/v1/images/foo/root.png"
+      />,
+    )
+    const img = container.querySelector('img')!
+    fireEvent.error(img)
+    expect(container.querySelector('img')).toBeNull()
   })
 })
