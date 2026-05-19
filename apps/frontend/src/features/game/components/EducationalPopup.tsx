@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 
 import type { EducationalContent } from '../types'
 
@@ -68,7 +69,10 @@ export function EducationalPopup({ content, isOpen, onDismiss }: EducationalPopu
 
   if (!isOpen) return null
 
-  return (
+  // createPortal: 상위 ancestor에 transform 속성이 있으면 fixed 포지셔닝이
+  // 부모 기준으로 잡혀 모달이 화면 중앙에서 어긋난다 (DangerFeedbackModal과
+  // 동일 회귀 방지).
+  return createPortal(
     <div
       role="presentation"
       className="fixed inset-0 z-30 flex items-center justify-center bg-slate-950/80 px-5 py-8"
@@ -136,6 +140,7 @@ export function EducationalPopup({ content, isOpen, onDismiss }: EducationalPopu
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }

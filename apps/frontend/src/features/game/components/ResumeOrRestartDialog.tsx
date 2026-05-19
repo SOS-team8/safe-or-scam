@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 
 type ResumeOrRestartDialogProps = {
   scenarioTitle: string
@@ -82,7 +83,9 @@ export function ResumeOrRestartDialog({
     }
   }, [onClose])
 
-  return (
+  // createPortal: 상위 ancestor의 transform 속성(animate-sos-fade-slide 등)이
+  // fixed 포지셔닝의 containing block을 바꾸는 문제 회피.
+  return createPortal(
     <div
       role="presentation"
       onClick={(event) => {
@@ -150,6 +153,7 @@ export function ResumeOrRestartDialog({
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }

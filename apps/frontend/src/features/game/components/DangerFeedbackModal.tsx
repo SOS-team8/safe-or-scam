@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 
 import type { DangerFeedback } from '../types'
 
@@ -74,7 +75,10 @@ export function DangerFeedbackModal({
 
   if (!isOpen) return null
 
-  return (
+  // createPortal: ancestor의 transform/filter가 fixed 포지셔닝의 containing
+  // block을 바꿔치는 문제를 우회. EndingScreen의 animate-sos-fade-slide(translate3d)
+  // 안쪽이라 viewport가 아니라 section 기준으로 잡혀 위치가 어긋났다.
+  return createPortal(
     <div
       role="presentation"
       className="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/80 px-5 py-8"
@@ -129,6 +133,7 @@ export function DangerFeedbackModal({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
