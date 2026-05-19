@@ -56,6 +56,18 @@ export function EndingScreen({
   }
   const [feedbackTarget, setFeedbackTarget] = useState<FeedbackTarget | null>(null)
 
+  // 엔딩 노드 이미지. NarrationPanel과 동일 패턴: imageUrl 변경 시 failed 초기화.
+  // useState로 lastUrl을 추적해 render-time 동기화.
+  const endingImageUrl = endingNode.image_url
+  const [imageFailedState, setImageFailedState] = useState<{
+    failed: boolean
+    lastUrl: string | null | undefined
+  }>({ failed: false, lastUrl: endingImageUrl })
+  if (imageFailedState.lastUrl !== endingImageUrl) {
+    setImageFailedState({ failed: false, lastUrl: endingImageUrl })
+  }
+  const showEndingImage = Boolean(endingImageUrl) && !imageFailedState.failed
+
   const feedbackForTarget = useMemo(() => {
     if (!feedbackTarget || !scenarioTree) return null
     const node = scenarioTree.nodes[feedbackTarget.nodeId]
@@ -86,6 +98,19 @@ export function EndingScreen({
           <p className="text-sm text-slate-200">
             결말 유형: <span className="font-semibold">{endingCategoryLabel}</span>
           </p>
+        ) : null}
+        {showEndingImage ? (
+          <div className="overflow-hidden rounded-md border border-white/10 bg-slate-900">
+            <img
+              src={endingImageUrl ?? undefined}
+              alt=""
+              aria-hidden="true"
+              onError={() =>
+                setImageFailedState({ failed: true, lastUrl: endingImageUrl })
+              }
+              className="block h-full w-full object-cover"
+            />
+          </div>
         ) : null}
         <p className="text-base leading-7 text-slate-200">{endingNode.text}</p>
       </header>

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
 import { EndingScreen } from '../components/EndingScreen'
@@ -154,6 +154,63 @@ describe('EndingScreen', () => {
       />,
     )
     expect(screen.getByText(/똑똑한 차단/)).toBeInTheDocument()
+  })
+
+  it('endingNode.image_url이 있으면 이미지 표시', () => {
+    const endingWithImage = {
+      ...tree.nodes.n_end,
+      image_url: '/api/v1/images/foo/ending.png',
+    }
+    const { container } = render(
+      <EndingScreen
+        endingNode={endingWithImage}
+        endingType="ending_good"
+        resources={{ trust: 3, money: 3, awareness: 4 }}
+        history={[]}
+        scenarioTree={tree}
+        onReplay={() => {}}
+        onSelectOther={() => {}}
+      />,
+    )
+    const img = container.querySelector('img')
+    expect(img).not.toBeNull()
+    expect(img).toHaveAttribute('src', '/api/v1/images/foo/ending.png')
+  })
+
+  it('endingNode.image_url 로드 실패 시 이미지 숨김', () => {
+    const endingWithImage = {
+      ...tree.nodes.n_end,
+      image_url: '/api/v1/images/foo/ending.png',
+    }
+    const { container } = render(
+      <EndingScreen
+        endingNode={endingWithImage}
+        endingType="ending_good"
+        resources={{ trust: 3, money: 3, awareness: 4 }}
+        history={[]}
+        scenarioTree={tree}
+        onReplay={() => {}}
+        onSelectOther={() => {}}
+      />,
+    )
+    const img = container.querySelector('img')!
+    fireEvent.error(img)
+    expect(container.querySelector('img')).toBeNull()
+  })
+
+  it('endingNode.image_url이 null이면 이미지 영역 없음', () => {
+    const { container } = render(
+      <EndingScreen
+        endingNode={tree.nodes.n_end}
+        endingType="ending_good"
+        resources={{ trust: 3, money: 3, awareness: 4 }}
+        history={[]}
+        scenarioTree={tree}
+        onReplay={() => {}}
+        onSelectOther={() => {}}
+      />,
+    )
+    expect(container.querySelector('img')).toBeNull()
   })
 
   it('calls onReplay and onSelectOther', async () => {

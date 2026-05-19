@@ -8,6 +8,11 @@ type PrologueScreenProps = {
   onStart: () => void
   /** scenario detail이 아직 로딩 중인 경우 — prologue 텍스트는 빈 문자열로 들어온다. */
   isLoading?: boolean
+  /**
+   * 시나리오의 시각적 도입 이미지. 보통 root 노드의 image_url을 전달한다.
+   * 절대 URL이거나 vite proxy 경유 상대 URL. NarrationPanel과 동일 패턴.
+   */
+  imageUrl?: string | null
 }
 
 /**
@@ -16,12 +21,14 @@ type PrologueScreenProps = {
  * - prologue 텍스트를 타이핑 효과로 노출 (NarrationPanel과 동일 톤).
  * - "게임 시작하기" 버튼은 타이핑 완료 후 등장.
  * - 타이핑 중 본문 영역 클릭 시 즉시 전체 표시.
+ * - imageUrl이 있으면 본문 위에 큰 영역으로 시각적 도입 제공.
  */
 export function PrologueScreen({
   title,
   prologue,
   onStart,
   isLoading = false,
+  imageUrl,
 }: PrologueScreenProps) {
   const [isTypingComplete, setIsTypingComplete] = useState<boolean>(false)
   const { displayedText, isComplete, skip } = useTypingEffect(prologue, {
@@ -29,6 +36,16 @@ export function PrologueScreen({
     enabled: !isLoading && prologue.length > 0,
     onComplete: () => setIsTypingComplete(true),
   })
+
+  // imageUrl 변경 시 failed 초기화 (NarrationPanel 패턴 재사용).
+  const [imageFailedState, setImageFailedState] = useState<{
+    failed: boolean
+    lastUrl: string | null | undefined
+  }>({ failed: false, lastUrl: imageUrl })
+  if (imageFailedState.lastUrl !== imageUrl) {
+    setImageFailedState({ failed: false, lastUrl: imageUrl })
+  }
+  const showImage = Boolean(imageUrl) && !imageFailedState.failed
 
   const handleSkipTyping = () => {
     if (!isComplete) skip()
@@ -64,6 +81,19 @@ export function PrologueScreen({
           isComplete ? 'cursor-default' : 'cursor-pointer'
         }`}
       >
+        {showImage ? (
+          <div className="overflow-hidden rounded-md border border-white/10 bg-slate-900">
+            <img
+              src={imageUrl ?? undefined}
+              alt=""
+              aria-hidden="true"
+              onError={() =>
+                setImageFailedState({ failed: true, lastUrl: imageUrl })
+              }
+              className="block h-full w-full object-cover"
+            />
+          </div>
+        ) : null}
         {isLoading ? (
           <p className="text-sm text-slate-400">시나리오를 불러오고 있어요...</p>
         ) : (

@@ -101,12 +101,16 @@ export function GameContainer({ sessionId }: GameContainerProps) {
       queueMicrotask(() => startGameAfterPrologue())
       return null
     }
+    // 시나리오 프롤로그에는 별도 이미지가 없으므로 root 노드 이미지를 시각적 도입으로 사용.
+    const rootNodeImage =
+      scenarioQuery.data?.nodes?.[scenarioQuery.data.root_node_id]?.image_url ?? null
     return (
       <PrologueScreen
         title={scenarioQuery.data?.title ?? ''}
         prologue={prologueText ?? ''}
         onStart={() => startGameAfterPrologue()}
         isLoading={scenarioQuery.isPending}
+        imageUrl={rootNodeImage}
       />
     )
   }
