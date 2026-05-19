@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { toGameEngineError } from '../api'
@@ -29,6 +29,22 @@ export function GameContainer({ sessionId }: GameContainerProps) {
   const sessionQuery = useGameSession(sessionId)
   const scenarioQuery = useScenarioDetail(snapshot?.scenarioId)
   const submitMutation = useSubmitChoice(sessionId)
+
+  // 이어하기 경로 보강: LobbyPage handleResume 가 store.reset() 직후 navigate 만
+  // 하므로, /play/:sessionId 진입 시 store.snapshot 은 null 이다. useGameSession
+  // 의 queryFn 내부에도 hydrateApply 가 있지만, React Query 가 동일 sessionId 의
+  // cached MoveResponse 로 즉시 응답하면(cache hit) queryFn 이 호출되지 않는
+  // 경로가 생긴다 — 그러면 snapshot 이 null 인 채로 GameContainer 의 `!snapshot
+  // return null` 분기에 빠져 빈 화면이 보이고, 사용자가 새로고침해야 정상 진입
+  // 했다. sessionQuery.data 가 들어오는 순간 mount 후 1회 hydrate 를 보장한다.
+  useEffect(() => {
+    const data = sessionQuery.data
+    if (!data) return
+    const current = useGameStore.getState().snapshot
+    if (!current || current.sessionId !== data.session_id) {
+      useGameStore.getState().applyMove(data)
+    }
+  }, [sessionQuery.data])
 
   // 현재 노드의 narration 타이핑 완료 여부.
   // 노드가 바뀌면 false로 초기화돼 ChoicePanel을 일시 숨김 — 스포일러 방지.
@@ -101,6 +117,8 @@ export function GameContainer({ sessionId }: GameContainerProps) {
   // Prologue 화면 — 시작 전 시나리오 설명.
   // scenarioQuery가 완료되어 prologue가 비어있는 게 확인되면 자동 진행
   // (안전 분기). 사용자가 hydrateFromSession에서 prologue를 받지 못한 케이스 보완.
+  // 이미지는 첫 노드 narration 단계에서 비로소 노출 — prologue 단계에서 root 노드
+  // 이미지를 미리 보여주면 첫 노드 진입 시 동일 이미지가 중복 등장하므로 생략한다.
   if (snapshot.phase === 'prologue') {
     const prologueText = scenarioQuery.data?.prologue ?? null
     if (scenarioQuery.isSuccess && (!prologueText || prologueText.trim() === '')) {
@@ -108,16 +126,12 @@ export function GameContainer({ sessionId }: GameContainerProps) {
       queueMicrotask(() => startGameAfterPrologue())
       return null
     }
-    // 시나리오 프롤로그에는 별도 이미지가 없으므로 root 노드 이미지를 시각적 도입으로 사용.
-    const rootNodeImage =
-      scenarioQuery.data?.nodes?.[scenarioQuery.data.root_node_id]?.image_url ?? null
     return (
       <PrologueScreen
         title={scenarioQuery.data?.title ?? ''}
         prologue={prologueText ?? ''}
         onStart={() => startGameAfterPrologue()}
         isLoading={scenarioQuery.isPending}
-        imageUrl={rootNodeImage}
       />
     )
   }
