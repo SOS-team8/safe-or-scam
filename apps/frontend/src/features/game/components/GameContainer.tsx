@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { toGameEngineError } from '../api'
@@ -45,7 +45,14 @@ export function GameContainer({ sessionId }: GameContainerProps) {
   const markNarrationComplete = () =>
     setNarrationState({ isComplete: true, lastNodeId: currentNodeId })
 
-  useEffect(() => () => resetStore(), [resetStore])
+  // NOTE: 이전 버전은 unmount 시 store를 자동 reset하는 useEffect를 두었으나,
+  // React 19 + StrictMode dev 환경에서 setup→cleanup→setup 사이클로 cleanup이
+  // mount 직후 1회 실행되어 prologue snapshot이 즉시 null이 되는 회귀가 있었다.
+  // store reset은 명시적 흐름(EndingScreen onReplay/onSelectOther, LobbyPage
+  // handleResume, useCreateGameSession mutationFn 시작 시점)에서 충분히
+  // 다뤄지므로 cleanup useEffect는 제거한다. 회귀 테스트:
+  //   - features/game/__tests__/cleanup-effect.test.tsx
+  //   - features/game/__tests__/lobby-to-game-prologue.test.tsx
 
   if (sessionQuery.isPending) {
     return (
