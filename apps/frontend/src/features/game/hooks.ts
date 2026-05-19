@@ -18,15 +18,29 @@ export const useScenarioDetail = (scenarioId: string | undefined) =>
     enabled: Boolean(scenarioId),
   })
 
+export type CreateGameSessionVariables = {
+  scenarioId: string
+  forceNew?: boolean
+}
+
 export const useCreateGameSession = () => {
   const hydrateFromSession = useGameStore((s) => s.hydrateFromSession)
+  const resetStore = useGameStore((s) => s.reset)
   const queryClient = useQueryClient()
   return useMutation({
     // mutationFn 안에서 session 생성과 scenario detail 사전 fetch를 함께 수행 →
     // base onSuccess와 call-site onSuccess 사이의 race를 피하고, hydrateFromSession을
     // mutate()의 callback이 호출되기 전에 끝낸다.
-    mutationFn: async (scenarioId: string) => {
-      const session = await gameApi.createGameSession(scenarioId)
+    //
+    // 후방호환: scenarioId 문자열 단독 인자도 허용 (Phase 4 이전 시그너처).
+    mutationFn: async (variables: string | CreateGameSessionVariables) => {
+      const { scenarioId, forceNew } =
+        typeof variables === 'string'
+          ? { scenarioId: variables, forceNew: false }
+          : { scenarioId: variables.scenarioId, forceNew: variables.forceNew ?? false }
+      // 새 세션 진입 전 이전 snapshot을 비워 prologue/state 잔존을 방지.
+      resetStore()
+      const session = await gameApi.createGameSession(scenarioId, forceNew)
       let prologue: string | null
       try {
         const tree = await queryClient.fetchQuery({
@@ -43,6 +57,17 @@ export const useCreateGameSession = () => {
     },
   })
 }
+
+/**
+ * GET /game-sessions/active?scenario_id=... 호출.
+ *
+ * LobbyPage가 카드 클릭 시 직접 호출 (useQuery로 캐시 X — 매번 신선한 응답이 필요).
+ * mutation 형태로 노출하지만 부수효과는 없다 (server-side 변경 없음).
+ */
+export const useFetchActiveSession = () =>
+  useMutation({
+    mutationFn: (scenarioId: string) => gameApi.fetchActiveSession(scenarioId),
+  })
 
 export const useSubmitChoice = (sessionId: string) => {
   const applyMove = useGameStore((s) => s.applyMove)

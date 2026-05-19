@@ -97,6 +97,37 @@ describe('gameApi', () => {
     expect(result).toBe(session)
   })
 
+  it('createGameSession forwards force_new=true when forceNew is set', async () => {
+    mockedPost.mockResolvedValueOnce({ data: { session_id: 'x' } })
+
+    await gameApi.createGameSession('s1', true)
+
+    expect(mockedPost).toHaveBeenCalledWith('/api/v1/game-sessions', {
+      scenario_id: 's1',
+      force_new: true,
+    })
+  })
+
+  it('createGameSession omits force_new when forceNew is false (default)', async () => {
+    mockedPost.mockResolvedValueOnce({ data: { session_id: 'x' } })
+
+    await gameApi.createGameSession('s1', false)
+
+    expect(mockedPost).toHaveBeenCalledWith('/api/v1/game-sessions', { scenario_id: 's1' })
+  })
+
+  it('fetchActiveSession hits GET /game-sessions/active with scenario_id param', async () => {
+    const payload = { active: true, session: { session_id: 'sess-1' } }
+    mockedGet.mockResolvedValueOnce({ data: payload })
+
+    const result = await gameApi.fetchActiveSession('s1')
+
+    expect(mockedGet).toHaveBeenCalledWith('/api/v1/game-sessions/active', {
+      params: { scenario_id: 's1' },
+    })
+    expect(result).toBe(payload)
+  })
+
   it('submitChoice posts {choice_id} to /game-sessions/{id}/move', async () => {
     const move: Partial<MoveResponse> = { session_id: 'abc', is_finished: false }
     mockedPost.mockResolvedValueOnce({ data: move })

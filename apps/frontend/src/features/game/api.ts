@@ -3,6 +3,7 @@ import axios from 'axios'
 import { gameEngineClient } from '@/shared/api/client'
 
 import type {
+  ActiveSessionResponse,
   GameSessionResponse,
   MoveResponse,
   ScenarioFilters,
@@ -35,10 +36,38 @@ export const gameApi = {
     return response.data
   },
 
-  createGameSession: async (scenarioId: string): Promise<GameSessionResponse> => {
+  /**
+   * POST /game-sessions.
+   *
+   * `forceNew=true`면 body에 `force_new: true`를 보내 활성 세션을 abandoned로 표시 후
+   * 새 세션을 생성한다 ("처음부터" UX). 기본 false는 idempotent resume.
+   */
+  createGameSession: async (
+    scenarioId: string,
+    forceNew = false,
+  ): Promise<GameSessionResponse> => {
+    const body: { scenario_id: string; force_new?: boolean } = {
+      scenario_id: scenarioId,
+    }
+    if (forceNew) body.force_new = true
     const response = await gameEngineClient.post<GameSessionResponse>(
       '/api/v1/game-sessions',
-      { scenario_id: scenarioId },
+      body,
+    )
+    return response.data
+  },
+
+  /**
+   * GET /game-sessions/active?scenario_id=...
+   *
+   * 동일 user×scenario의 활성 세션 정보 또는 null. LobbyPage가 다이얼로그 표시 여부 판단.
+   */
+  fetchActiveSession: async (
+    scenarioId: string,
+  ): Promise<ActiveSessionResponse> => {
+    const response = await gameEngineClient.get<ActiveSessionResponse>(
+      '/api/v1/game-sessions/active',
+      { params: { scenario_id: scenarioId } },
     )
     return response.data
   },

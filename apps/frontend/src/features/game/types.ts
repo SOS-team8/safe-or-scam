@@ -160,10 +160,26 @@ export interface MoveResponse {
   completed_at: string | null
 }
 
+/**
+ * GET /game-sessions/active?scenario_id=... 응답.
+ *
+ * 동일 user×scenario의 status=playing 세션이 있으면 active=true + session 반환.
+ * LobbyPage가 카드 클릭 시 "이어하기 / 처음부터" 다이얼로그 표시 여부 판단용.
+ */
+export interface ActiveSessionResponse {
+  active: boolean
+  session: GameSessionResponse | null
+}
+
 // ---------- request bodies ----------
 
 export interface CreateSessionRequest {
   scenario_id: string
+  /**
+   * true면 동일 user×scenario 활성 세션을 abandoned로 표시 후 새 세션 생성.
+   * false (기본) 면 idempotent resume.
+   */
+  force_new?: boolean
 }
 
 export interface MoveRequest {

@@ -2,7 +2,13 @@ import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 import { toGameEngineError } from '@/features/game/api'
-import { useCreateGameSession, useScenarios } from '@/features/game/hooks'
+import { ResumeOrRestartDialog } from '@/features/game/components/ResumeOrRestartDialog'
+import {
+  useCreateGameSession,
+  useFetchActiveSession,
+  useScenarios,
+} from '@/features/game/hooks'
+import { useGameStore } from '@/features/game/store'
 import type { Difficulty, ScenarioSummary } from '@/features/game/types'
 import { useUserProfile } from '@/features/user/hooks'
 
@@ -66,12 +72,19 @@ function ScenarioCard({
   )
 }
 
+type ResumePromptState = {
+  scenarioId: string
+  scenarioTitle: string
+  existingSessionId: string
+}
+
 export function LobbyPage() {
   const location = useLocation()
   const navigate = useNavigate()
   const profileQuery = useUserProfile()
   const scenariosQuery = useScenarios()
   const createSessionMutation = useCreateGameSession()
+  const fetchActiveMutation = useFetchActiveSession()
 
   const dialogRef = useRef<HTMLDivElement>(null)
   const primaryActionRef = useRef<HTMLButtonElement>(null)
@@ -79,6 +92,7 @@ export function LobbyPage() {
   const [isOnboardingPopupOpen, setIsOnboardingPopupOpen] = useState(
     Boolean((location.state as LobbyLocationState | null)?.onboardingComplete),
   )
+  const [resumePrompt, setResumePrompt] = useState<ResumePromptState | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const userName = profileQuery.data?.name?.trim() || '회원'
 
@@ -133,15 +147,71 @@ export function LobbyPage() {
 
   const handleStart = (scenarioId: string) => {
     setErrorMessage(null)
-    createSessionMutation.mutate(scenarioId, {
-      onSuccess: (session) => {
-        navigate(`/play/${session.session_id}`)
+    // 카드 클릭 시 우선 활성 세션을 확인.
+    // - 없으면 곧장 새 세션 생성 → /play/{id}
+    // - 있으면 다이얼로그를 띄워 이어하기/처음부터 선택을 받음.
+    fetchActiveMutation.mutate(scenarioId, {
+      onSuccess: (response) => {
+        if (response.active && response.session) {
+          const scenarioTitle =
+            scenariosQuery.data?.find((s) => s.scenario_id === scenarioId)?.title ??
+            '진행 중인 시나리오'
+          setResumePrompt({
+            scenarioId,
+            scenarioTitle,
+            existingSessionId: response.session.session_id,
+          })
+          return
+        }
+        createSessionMutation.mutate(
+          { scenarioId },
+          {
+            onSuccess: (session) => {
+              navigate(`/play/${session.session_id}`)
+            },
+            onError: (error) => {
+              setErrorMessage(toGameEngineError(error).message)
+            },
+          },
+        )
       },
       onError: (error) => {
         setErrorMessage(toGameEngineError(error).message)
       },
     })
   }
+
+  const handleResume = () => {
+    if (!resumePrompt) return
+    const sessionId = resumePrompt.existingSessionId
+    setResumePrompt(null)
+    // 이어하기는 GameContainer가 GET /game-sessions/{id} 응답으로 store를 hydrate한다.
+    // 그 사이 잔존 snapshot이 flash로 보이지 않도록 즉시 reset.
+    useGameStore.getState().reset()
+    navigate(`/play/${sessionId}`)
+  }
+
+  const handleRestart = () => {
+    if (!resumePrompt) return
+    setErrorMessage(null)
+    const scenarioId = resumePrompt.scenarioId
+    createSessionMutation.mutate(
+      { scenarioId, forceNew: true },
+      {
+        onSuccess: (session) => {
+          setResumePrompt(null)
+          navigate(`/play/${session.session_id}`)
+        },
+        onError: (error) => {
+          setErrorMessage(toGameEngineError(error).message)
+          setResumePrompt(null)
+        },
+      },
+    )
+  }
+
+  const isStartingSession =
+    fetchActiveMutation.isPending || createSessionMutation.isPending
 
   const featuredScenario = scenariosQuery.data?.[0] ?? null
 
@@ -246,11 +316,11 @@ export function LobbyPage() {
             </div>
             <button
               type="button"
-              disabled={createSessionMutation.isPending}
+              disabled={isStartingSession}
               onClick={() => handleStart(featuredScenario.scenario_id)}
               className="rounded-md bg-emerald-400 px-4 py-3 font-semibold text-slate-950 transition hover:bg-emerald-300 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
             >
-              {createSessionMutation.isPending ? '세션 생성 중...' : '바로 시작하기'}
+              {isStartingSession ? '세션 생성 중...' : '바로 시작하기'}
             </button>
           </div>
         </section>
@@ -265,11 +335,21 @@ export function LobbyPage() {
                 key={scenario.scenario_id}
                 scenario={scenario}
                 onStart={handleStart}
-                isBusy={createSessionMutation.isPending}
+                isBusy={isStartingSession}
               />
             ))}
           </div>
         </section>
+      ) : null}
+
+      {resumePrompt ? (
+        <ResumeOrRestartDialog
+          scenarioTitle={resumePrompt.scenarioTitle}
+          isBusy={createSessionMutation.isPending}
+          onResume={handleResume}
+          onRestart={handleRestart}
+          onClose={() => setResumePrompt(null)}
+        />
       ) : null}
     </section>
   )
