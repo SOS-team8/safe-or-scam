@@ -1,5 +1,12 @@
 """애플리케이션 설정"""
+from pathlib import Path
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+# 패키지 루트(app/) — 어떤 CWD에서 ai-pipeline 을 띄워도 동일한 절대 경로를 잡기 위한 기준점.
+_APP_DIR = Path(__file__).resolve().parent
+_DEFAULT_IMAGES_DIR = str(_APP_DIR / "data" / "images")
 
 
 class Settings(BaseSettings):
@@ -24,10 +31,13 @@ class Settings(BaseSettings):
     # 백그라운드 작업 제한
     max_concurrent_tasks: int = 1
 
-    # 시나리오 이미지 정적 서빙 경로 (StaticFiles로 마운트)
+    # 시나리오 이미지 정적 서빙 경로 (StaticFiles로 마운트).
     # MongoDB scenarios.nodes[*].image_url 은 "/api/v1/images/..." 상대 경로이며
     # 본 디렉토리 하위에 scenario_xxx/node_xxx.png 형태로 저장됨.
-    images_dir: str | None = None
+    # 기본값은 패키지 상대 경로(apps/ai-pipeline/app/data/images)로 계산되어 어떤
+    # 작업 디렉토리에서 ai-pipeline 을 띄워도 image_generator 저장 위치와 mount
+    # 위치가 항상 일치한다 (#51). env 의 IMAGES_DIR 가 있으면 그쪽 우선.
+    images_dir: str = _DEFAULT_IMAGES_DIR
 
     # 관리자 인증
     admin_password: str = ""

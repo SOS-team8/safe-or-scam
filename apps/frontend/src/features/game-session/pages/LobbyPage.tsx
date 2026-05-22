@@ -54,10 +54,6 @@ function ScenarioCard({
       <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-300">
         {scenario.description}
       </p>
-      <p className="mt-3 text-xs text-slate-400">
-        엔딩 {scenario.total_endings}개 · 안전 {scenario.total_good_endings} / 위험{' '}
-        {scenario.total_bad_endings}
-      </p>
       <div className="mt-auto pt-4">
         <button
           type="button"

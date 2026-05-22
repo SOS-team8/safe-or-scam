@@ -84,3 +84,12 @@ _workspace/
 credentials/
 *.pem
 *.key
+# ========================
+# ai-pipeline data (seed 디렉토리는 commit, 임시·캐시는 ignore) — #51
+# ========================
+# 시나리오 생성 중간 단계 dump (디버깅용, 시드와 무관)
+apps/ai-pipeline/app/data/scenarios/progress/
+# 단발성 뉴스 크롤 캐시 (재크롤로 매번 변경, mongo news_articles 가 원본)
+apps/ai-pipeline/app/data/news_cache/
+# ending_categories 디렉토리 (현재 비어 있음 — mongo scenarios.ending_categories 가 원본)
+apps/ai-pipeline/app/data/ending_categories/
