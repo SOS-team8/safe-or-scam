@@ -10,8 +10,10 @@ contract `news-article.md` v1 §4 / `scenario-tree.md` v2 §1 준수.
 """
 from __future__ import annotations
 
+import json
 import logging
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from beanie import init_beanie
@@ -155,6 +157,57 @@ async def upsert_scenario(tree: "ScenarioTree") -> dict[str, Any]:
         "modified": result.modified_count,
         "upserted_id": str(result.upserted_id) if result.upserted_id else None,
     }
+
+
+async def seed_scenarios_from_disk(scenarios_dir: Path) -> dict[str, int]:
+    """startup 시점에 디스크의 시나리오 JSON 들을 mongo 로 idempotent upsert (#51).
+
+    `data/scenarios/*.json` 에 있는 각 ScenarioTree 를 로드해 mongo `scenarios`
+    컬렉션에 동일 scenario_id 가 없을 때만 추가한다. 이미 mongo 에 있는 시나리오는
+    건드리지 않음 — 운영 중 mongo 가 source of truth, 디스크는 신규 시드 공급원.
+
+    Returns: {"loaded": N, "skipped_existing": M, "errors": K}
+    """
+    # 순환 import 회피
+    from app.models.scenario import ScenarioTree
+
+    stats = {"loaded": 0, "skipped_existing": 0, "errors": 0}
+    if not scenarios_dir.exists() or not scenarios_dir.is_dir():
+        logger.info("seed: scenarios_dir(%s) 미존재 — skip", scenarios_dir)
+        return stats
+
+    db = get_db()
+    for json_path in sorted(scenarios_dir.glob("*.json")):
+        try:
+            with json_path.open("r", encoding="utf-8") as f:
+                data = json.load(f)
+            tree = ScenarioTree.model_validate(data)
+        except Exception as exc:  # noqa: BLE001
+            stats["errors"] += 1
+            logger.warning("seed: %s 로드 실패: %s", json_path.name, str(exc)[:200])
+            continue
+
+        existing = await db.scenarios.find_one(
+            {"scenario_id": tree.scenario_id}, {"_id": 1}
+        )
+        if existing is not None:
+            stats["skipped_existing"] += 1
+            continue
+
+        try:
+            await upsert_scenario(tree)
+            stats["loaded"] += 1
+            logger.info("seed: scenario_id=%s 적재 완료 (from %s)",
+                        tree.scenario_id, json_path.name)
+        except Exception as exc:  # noqa: BLE001
+            stats["errors"] += 1
+            logger.warning("seed: %s upsert 실패: %s", tree.scenario_id, str(exc)[:200])
+
+    logger.info(
+        "seed_scenarios_from_disk 완료: loaded=%d, skipped_existing=%d, errors=%d",
+        stats["loaded"], stats["skipped_existing"], stats["errors"],
+    )
+    return stats
 
 
 async def mark_article_scenario_generated(

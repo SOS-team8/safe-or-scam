@@ -13,7 +13,9 @@ from google.genai import types
 from app.config import settings
 
 logger = logging.getLogger("core.image_generator")
-IMAGES_DIR = Path(__file__).parent.parent / "data" / "images"
+# settings.images_dir 에서 단일 진실 (#51) — main.py 의 StaticFiles mount 와
+# 항상 동일한 디렉토리를 가리키도록 통일.
+IMAGES_DIR = Path(settings.images_dir)
 
 
 def _generate_image_sync(
