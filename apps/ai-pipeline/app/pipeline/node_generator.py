@@ -145,6 +145,17 @@ async def generate_node(context: GenerationContext) -> GenerationResult:
             content = response.choices[0].message.content
             data = json.loads(content)
             result = GenerationResult.model_validate(data)
+
+            # should_end=False 인데 LLM 이 ending 노드로 응답하면 거부하고 재시도.
+            # 프롬프트의 "엔딩 금지" 안내를 무시한 응답에 대한 hard guard
+            # (이전 트리는 MIN_DEPTH_FOR_ENDING=5 였는데도 depth 3 에서 leaf 가
+            # 만들어져 max_depth 까지 트리가 펼쳐지지 않았다).
+            if not context.should_end and result.node_type != "narrative":
+                raise ValueError(
+                    f"LLM returned node_type={result.node_type} but should_end=False "
+                    f"(depth={context.current_depth})"
+                )
+
             logger.info(
                 "노드 생성 성공: depth=%d, type=%s, choices=%d",
                 context.current_depth, result.node_type, len(result.choices)
