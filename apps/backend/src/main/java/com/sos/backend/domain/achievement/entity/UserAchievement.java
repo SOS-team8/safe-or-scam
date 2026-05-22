@@ -18,7 +18,7 @@ public class UserAchievement {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "user_achivement_id")
+    @Column(name = "user_achievement_id")
     private Long userAchievementId;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

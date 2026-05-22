@@ -1,4 +1,5 @@
 """공통 API 의존성"""
+import hmac
 import logging
 import threading
 from datetime import datetime, timezone, timedelta
@@ -75,13 +76,21 @@ def sanitize_error(e: Exception) -> str:
 
 
 def require_admin(admin_token: Optional[str] = Cookie(None)):
-    """관리자 인증 의존성 (임시 단순 검증).
+    """관리자 인증 의존성 (P0-008: hmac.compare_digest로 timing attack 차단).
 
     TODO: backend-spring과 통합 시 JWT 토큰 검증으로 교체.
     현재는 ADMIN_PASSWORD 환경변수와 일치하는 토큰만 허용.
+
+    `==` 평문 비교는 길이별 timing 차이로 토큰 길이가 노출될 수 있음. `hmac.compare_digest`는
+    constant-time 비교 (길이 다르면 즉시 False, 같으면 모든 바이트를 비교).
     """
     if not admin_token:
         raise HTTPException(status_code=403, detail="관리자 인증이 필요합니다")
 
-    if not settings.admin_password or admin_token != settings.admin_password:
+    expected = settings.admin_password
+    if not expected:
+        raise HTTPException(status_code=403, detail="유효하지 않은 토큰입니다")
+
+    # encode to bytes to ensure consistent length comparison
+    if not hmac.compare_digest(admin_token.encode("utf-8"), expected.encode("utf-8")):
         raise HTTPException(status_code=403, detail="유효하지 않은 토큰입니다")

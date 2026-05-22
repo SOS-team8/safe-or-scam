@@ -53,6 +53,19 @@ class Choice(BaseModel):
     danger_feedback: DangerFeedback | None = None
 
 
+class EndingCategory(BaseModel):
+    """ending_classifier 군집 결과 (scenario-tree v2 §7).
+
+    `ScenarioTree.ending_categories` dict 의 value 타입.
+    key (`category_id`) 는 dict key 와 동일해야 한다 (불변 규약).
+    """
+
+    category_id: str
+    label: str
+    description: str
+    node_ids: list[str]
+
+
 class ScenarioNode(BaseModel):
     id: str
     type: Literal["narrative", "ending_good", "ending_bad"]
@@ -64,3 +77,6 @@ class ScenarioNode(BaseModel):
     depth: int = 0
     parent_node_id: str | None = None
     parent_choice_id: str | None = None
+    # v2 신설 (scenario-tree v2 §2): ending 노드 한정으로 ending_category 부여.
+    # narrative 노드는 항상 None. ending_classifier 미실행 시 ending 노드도 None.
+    ending_category: str | None = None

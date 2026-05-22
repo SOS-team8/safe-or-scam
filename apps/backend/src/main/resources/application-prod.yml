@@ -10,6 +10,9 @@ spring:
       ddl-auto: none
     show-sql: false
 
+  flyway:
+    baseline-on-migrate: false
+
   mail:
     host: ${MAIL_HOST}
     port: ${MAIL_PORT}

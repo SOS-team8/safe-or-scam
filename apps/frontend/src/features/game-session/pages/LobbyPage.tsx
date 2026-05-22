@@ -1,17 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
+import { toGameEngineError } from '@/features/game/api'
+import { ResumeOrRestartDialog } from '@/features/game/components/ResumeOrRestartDialog'
+import {
+  useCreateGameSession,
+  useFetchActiveSession,
+  useScenarios,
+} from '@/features/game/hooks'
+import { useGameStore } from '@/features/game/store'
+import type { Difficulty, ScenarioSummary } from '@/features/game/types'
 import { useUserProfile } from '@/features/user/hooks'
-
-const scenarios = [
-  { title: '택배 배송 주소 확인', difficulty: '초급', status: '추천' },
-  { title: '회사 보안 메일 점검', difficulty: '중급', status: '준비됨' },
-  { title: '계좌 이상 거래 알림', difficulty: '중급', status: '준비됨' },
-]
-
-type LobbyLocationState = {
-  onboardingComplete?: boolean
-}
 
 const focusableSelector = [
   'a[href]',
@@ -22,35 +21,91 @@ const focusableSelector = [
   '[tabindex]:not([tabindex="-1"])',
 ].join(',')
 
+type LobbyLocationState = {
+  onboardingComplete?: boolean
+}
+
+const difficultyLabel: Record<Difficulty, string> = {
+  easy: '초급',
+  medium: '중급',
+  hard: '고급',
+}
+
+function ScenarioCard({
+  scenario,
+  onStart,
+  isBusy,
+}: {
+  scenario: ScenarioSummary
+  onStart: (scenarioId: string) => void
+  isBusy: boolean
+}) {
+  return (
+    <article className="flex h-full flex-col rounded-lg border border-white/10 bg-white/5 p-5">
+      <div className="flex items-center justify-between gap-3">
+        <span className="rounded-md bg-slate-800 px-2 py-1 text-xs text-slate-300">
+          {difficultyLabel[scenario.difficulty] ?? scenario.difficulty}
+        </span>
+        <span className="text-xs font-medium text-emerald-300">
+          {scenario.phishing_type}
+        </span>
+      </div>
+      <h3 className="mt-4 text-lg font-semibold text-white">{scenario.title}</h3>
+      <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-300">
+        {scenario.description}
+      </p>
+      <p className="mt-3 text-xs text-slate-400">
+        엔딩 {scenario.total_endings}개 · 안전 {scenario.total_good_endings} / 위험{' '}
+        {scenario.total_bad_endings}
+      </p>
+      <div className="mt-auto pt-4">
+        <button
+          type="button"
+          disabled={isBusy}
+          onClick={() => onStart(scenario.scenario_id)}
+          className="w-full rounded-md bg-emerald-400 px-4 py-3 text-sm font-semibold text-slate-950 transition hover:bg-emerald-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
+        >
+          {isBusy ? '세션 생성 중...' : '시작하기'}
+        </button>
+      </div>
+    </article>
+  )
+}
+
+type ResumePromptState = {
+  scenarioId: string
+  scenarioTitle: string
+  existingSessionId: string
+}
+
 export function LobbyPage() {
   const location = useLocation()
   const navigate = useNavigate()
   const profileQuery = useUserProfile()
+  const scenariosQuery = useScenarios()
+  const createSessionMutation = useCreateGameSession()
+  const fetchActiveMutation = useFetchActiveSession()
+
   const dialogRef = useRef<HTMLDivElement>(null)
   const primaryActionRef = useRef<HTMLButtonElement>(null)
   const previouslyFocusedElementRef = useRef<HTMLElement | null>(null)
   const [isOnboardingPopupOpen, setIsOnboardingPopupOpen] = useState(
     Boolean((location.state as LobbyLocationState | null)?.onboardingComplete),
   )
+  const [resumePrompt, setResumePrompt] = useState<ResumePromptState | null>(null)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const userName = profileQuery.data?.name?.trim() || '회원'
 
   useEffect(() => {
     const isOnboardingComplete = Boolean(
       (location.state as LobbyLocationState | null)?.onboardingComplete,
     )
-
-    if (!isOnboardingComplete) {
-      return
-    }
-
+    if (!isOnboardingComplete) return
     navigate(location.pathname, { replace: true, state: null })
   }, [location.pathname, location.state, navigate])
 
   useEffect(() => {
-    if (!isOnboardingPopupOpen) {
-      return
-    }
-
+    if (!isOnboardingPopupOpen) return
     previouslyFocusedElementRef.current = document.activeElement as HTMLElement | null
     primaryActionRef.current?.focus()
 
@@ -59,44 +114,106 @@ export function LobbyPage() {
         setIsOnboardingPopupOpen(false)
         return
       }
-
-      if (event.key !== 'Tab') {
-        return
-      }
-
+      if (event.key !== 'Tab') return
       const dialog = dialogRef.current
       const focusableElements = Array.from(
         dialog?.querySelectorAll<HTMLElement>(focusableSelector) ?? [],
-      ).filter((element) => !element.hasAttribute('disabled') && !element.getAttribute('aria-hidden'))
-
+      ).filter(
+        (el) =>
+          !el.hasAttribute('disabled') && !el.getAttribute('aria-hidden'),
+      )
       if (!dialog || focusableElements.length === 0) {
         event.preventDefault()
         dialog?.focus()
         return
       }
-
-      const firstFocusableElement = focusableElements[0]
-      const lastFocusableElement = focusableElements[focusableElements.length - 1]
-
-      if (event.shiftKey && document.activeElement === firstFocusableElement) {
+      const first = focusableElements[0]
+      const last = focusableElements[focusableElements.length - 1]
+      if (event.shiftKey && document.activeElement === first) {
         event.preventDefault()
-        lastFocusableElement.focus()
-        return
-      }
-
-      if (!event.shiftKey && document.activeElement === lastFocusableElement) {
+        last.focus()
+      } else if (!event.shiftKey && document.activeElement === last) {
         event.preventDefault()
-        firstFocusableElement.focus()
+        first.focus()
       }
     }
 
     window.addEventListener('keydown', handleKeyDown)
-
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
       previouslyFocusedElementRef.current?.focus()
     }
   }, [isOnboardingPopupOpen])
+
+  const handleStart = (scenarioId: string) => {
+    setErrorMessage(null)
+    // 카드 클릭 시 우선 활성 세션을 확인.
+    // - 없으면 곧장 새 세션 생성 → /play/{id}
+    // - 있으면 다이얼로그를 띄워 이어하기/처음부터 선택을 받음.
+    fetchActiveMutation.mutate(scenarioId, {
+      onSuccess: (response) => {
+        if (response.active && response.session) {
+          const scenarioTitle =
+            scenariosQuery.data?.find((s) => s.scenario_id === scenarioId)?.title ??
+            '진행 중인 시나리오'
+          setResumePrompt({
+            scenarioId,
+            scenarioTitle,
+            existingSessionId: response.session.session_id,
+          })
+          return
+        }
+        createSessionMutation.mutate(
+          { scenarioId },
+          {
+            onSuccess: (session) => {
+              navigate(`/play/${session.session_id}`)
+            },
+            onError: (error) => {
+              setErrorMessage(toGameEngineError(error).message)
+            },
+          },
+        )
+      },
+      onError: (error) => {
+        setErrorMessage(toGameEngineError(error).message)
+      },
+    })
+  }
+
+  const handleResume = () => {
+    if (!resumePrompt) return
+    const sessionId = resumePrompt.existingSessionId
+    setResumePrompt(null)
+    // 이어하기는 GameContainer가 GET /game-sessions/{id} 응답으로 store를 hydrate한다.
+    // 그 사이 잔존 snapshot이 flash로 보이지 않도록 즉시 reset.
+    useGameStore.getState().reset()
+    navigate(`/play/${sessionId}`)
+  }
+
+  const handleRestart = () => {
+    if (!resumePrompt) return
+    setErrorMessage(null)
+    const scenarioId = resumePrompt.scenarioId
+    createSessionMutation.mutate(
+      { scenarioId, forceNew: true },
+      {
+        onSuccess: (session) => {
+          setResumePrompt(null)
+          navigate(`/play/${session.session_id}`)
+        },
+        onError: (error) => {
+          setErrorMessage(toGameEngineError(error).message)
+          setResumePrompt(null)
+        },
+      },
+    )
+  }
+
+  const isStartingSession =
+    fetchActiveMutation.isPending || createSessionMutation.isPending
+
+  const featuredScenario = scenariosQuery.data?.[0] ?? null
 
   return (
     <section className="space-y-8 py-6">
@@ -136,7 +253,7 @@ export function LobbyPage() {
                 onClick={() => setIsOnboardingPopupOpen(false)}
                 className="rounded-md bg-emerald-400 px-4 py-3 text-sm font-semibold text-slate-950 transition hover:bg-emerald-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200"
               >
-                시나리오 플레이하기
+                시나리오 둘러보기
               </button>
             </div>
           </div>
@@ -144,39 +261,96 @@ export function LobbyPage() {
       ) : null}
 
       <div className="space-y-2">
-        <p className="text-sm font-medium text-emerald-300">오늘의 추천 훈련</p>
+        <p className="text-sm font-medium text-emerald-300">오늘의 피싱 훈련</p>
         <h1 className="text-3xl font-semibold text-white">안녕하세요, {userName}님</h1>
-        <p className="text-slate-300">오늘은 실생활 메시지 피싱을 빠르게 판별하는 훈련을 추천합니다.</p>
+        <p className="text-slate-300">실제 메시지처럼 보이는 시나리오로 위험 신호를 찾아보세요.</p>
       </div>
 
-      <section className="rounded-lg border border-emerald-300/30 bg-emerald-300/10 p-5">
-        <p className="text-sm font-semibold text-emerald-200">맞춤 추천</p>
-        <div className="mt-3 flex flex-col justify-between gap-4 md:flex-row md:items-center">
-          <div>
-            <h2 className="text-xl font-semibold text-white">택배 배송 주소 확인</h2>
-            <p className="mt-2 text-slate-300">짧은 문자와 링크를 보고 위험 신호를 판단하는 5분 시나리오입니다.</p>
-          </div>
-          <button type="button" className="rounded-md bg-emerald-400 px-4 py-3 font-semibold text-slate-950 hover:bg-emerald-300">
-            시작하기
-          </button>
-        </div>
-      </section>
+      {errorMessage ? (
+        <p
+          role="alert"
+          className="rounded-md border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-100"
+        >
+          {errorMessage}
+        </p>
+      ) : null}
 
-      <section className="space-y-4">
-        <h2 className="text-xl font-semibold text-white">전체 시나리오</h2>
-        <div className="grid gap-4 md:grid-cols-3">
-          {scenarios.map((scenario) => (
-            <article key={scenario.title} className="rounded-lg border border-white/10 bg-white/3 p-5">
-              <div className="flex items-center justify-between gap-3">
-                <span className="rounded-md bg-slate-800 px-2 py-1 text-xs text-slate-300">{scenario.difficulty}</span>
-                <span className="text-xs font-medium text-emerald-300">{scenario.status}</span>
-              </div>
-              <h3 className="mt-4 text-lg font-semibold text-white">{scenario.title}</h3>
-              <p className="mt-2 text-sm leading-6 text-slate-300">선택지 기반 텍스트 어드벤처로 구성될 예정입니다.</p>
-            </article>
-          ))}
-        </div>
-      </section>
+      {scenariosQuery.isPending ? (
+        <p role="status" aria-live="polite" className="text-sm text-slate-300">
+          시나리오를 불러오고 있어요...
+        </p>
+      ) : null}
+
+      {scenariosQuery.isError ? (
+        <section
+          role="alert"
+          className="space-y-3 rounded-lg border border-red-300/30 bg-red-500/10 p-6"
+        >
+          <p className="text-sm font-semibold text-red-100">시나리오 목록을 불러오지 못했어요</p>
+          <p className="text-sm text-red-100/80">
+            {toGameEngineError(scenariosQuery.error).message}
+          </p>
+          <button
+            type="button"
+            onClick={() => void scenariosQuery.refetch()}
+            className="rounded-md bg-emerald-400 px-4 py-3 text-sm font-semibold text-slate-950 hover:bg-emerald-300"
+          >
+            다시 시도
+          </button>
+        </section>
+      ) : null}
+
+      {scenariosQuery.isSuccess && scenariosQuery.data.length === 0 ? (
+        <section className="rounded-lg border border-white/10 bg-white/5 p-6 text-center text-slate-300">
+          <p>표시할 시나리오가 아직 없어요. 잠시 후 다시 확인해주세요.</p>
+        </section>
+      ) : null}
+
+      {featuredScenario ? (
+        <section className="rounded-lg border border-emerald-300/30 bg-emerald-300/10 p-5">
+          <p className="text-sm font-semibold text-emerald-200">맞춤 추천</p>
+          <div className="mt-3 flex flex-col justify-between gap-4 md:flex-row md:items-center">
+            <div>
+              <h2 className="text-xl font-semibold text-white">{featuredScenario.title}</h2>
+              <p className="mt-2 text-slate-300">{featuredScenario.description}</p>
+            </div>
+            <button
+              type="button"
+              disabled={isStartingSession}
+              onClick={() => handleStart(featuredScenario.scenario_id)}
+              className="rounded-md bg-emerald-400 px-4 py-3 font-semibold text-slate-950 transition hover:bg-emerald-300 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
+            >
+              {isStartingSession ? '세션 생성 중...' : '바로 시작하기'}
+            </button>
+          </div>
+        </section>
+      ) : null}
+
+      {scenariosQuery.data && scenariosQuery.data.length > 0 ? (
+        <section className="space-y-4">
+          <h2 className="text-xl font-semibold text-white">전체 시나리오</h2>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {scenariosQuery.data.map((scenario) => (
+              <ScenarioCard
+                key={scenario.scenario_id}
+                scenario={scenario}
+                onStart={handleStart}
+                isBusy={isStartingSession}
+              />
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {resumePrompt ? (
+        <ResumeOrRestartDialog
+          scenarioTitle={resumePrompt.scenarioTitle}
+          isBusy={createSessionMutation.isPending}
+          onResume={handleResume}
+          onRestart={handleRestart}
+          onClose={() => setResumePrompt(null)}
+        />
+      ) : null}
     </section>
   )
 }

@@ -1,6 +1,6 @@
 export type VerificationPurpose = 'SIGNUP' | 'RESET_PASSWORD'
 
-export type UserRole = 'GUEST' | 'USER' | 'ADMIN'
+export type UserRole = 'GUEST' | 'USER'
 
 export type LoginRequest = {
   email: string
@@ -43,7 +43,7 @@ export type SignupResponse = {
   accessToken: string
   refreshToken: string
   user: {
-    userId: number
+    id: number
     email: string
     name: string
     role: UserRole
@@ -55,12 +55,19 @@ export type EmailVerifyResponse = {
 }
 
 export type MeResponse = {
-  name: string
+  // auth-boundary §4 mandatory set (P0-007). These six fields MUST be present
+  // on every /api/v1/users/me response; useAuthBootstrap depends on them.
+  id: number
   email: string
-  occupation: string | null
-  gender: string | null
-  ageGroup: string | null
-  role?: UserRole
+  name: string
+  role: UserRole
+  status: string
+  createdAt: string
+  // Legacy onboarding profile fields (ADR-006). Optional — backend may omit
+  // them before onboarding is complete.
+  occupation?: string | null
+  gender?: string | null
+  ageGroup?: string | null
 }
 
 export type ApiResponse<T> = {

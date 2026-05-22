@@ -187,18 +187,12 @@ const createRequest = (draft: OnboardingDraft): OnboardingRequest | null => {
 
   return {
     occupation: draft.occupation,
-    ageGroup: draft.ageGroup,
     age_group: draft.ageGroup,
     gender: draft.gender,
-    economicActivities: draft.economicActivities,
     economic_activities: draft.economicActivities,
-    communicateChannels: draft.communicateChannels,
     communicate_channels: draft.communicateChannels,
-    onlineActivities: draft.onlineActivities,
     online_activities: draft.onlineActivities,
-    financialChannels: draft.financialChannels,
     financial_channels: draft.financialChannels,
-    familyType: draft.familyType,
     family_type: draft.familyType,
   }
 }

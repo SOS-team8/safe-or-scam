@@ -11,7 +11,7 @@ from app.config import settings
 logger = logging.getLogger("pipeline.tree_builder")
 
 SCENARIOS_DIR = Path(__file__).parent.parent / "data" / "scenarios"
-from app.models.scenario import ScenarioTree, ScenarioNode, Choice, Resources
+from app.models.scenario import ScenarioTree, ScenarioNode, Choice, Resources, compute_ending_counts
 from app.pipeline.node_generator import (
     generate_root_node,
     generate_node,
@@ -66,8 +66,9 @@ class ScenarioTreeBuilder:
                 if prologue:
                     logger.info("프롤로그 생성: %s...", prologue[:50] if len(prologue) > 50 else prologue)
 
+                now = datetime.now(timezone.utc)
                 tree = ScenarioTree(
-                    id=f"scenario_{uuid4().hex[:8]}",
+                    scenario_id=f"scenario_{uuid4().hex[:8]}",
                     title=f"{phishing_type} 시나리오",
                     description=f"{phishing_type}을 체험하는 교육 시나리오입니다.",
                     phishing_type=phishing_type,
@@ -76,7 +77,8 @@ class ScenarioTreeBuilder:
                     nodes={root.id: root},
                     protagonist=protagonist,
                     prologue=prologue,
-                    created_at=datetime.now(timezone.utc),
+                    created_at=now,
+                    updated_at=now,
                 )
                 logger.info("[Phase 1/5] Seed 완료: choices=%d, prologue=%s", len(root.choices), bool(prologue))
                 self._save_progress(tree, "phase1_seed")
@@ -106,7 +108,17 @@ class ScenarioTreeBuilder:
                 tree = await self._validate_and_repair(tree)
                 logger.info("[Phase 5/5] Validate 완료: 최종 노드=%d", len(tree.nodes))
 
-                logger.info("=== Pipeline Complete: %s (nodes=%d) ===", tree.id, len(tree.nodes))
+                # scenario-tree §8-#7: total_endings 등 자동 계산 후 set + updated_at 갱신
+                total, good, bad = compute_ending_counts(tree)
+                tree.total_endings = total
+                tree.total_good_endings = good
+                tree.total_bad_endings = bad
+                tree.updated_at = datetime.now(timezone.utc)
+
+                logger.info(
+                    "=== Pipeline Complete: %s (nodes=%d, endings=%d/g%d/b%d) ===",
+                    tree.scenario_id, len(tree.nodes), total, good, bad,
+                )
                 return tree
 
         except asyncio.TimeoutError:
@@ -319,7 +331,7 @@ class ScenarioTreeBuilder:
         logger.info(f"이미지 생성 시작: {total}개 노드")
 
         # 1차 시도: 배치 병렬 처리
-        await self._generate_images_batch(nodes_to_generate, tree.id, "1차")
+        await self._generate_images_batch(nodes_to_generate, tree.scenario_id, "1차")
 
         # 실패한 노드 확인
         failed_nodes = [node for node in nodes_to_generate if not node.image_url]
@@ -335,7 +347,7 @@ class ScenarioTreeBuilder:
             
             for i, node in enumerate(failed_nodes):
                 logger.info(f"재시도 [{i+1}/{len(failed_nodes)}]: {node.id}")
-                await self._generate_single_image(node, tree.id)
+                await self._generate_single_image(node, tree.scenario_id)
                 
                 if node.image_url:
                     logger.info(f"재시도 성공: {node.id}")
@@ -397,7 +409,7 @@ class ScenarioTreeBuilder:
         """파이프라인 진행 상황을 JSON으로 중간 저장"""
         progress_dir = SCENARIOS_DIR / "progress"
         progress_dir.mkdir(parents=True, exist_ok=True)
-        filepath = progress_dir / f"{tree.id}.json"
+        filepath = progress_dir / f"{tree.scenario_id}.json"
         data = tree.model_dump(mode="json")
         data["_progress"] = {
             "phase": phase,

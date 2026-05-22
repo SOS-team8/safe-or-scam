@@ -6,7 +6,7 @@ from beanie import Document
 from pydantic import Field
 from pymongo import ASCENDING, IndexModel
 
-from app.models.common import ProtagonistProfile, ScenarioNode
+from app.models.common import EndingCategory, ProtagonistProfile, ScenarioNode
 
 
 class Scenario(Document):
@@ -30,6 +30,11 @@ class Scenario(Document):
     total_endings: int
     total_good_endings: int
     total_bad_endings: int
+
+    # v2 신설 (scenario-tree v2 §1, §7): ending_classifier 결과 메타.
+    # ending_classifier 미실행 시 None 이며 모든 ending 노드의 ending_category 도 None.
+    # nullable + default None 이라 기존 6개 시드 시나리오 호환.
+    ending_categories: dict[str, EndingCategory] | None = None
 
     tags: list[str] = Field(default_factory=list)
     created_at: datetime

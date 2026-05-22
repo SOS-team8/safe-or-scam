@@ -75,18 +75,12 @@ export type OnboardingDraft = {
 
 export type OnboardingRequest = {
   occupation: Occupation
-  ageGroup: AgeGroup
   age_group: AgeGroup
   gender: Gender
-  economicActivities: EconomicActivity[]
   economic_activities: EconomicActivity[]
-  communicateChannels: CommunicateChannel[]
   communicate_channels: CommunicateChannel[]
-  onlineActivities: OnlineActivity[]
   online_activities: OnlineActivity[]
-  financialChannels: FinancialChannel[]
   financial_channels: FinancialChannel[]
-  familyType: FamilyType
   family_type: FamilyType
 }
 

@@ -2,7 +2,9 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.routes import game_sessions, scenarios
 from app.db.mongo import close_mongo, init_mongo, ping
 
 
@@ -18,6 +20,19 @@ app = FastAPI(
     version="0.1.0",
     lifespan=lifespan,
 )
+
+# game-engine-api v2 §1 + phase3-cross-boundary §5: 개발 환경 frontend (Vite) 허용.
+# 운영 도메인은 system-architect Phase 6 에서 추가.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(scenarios.router, prefix="/api/v1")
+app.include_router(game_sessions.router, prefix="/api/v1")
 
 
 @app.get("/health")

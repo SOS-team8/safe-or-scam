@@ -18,7 +18,20 @@ dependencies = [
     "trafilatura>=1.12.0",
     "scikit-learn>=1.5.0",
     "numpy>=2.0.0",
+    "motor>=3.3.0",
+    "beanie>=2.0.0",
 ]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "mongomock-motor>=0.0.30",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
 
 [build-system]
 requires = ["hatchling"]
