@@ -46,6 +46,30 @@ export function GameContainer({ sessionId }: GameContainerProps) {
     }
   }, [sessionQuery.data])
 
+  // 다음 노드 이미지 preload (#53) — GCS 에서 fetch 하는 동안의 latency 가
+  // 사용자 체감에 누적되는 걸 막기 위해 현재 노드의 choices 가 가리킬 수 있는
+  // 다음 노드들의 image_url 을 미리 받아 브라우저 캐시에 적재한다. 사용자가
+  // 선택지를 누르는 시점엔 이미 캐싱되어 즉시 표시.
+  // - scenarioQuery 가 전체 tree 를 캐시하므로 next_node_id 로 미리 조회 가능
+  // - new Image() 의 src 할당만으로 백그라운드 fetch 발생 (DOM 부착 불필요)
+  // - GC 대상이지만 브라우저 HTTP 캐시는 별도라 fetch 결과는 그대로 남음
+  useEffect(() => {
+    const tree = scenarioQuery.data
+    const current = snapshot?.currentNode
+    if (!tree || !current) return
+    for (const choice of current.choices) {
+      const nextId = choice.next_node_id
+      if (!nextId) continue
+      const nextImg = tree.nodes?.[nextId]?.image_url
+      if (!nextImg) continue
+      const img = new Image()
+      img.src = nextImg
+    }
+    // currentNode.id 가 바뀌었을 때만 재실행 — 객체 자체를 deps 에 넣으면
+    // 매 렌더마다 신규 참조라 무한 preload 트리거.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [snapshot?.currentNode?.id, scenarioQuery.data])
+
   // 현재 노드의 narration 타이핑 완료 여부.
   // 노드가 바뀌면 false로 초기화돼 ChoicePanel을 일시 숨김 — 스포일러 방지.
   // useState로 lastNodeId를 함께 추적해 useEffect setState 패턴을 피한다.

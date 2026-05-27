@@ -16,8 +16,9 @@ type NarrationPanelProps = {
   onTypingComplete?: () => void
 }
 
-type ImageFailedState = {
+type ImageState = {
   failed: boolean
+  loaded: boolean
   lastUrl: string | null | undefined
 }
 
@@ -27,18 +28,24 @@ export function NarrationPanel({
   typingSpeed = 25,
   onTypingComplete,
 }: NarrationPanelProps) {
-  // imageUrl 변경 시 render-time에 failed 상태 초기화.
-  // useState로 lastUrl을 추적해 ref 변경 lint 규칙을 우회.
-  const [imageFailedState, setImageFailedState] = useState<ImageFailedState>({
+  // imageUrl 변경 시 render-time에 failed/loaded 상태 초기화.
+  // loaded=false → opacity 0 → onLoad 발화 시 opacity 1 로 자연스러운 fade-in.
+  // preload (GameContainer) + 브라우저 캐시 hit 이면 onLoad 가 거의 즉시 발화하므로
+  // fade 시작점은 빈 영역이 아니라 캐시된 첫 frame — 끊김 없는 전환 (#53).
+  const [imageState, setImageState] = useState<ImageState>({
     failed: false,
+    loaded: false,
     lastUrl: imageUrl,
   })
-  if (imageFailedState.lastUrl !== imageUrl) {
-    setImageFailedState({ failed: false, lastUrl: imageUrl })
+  if (imageState.lastUrl !== imageUrl) {
+    setImageState({ failed: false, loaded: false, lastUrl: imageUrl })
   }
-  const imageFailed = imageFailedState.failed
+  const imageFailed = imageState.failed
+  const imageLoaded = imageState.loaded
   const setImageFailed = (failed: boolean) =>
-    setImageFailedState({ failed, lastUrl: imageUrl })
+    setImageState((s) => ({ ...s, failed }))
+  const setImageLoaded = (loaded: boolean) =>
+    setImageState((s) => ({ ...s, loaded }))
 
   const showImage = Boolean(imageUrl) && !imageFailed
 
@@ -75,11 +82,15 @@ export function NarrationPanel({
       {showImage ? (
         <div className="overflow-hidden rounded-md border border-white/10 bg-slate-900">
           <img
+            key={imageUrl ?? ''}
             src={imageUrl ?? undefined}
             alt=""
             aria-hidden="true"
+            onLoad={() => setImageLoaded(true)}
             onError={() => setImageFailed(true)}
-            className="block h-full w-full object-cover"
+            className={`block h-full w-full object-cover transition-opacity duration-300 ease-out ${
+              imageLoaded ? 'opacity-100' : 'opacity-0'
+            }`}
           />
         </div>
       ) : null}
