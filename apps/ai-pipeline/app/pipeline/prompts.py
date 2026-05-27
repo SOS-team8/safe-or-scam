@@ -1,30 +1,151 @@
 """LLM 프롬프트 템플릿"""
 
-# 이미지 프롬프트 가이드라인
+# 이미지 프롬프트 가이드라인 (#53 — Nano Banana 2 / Gemini 3.1 Flash Image
+# 베이스. Imagen 4 family 가 2026-06 종료 예정이라 forward path).
+#
+# 이전 가이드는 "사람 + 분위기" 위주라 노드별 변별력이 약했다. 사용자가 짚었듯이
+# 캘린더 / 시계 / 메신저 UI / 카운트다운 / 명단 / 알림 배지 같은 상황 트리거가
+# 빠지면 모든 노드 이미지가 비슷해 보이는 회귀가 있다. 또 정적 LEFT/RIGHT split
+# 으로만 합성하면 한 시나리오 안에서 layout 이 단조로워진다.
+#
+# 핵심 변경:
+# 1) CoT — image_prompt 전에 reasoning 필드에 4 요소(core_object / urgency /
+#    emotion / setting) + 선택한 composition 코드를 먼저 기록.
+# 2) Dynamic composition — LEFT/RIGHT 강제 대신 7가지 layout 후보 중 narrative
+#    의 beat 에 맞는 것을 LLM 이 선택. variation 도 허용.
+# 3) Rich core_object 후보 — 20+ UI 자산을 명시해서 시나리오 안에서 다양화 강제.
+# 4) Nano Banana 2 의 SOTA 텍스트 렌더링을 활용 — English short labels / 숫자
+#    / 이모지 적극 사용. Korean characters 만 금지 (한국어 렌더링 여전히 깨짐).
+# 5) Few-shot 3건 — 서로 다른 composition 으로 작성해 패턴 학습 유도.
 IMAGE_PROMPT_GUIDE = """
-image_prompt 작성 규칙 (매우 중요):
-- 반드시 영문으로 작성
-- 스타일을 프롬프트 앞과 끝에 모두 명시 (중요!)
-  * 형식: "Korean webtoon style illustration: [장면 묘사]. Webtoon art style, no text."
-- 텍스트 렌더링 금지 (매우 중요!):
-  * 이미지에 어떤 텍스트, 글자, 문자, 간판 글씨도 포함하지 않음
-  * 프롬프트 끝에 반드시 "no text, no letters, no words, no typography" 추가
-  * "Korean text on signs" 같은 텍스트 요청 금지
-- 구체적인 장면, 인물, 감정, 환경을 묘사
-- 다양한 시각적 요소를 포함:
-  * 장소: 거실, 사무실, 지하철, 카페, 은행, 경찰서, 병원 대기실 등
-  * 시간대: 밤, 새벽, 점심시간, 퇴근길 등
-  * 날씨/분위기: 비 오는 날, 어두운 골목, 밝은 오피스 등
-  * 인물 특징: 나이대, 복장, 표정, 자세 등
-  * 기기/소품: 스마트폰, 노트북, ATM, 서류, 현금 등
-- 감정과 분위기를 구체적으로:
-  * 긴장: worried expression, sweating, biting nails
-  * 혼란: confused look, furrowed brow
-  * 공포: wide eyes, pale face, trembling hands
-  * 안도: relieved expression, deep breath, relaxed shoulders
-  * 후회: head in hands, tears, looking down
-- 한국적 요소 포함: Korean apartment, Korean cafe, Korean street (텍스트 없이)
-- 매 장면마다 다른 구도와 시점 사용
+image_prompt 작성 절차 (반드시 따를 것):
+
+[Step 1] narrative_text 에서 다음 4개를 먼저 식별하고 reasoning 필드의 앞부분에
+기록 (image_prompt 작성 전):
+  - core_object   : 이 노드의 핵심 시각 자산 (아래 후보 중 선택, 매 노드 다르게)
+  - urgency_signal: 시간/긴급 트리거 (countdown / red badge / URGENT banner /
+                    unread dot / blinking alert / exclamation / pulse animation)
+  - emotion       : 인물 감정·신체 신호 (hesitation / biting lip / sweating /
+                    trembling hand / head in hands / relieved breath /
+                    wide eyes / clenched jaw / shaky shoulders)
+  - setting       : 장소·시간·조명 (Korean office cubicle at evening /
+                    convenience store ATM at night / subway car / home
+                    living room morning / dim alley / cafe afternoon)
+
+core_object 후보 (한 시나리오 안에서 골고루 사용. 같은 시나리오에서 4번 이상
+같은 것 반복 금지):
+  - messenger chat screen / group chat thread / DM with profile photo
+  - calendar invite card / event detail / countdown timer
+  - voice call screen with waveform / video call (potential deepfake) UI
+  - ATM transfer screen / online banking transfer modal
+  - security app install prompt / 2FA code screen / SMS verification
+  - phishing email preview / suspicious link card with URL bar
+  - fake ID card / fake police badge / official-looking document scan
+  - delivery tracking screen / SMS notification banner
+  - QR code on a sticker / receipt printout / bank statement
+  - chat bubble with attached image (file_size kb visible)
+  - browser tab with fake login page
+  - desktop screen with multiple browser tabs and email client
+  - paper document with stamp and signature on a desk
+  - shopping cart / payment confirmation modal
+  - investment app dashboard with green/red chart
+
+[Step 2] 다음 7개 composition 후보 중 narrative beat 에 가장 어울리는 1개를
+reasoning 필드에 명시 (예: "composition: OVER_SHOULDER, reason: 인물이 화면을
+자세히 보는 순간을 같이 체험"). 같은 시나리오에서 같은 composition 4번 이상
+반복 금지. 두 layout 의 변형·혼합도 OK.
+
+  1) SPLIT          — frame 을 LEFT/RIGHT 또는 대각선으로 분할.
+                      한쪽에 UI close-up, 반대쪽에 인물. (선택 갈등 강조)
+  2) OVER_SHOULDER  — 카메라가 인물 어깨 너머로 화면을 본다. 인물의 머리·어깨
+                      실루엣 + 화면 디테일 동시 노출. (몰입·동참)
+  3) POV            — 1인칭. 인물의 손·팔만 보이고 화면 또는 객체가 정면.
+                      거울/창 반사로 표정 일부 노출 가능. (압박감·체험)
+  4) DEVICE_DOMINANT— frame 의 70-90%를 device screen 이 차지. 흐릿한 인물
+                      reflection 또는 모서리에 손가락만. (정보 압박)
+  5) INSET          — 인물·환경이 큰 frame. 코너 또는 spotlight 안에 작은 UI
+                      close-up. (장소감·상황감 우선)
+  6) STRIP          — 세로 또는 가로 2-3컷 panel sequence (webtoon style).
+                      시간 흐름·반응 단계·전후 대비 표현.
+  7) ENV_WIDE       — 인물 + 환경 wide shot. UI 요소는 작게 배경에 (벽 모니터
+                      / 멀리 보이는 전광판 / 책상 위 모니터 등). (분위기 우선)
+
+[Step 3] 다음 framework 로 image_prompt 작성:
+  "Korean webtoon style illustration: [composition 이름과 layout 묘사],
+   [core_object 디테일 with English short labels and urgency_signal],
+   [protagonist description + appearance + emotion body language],
+   [setting lighting/time]. Webtoon manhwa art style, soft clean lines,
+   [tone: cool blue / warm amber / muted neutral]. English short labels,
+   digits and emoji allowed. Korean characters omitted."
+
+[Step 4] 텍스트 정책 (Nano Banana 2 의 SOTA 텍스트 렌더링 활용):
+  - 화면 안 텍스트는 English short labels + 숫자 + 이모지 + emoji:
+    "WORKSHOP?", "3 MIN", "URGENT", "TRANSFER", "CONFIRM", "00:30", "?",
+    "+82-...", "₩10,000,000", "💬", "📅", "🔒", "!"
+  - Korean characters / Korean Hangul 는 금지 (한국어 렌더링 여전히 불안정)
+  - watermark / logo (real brand) / signature 는 금지
+
+[Step 5] negative — 단어로만 (instruction 어조 X):
+  Korean characters, Korean Hangul, watermark, brand logo, distorted faces,
+  extra fingers, blurry text, garbled letters
+
+[few-shot 예시] 서로 다른 composition · 다른 core_object 사용:
+
+예시 1 — composition: SPLIT, core_object: messenger chat screen
+  narrative trigger: "팀 단체방 답장 없음 + 팀장 개인 메시지 '3분 안에 명단 작성' 다급한 독촉"
+  reasoning(요약): core_object=messenger chat / urgency=countdown 3 MIN /
+    emotion=biting lip, finger hovering / setting=evening office cubicle /
+    composition=SPLIT (선택의 갈등 강조)
+  image_prompt:
+  "Korean webtoon style illustration: SPLIT composition with a vertical
+   divider. LEFT half showing a smartphone messenger app close-up: a chat
+   bubble labeled 'WORKSHOP?' with a red countdown badge '3 MIN', an
+   URGENT tag in red, a small calendar icon 📅, manager's profile thumbnail
+   with a single unread dot. RIGHT half showing [protagonist description],
+   [protagonist appearance], anxious expression, biting lower lip, finger
+   hovering over the phone screen, hunched shoulders, blue screen glow on
+   face. Evening office cubicle, dimmed overhead lights, monitor reflections
+   in background. Webtoon manhwa art style, soft clean lines, cool blue
+   palette. English short labels and digits allowed. Korean characters
+   omitted."
+
+예시 2 — composition: POV, core_object: ATM transfer screen
+  narrative trigger: "은행 ATM 송금 화면 + 30초 카운트다운 + 검찰 사칭 압박"
+  reasoning(요약): core_object=ATM transfer modal / urgency=00:30 countdown +
+    red CONFIRM / emotion=hesitation, hand trembling / setting=24h convenience
+    store night / composition=POV (1인칭 압박감)
+  image_prompt:
+  "Korean webtoon style illustration: POV first-person angle. The ATM screen
+   fills the frame at a slight upward tilt, showing a transfer interface
+   labeled 'TRANSFER' with a red countdown timer '00:30', a fake institution
+   banner 'PROSECUTOR OFFICE', a glowing red CONFIRM button below. In the
+   lower-foreground, hands of [protagonist description], [protagonist
+   appearance] visible: one trembling hand hovering above the CONFIRM button,
+   the other gripping the screen edge. Faint reflection of a worried face
+   on the dark screen border. Convenience store ATM kiosk at night, harsh
+   fluorescent overhead light, condensation on glass partition. Webtoon
+   manhwa art style, cool blue tones, anxious tension. English short labels
+   and digits allowed. Korean characters omitted."
+
+예시 3 — composition: STRIP, core_object: voice call (potential deepfake)
+  narrative trigger: "딸 목소리 사고 났다며 송금 요청 → 평소와 다른 어색한 말투 →
+    의심 후 직접 전화 시도"
+  reasoning(요약): core_object=voice call UI with waveform / urgency=live call
+    timer + '!' badge / emotion=confusion → realization → resolve / setting=
+    home kitchen morning / composition=STRIP (시간 흐름·감정 단계)
+  image_prompt:
+  "Korean webtoon style illustration: STRIP composition with three vertical
+   panels. TOP panel showing a smartphone voice-call screen close-up with
+   profile photo labeled 'DAUGHTER 💛', a live waveform indicator, call
+   timer '02:14', a small '!' suspicion badge near the avatar. MIDDLE panel
+   showing [protagonist description], [protagonist appearance], confused
+   furrowed brow, phone pressed to ear, free hand against the temple, eyes
+   narrowing. BOTTOM panel showing the same person hanging up and tapping
+   a separate contact labeled 'DAUGHTER (REAL)' with a green CALL button.
+   Bright kitchen morning sunlight through the window, family photo frames
+   blurred in background. Webtoon manhwa art style, warm amber tones
+   transitioning to clarity. English short labels, digits, emoji allowed.
+   Korean characters omitted."
 """
 
 ROOT_SYSTEM_PROMPT = f"""당신은 피싱 예방 교육을 위한 텍스트 어드벤처 게임 시나리오 작가입니다.
@@ -172,16 +293,19 @@ protagonist 예시 (참고용):
 - 노년 남성: {"age_group": "elderly", "gender": "man", "description": "An elderly Korean man in his 60s", "appearance": "gray hair, wearing comfortable sweater, reading glasses hanging from neck"}
 - 청년 여성: {"age_group": "young adult", "gender": "woman", "description": "A young Korean woman in her 20s", "appearance": "long straight hair, casual stylish clothes, carrying a bag"}
 
-image_prompt 작성 시:
-- 스타일을 프롬프트 앞과 끝에 모두 명시 (스타일 일관성을 위해 매우 중요!)
-- 예시 형식: "Korean webtoon style illustration: [주인공 description], [주인공 appearance], [장면 묘사]. Webtoon art style, no text, no letters."
-- 주인공의 description과 appearance를 정확히 포함
-- 장면, 감정, 배경을 구체적으로 묘사
+image_prompt 작성 시 (시스템 프롬프트의 IMAGE_PROMPT_GUIDE 4단계 절차 따를 것):
+- Step 1: narrative_text 에서 core_object / urgency_signal / emotion / setting
+  4요소를 먼저 추출하여 reasoning 필드 앞부분에 메모
+- Step 2: webtoon split composition (LEFT=UI 자산 + 영문 라벨, RIGHT=인물)
+- Step 3: "Korean webtoon style illustration:" 으로 시작, 주인공 description/
+  appearance 그대로 포함, "Korean characters omitted." 로 마무리
+- Step 4: 매 노드 다른 core_object 사용 (메신저/캘린더/ATM/음성통화/보안앱/...)
 
 IMPORTANT:
 1. 주인공은 시나리오에 맞게 자유롭게 생성하되, 한 번 생성한 후 모든 노드에서 동일하게 유지
-2. image_prompt에 주인공의 description과 appearance를 반드시 포함
-3. image_prompt는 반드시 "Korean webtoon style illustration:" 로 시작해야 함"""
+2. image_prompt 에 주인공의 description 과 appearance 를 반드시 포함
+3. image_prompt 는 반드시 "Korean webtoon style illustration:" 으로 시작해야 함
+4. 화면 안 텍스트는 English short labels / 숫자 / 이모지로 (Korean 금지) — UI 안의 라벨이 노드의 상황 차별성을 만드는 핵심 도구"""
     return prompt
 
 
@@ -284,26 +408,27 @@ danger_feedback 규칙 (중요):
 
     if protagonist:
         prompt += f"""
-CRITICAL: image_prompt 작성 시 주인공을 반드시 포함하세요:
-- 반드시 \"Korean webtoon style illustration:\" 로 시작
+CRITICAL: image_prompt 작성 시 시스템 프롬프트의 IMAGE_PROMPT_GUIDE 4-step 절차를 따르세요.
+- 반드시 \"Korean webtoon style illustration:\" 으로 시작
 - 주인공: {protagonist.description}, {protagonist.appearance}
-- 주인공의 외모와 특징을 정확히 유지하면서 다른 장면, 배경, 감정을 묘사
-- 프롬프트 끝에도 스타일 명시: \"Webtoon art style.\"
+- 매 노드 다른 core_object 사용 (메신저/캘린더/ATM/음성통화/보안앱/문서 등)
+- 화면 안 텍스트는 English short labels / 숫자 / 이모지 ("URGENT", "3 MIN", "?", "📅"...)
+- 프롬프트 끝에 \"Webtoon manhwa art style, [tone]. English short labels and digits allowed. Korean characters omitted.\"
 
-image_prompt 예시 (주인공 정보 포함):
-- "Korean webtoon style illustration: {protagonist.description}, {protagonist.appearance}, sitting in a modern Korean cafe, staring at phone screen with confused expression, coffee cup on table, afternoon sunlight through window. Webtoon art style, no text, no letters."
-- "Korean webtoon style illustration: {protagonist.description}, {protagonist.appearance}, standing at ATM machine in convenience store at night, sweating nervously, harsh fluorescent lighting, tense atmosphere. Webtoon art style, no text, no letters."
-- "Korean webtoon style illustration: {protagonist.description}, {protagonist.appearance}, in a living room at home, holding smartphone, worried expression, family photos on wall, warm lamp light. Webtoon art style, no text, no letters."
+image_prompt 예시 (주인공 + UI 자산 + emotion + setting 합성):
+- "Korean webtoon style illustration: Over-the-shoulder view of {protagonist.description}, {protagonist.appearance}, sitting in a Korean cafe. The smartphone screen close-up shows a messenger chat bubble labeled 'INVITE' with a red '!' badge, a calendar icon 📅, blurred coffee cup foreground. Confused furrowed brow, fingers hesitating above the screen. Afternoon warm sunlight through window. Webtoon manhwa art style, soft palette, English short labels and digits allowed. Korean characters omitted."
+- "Korean webtoon style illustration: Split composition. LEFT showing an ATM transfer interface close-up labeled 'TRANSFER' with a red countdown timer '00:30', a glowing red CONFIRM button. RIGHT showing {protagonist.description}, {protagonist.appearance}, sweating nervously, hand reaching toward the screen, harsh fluorescent convenience-store lighting. Webtoon manhwa art style, cool blue tones, tense atmosphere. English short labels and digits allowed. Korean characters omitted."
+- "Korean webtoon style illustration: {protagonist.description}, {protagonist.appearance}, in a living room at home, holding smartphone close to face. Phone screen visible showing a voice-call interface with the contact label 'POLICE' and a live waveform, a small '!' suspicion badge. Worried expression, family photo frames on wall in soft focus, warm lamp light. Webtoon manhwa art style, English short labels allowed. Korean characters omitted."
 """
     else:
         prompt += """
-image_prompt 예시 (이전 장면과 다르게 작성):
-- narrative: "A stressed Korean person hunched over a laptop in a dimly lit home office at midnight, multiple browser tabs open, empty coffee cups on desk, worried expression, blue screen light illuminating face, webtoon style, no text, no letters"
-- ending_good: "A relieved Korean person sitting at a police station, officer in uniform taking notes, bright fluorescent lights, certificates on wall, showing phone screen as evidence, hopeful expression, manhwa style illustration, no text, no letters"
-- ending_bad: "A devastated Korean person sitting alone on a park bench at dusk, head in hands, crumpled bank statement on the ground, autumn leaves falling, empty wallet visible, tears on cheeks, melancholic atmosphere, webtoon style, no text, no letters"
+image_prompt 예시 (Step 1-4 절차 따른 형태):
+- narrative: "Korean webtoon style illustration: A stressed Korean person hunched over a laptop in a dimly lit home office at midnight. Laptop screen visible showing a phishing email preview with subject line 'TAX REFUND' and a red URGENT banner, multiple browser tabs open, empty coffee cups. Worried expression, blue screen glow on face. Webtoon manhwa art style, English short labels allowed. Korean characters omitted."
+- ending_good: "Korean webtoon style illustration: A relieved Korean person sitting at a police station, officer in uniform taking notes, certificates on the wall. The person's phone is on the desk displaying a chat thread labeled 'SCAM REPORT'. Hopeful expression, bright fluorescent lights. Webtoon manhwa art style, English short labels allowed. Korean characters omitted."
+- ending_bad: "Korean webtoon style illustration: A devastated Korean person sitting alone on a park bench at dusk, head in hands. A crumpled bank statement on the ground partially visible with the label 'TRANSFERRED -₩10,000,000', autumn leaves falling, empty wallet beside. Tears on cheeks, melancholic. Webtoon manhwa art style, English short labels and digits allowed. Korean characters omitted."
 """
 
-    prompt += "\nIMPORTANT: image_prompt는 필수. 이전 노드와 중복되지 않는 새로운 장면을 묘사하세요."
+    prompt += "\nIMPORTANT: image_prompt 는 필수. 이전 노드와 중복되지 않는 새 core_object 와 urgency_signal 로 차별화하세요."
     return prompt
 
 

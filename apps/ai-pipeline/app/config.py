@@ -16,10 +16,15 @@ class Settings(BaseSettings):
     llm_model: str = "gemini/gemini-3.1-flash-lite"
     image_model: str = "imagen-4.0-fast-generate-001"
 
-    # Google Cloud Vertex AI (Imagen 이미지 생성용)
+    # Google Cloud Vertex AI (Imagen 이미지 생성용) + GCS (#53).
+    # 인증은 ADC 우선 — `google_application_credentials` 가 빈 값이면 키 파일 설정
+    # 분기를 skip 하고 google SDK 가 자동 ADC 잡는다 (`gcloud auth application-default login`).
     google_application_credentials: str = ""
     gcp_project_id: str = ""
-    gcp_location: str = "us-central1"
+    gcp_location: str = "asia-northeast3"
+    # publish_scenario.sh / delete_scenario.sh 가 사용. 파이썬 코드에서는 미참조이지만
+    # config 에 노출해두어 settings.gcs_bucket 으로 정합성 확인 가능.
+    gcs_bucket: str = ""
 
     # 서버 설정
     backend_port: int = 8001
