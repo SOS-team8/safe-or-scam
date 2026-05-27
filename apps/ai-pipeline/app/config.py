@@ -11,17 +11,20 @@ _DEFAULT_IMAGES_DIR = str(_APP_DIR / "data" / "images")
 
 class Settings(BaseSettings):
     """환경변수 기반 설정"""
-    # Google Gemini API (LLM용)
+    # Google Gemini API (LLM + 이미지 생성용)
     gemini_api_key: str = ""
     llm_model: str = "gemini/gemini-3.1-flash-lite"
-    image_model: str = "imagen-4.0-fast-generate-001"
+    # 이미지 생성 — Nano Banana 2 (#53). Imagen 4 family 2026-06 EOL 이후 forward path.
+    image_model: str = "gemini-3.1-flash-image-preview"
 
-    # Google Cloud Vertex AI (Imagen 이미지 생성용) + GCS (#53).
+    # GCS 호스팅 + (옵션) Vertex AI (#53).
     # 인증은 ADC 우선 — `google_application_credentials` 가 빈 값이면 키 파일 설정
     # 분기를 skip 하고 google SDK 가 자동 ADC 잡는다 (`gcloud auth application-default login`).
     google_application_credentials: str = ""
     gcp_project_id: str = ""
-    gcp_location: str = "asia-northeast3"
+    # us-central1 — gemini-3.1-flash-image-preview 표준 지원 region. 다른 region
+    # 은 preview 모델이 풀려있지 않을 수 있다.
+    gcp_location: str = "us-central1"
     # publish_scenario.sh / delete_scenario.sh 가 사용. 파이썬 코드에서는 미참조이지만
     # config 에 노출해두어 settings.gcs_bucket 으로 정합성 확인 가능.
     gcs_bucket: str = ""
@@ -59,7 +62,8 @@ class Settings(BaseSettings):
     llm_timeout: int = 60
     pipeline_timeout: int = 3000
 
-    # 이미지 생성 설정 (Imagen 4.0 Fast: 분당 150 요청 제한)
+    # 이미지 생성 설정 (Nano Banana 2 / Gemini 3.1 Flash Image — IPM 은 AI Studio
+    # dashboard 에서 프로젝트별 확인. preview 모델이라 보수적으로 시작 권장.)
     image_max_concurrent: int = 5   # 병렬 처리 수 (5개 동시)
     image_retry_count: int = 2      # 재시도 횟수
     image_retry_delay: float = 2.0  # 재시도 간격 (초)
