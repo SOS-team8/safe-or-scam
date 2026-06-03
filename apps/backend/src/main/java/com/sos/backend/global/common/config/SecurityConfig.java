@@ -1,9 +1,8 @@
 package com.sos.backend.global.common.config;
 
 import com.sos.backend.domain.auth.PasswordProperties;
-import com.sos.backend.global.auth.JwtFilter;
-import com.sos.backend.global.auth.JwtProvider;
-import com.sos.backend.global.auth.UserStatusCacheService;
+import com.sos.backend.global.auth.*;
+
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,8 +21,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import jakarta.servlet.http.HttpServletResponse;
-
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
@@ -32,6 +29,8 @@ public class SecurityConfig {
     private final JwtProvider jwtProvider;
     private final PasswordProperties passwordProperties;
     private final UserStatusCacheService userStatusCacheService;
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
 
     @Value("${cors.allowed-origins:http://localhost:5173}")
     private List<String> allowedOrigins;
@@ -64,9 +63,8 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
             )
             .exceptionHandling(ex -> ex
-                .authenticationEntryPoint((request, response, authException) ->
-                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED))
-            )
+                .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                .accessDeniedHandler(jwtAccessDeniedHandler))
             .addFilterBefore(new JwtFilter(jwtProvider, userStatusCacheService),
                 UsernamePasswordAuthenticationFilter.class);
 
