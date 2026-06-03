@@ -6,8 +6,8 @@ Safe-or-Scam AI Pipeline. 실제 피싱 뉴스 기반 분기형 시나리오를 
 
 - Python 3.12
 - FastAPI + uvicorn (port **8001**)
-- LLM: Gemini API (LiteLLM)
-- 이미지: Google Vertex AI Imagen
+- LLM: OpenAI API (LiteLLM)
+- 이미지/임베딩: OpenAI API
 - 패키지 매니저: **uv**
 
 ## 역할
@@ -23,11 +23,10 @@ Safe-or-Scam AI Pipeline. 실제 피싱 뉴스 기반 분기형 시나리오를 
 
 | 변수 | 필수 | 용도 |
 |---|---|---|
-| `GEMINI_API_KEY` | ✅ | Gemini 텍스트 LLM 호출용 |
-| `GCP_PROJECT_ID` | ✅ | Vertex AI Imagen 프로젝트 ID |
-| `GOOGLE_APPLICATION_CREDENTIALS` | ✅ | 서비스 계정 JSON 경로 |
+| `OPENAI_API_KEY` | ✅ | OpenAI API 호출용 |
 | `LLM_MODEL` | (기본값 있음) | LiteLLM 모델 식별자 |
-| `IMAGE_MODEL` | (기본값 있음) | Imagen 모델 식별자 |
+| `IMAGE_MODEL` | (기본값 있음) | OpenAI 이미지 모델 식별자 |
+| `EMBEDDING_MODEL` | (기본값 있음) | 엔딩 클러스터링용 OpenAI 임베딩 모델 |
 | `MAX_DEPTH` | (기본 5) | 시나리오 트리 최대 깊이 |
 | `MAX_CHOICES` | (기본 3) | 노드당 최대 선택지 수 |
 
@@ -41,7 +40,7 @@ uv sync
 
 # 환경변수 설정
 cp .env.example .env
-# .env 편집 (GEMINI_API_KEY, GCP_PROJECT_ID 등 채우기)
+# .env 편집 (OPENAI_API_KEY 등 채우기)
 
 # 서버 기동
 uv run uvicorn app.main:app --port 8001 --reload

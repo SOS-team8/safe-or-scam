@@ -75,7 +75,7 @@ async def generate_root_node(
                 ],
                 response_format={"type": "json_object"},
                 timeout=settings.llm_timeout,
-                api_key=settings.gemini_api_key,
+                api_key=settings.openai_api_key,
             )
 
             content = response.choices[0].message.content
@@ -139,7 +139,7 @@ async def generate_node(context: GenerationContext) -> GenerationResult:
                 ],
                 response_format={"type": "json_object"},
                 timeout=settings.llm_timeout,
-                api_key=settings.gemini_api_key,
+                api_key=settings.openai_api_key,
             )
 
             content = response.choices[0].message.content

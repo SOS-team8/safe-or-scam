@@ -32,7 +32,7 @@ async def summarize_nodes(nodes_with_choices: list[tuple[ScenarioNode, Choice | 
                 {"role": "user", "content": full_text},
             ],
             timeout=settings.llm_timeout,
-            api_key=settings.gemini_api_key,
+            api_key=settings.openai_api_key,
         )
         return response.choices[0].message.content.strip()
     except Exception:

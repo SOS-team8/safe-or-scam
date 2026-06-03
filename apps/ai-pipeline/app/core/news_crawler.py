@@ -263,7 +263,7 @@ async def analyze_article(article: RawArticle) -> PhishingArticle | None:
                 ],
                 response_format={"type": "json_object"},
                 timeout=settings.llm_timeout,
-                api_key=settings.gemini_api_key,
+                api_key=settings.openai_api_key,
             )
 
             data = json.loads(response.choices[0].message.content)

@@ -32,6 +32,7 @@ set +a
 
 : "${GCS_BUCKET:?missing GCS_BUCKET in .env}"
 : "${MONGODB_URL:?missing MONGODB_URL in .env}"
+: "${MONGODB_DB:?missing MONGODB_DB in .env}"
 
 LOCAL_DIR="$ROOT/apps/ai-pipeline/app/data/images/$SCENARIO"
 if [ ! -d "$LOCAL_DIR" ]; then
@@ -49,9 +50,10 @@ echo "[2/2] mongo image_url 교체 in scenario_id=$SCENARIO"
 docker exec -i sos-mongo mongosh "$MONGODB_URL" --quiet --eval "
   const id = '$SCENARIO';
   const bucket = '$GCS_BUCKET';
+  const database = db.getSiblingDB('$MONGODB_DB');
   const oldPrefix = '/api/v1/images/' + id + '/';
   const newPrefix = 'https://storage.googleapis.com/' + bucket + '/' + id + '/';
-  const d = db.scenarios.findOne({scenario_id: id});
+  const d = database.scenarios.findOne({scenario_id: id});
   if (!d) { print('  scenario not found in mongo: ' + id); quit(1); }
   let changed = 0, alreadyGcs = 0;
   for (const [nid, node] of Object.entries(d.nodes)) {
@@ -63,7 +65,7 @@ docker exec -i sos-mongo mongosh "$MONGODB_URL" --quiet --eval "
       alreadyGcs++;
     }
   }
-  db.scenarios.updateOne({scenario_id: id}, {\$set: {nodes: d.nodes}});
+  database.scenarios.updateOne({scenario_id: id}, {\$set: {nodes: d.nodes}});
   print('  changed=' + changed + ', already_gcs=' + alreadyGcs);
 "
 

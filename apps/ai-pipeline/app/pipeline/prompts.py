@@ -1,7 +1,6 @@
 """LLM 프롬프트 템플릿"""
 
-# 이미지 프롬프트 가이드라인 (#53 — Nano Banana 2 / Gemini 3.1 Flash Image
-# 베이스. Imagen 4 family 가 2026-06 종료 예정이라 forward path).
+# 이미지 프롬프트 가이드라인 (#56 — OpenAI Image API 베이스).
 #
 # 이전 가이드는 "사람 + 분위기" 위주라 노드별 변별력이 약했다. 사용자가 짚었듯이
 # 캘린더 / 시계 / 메신저 UI / 카운트다운 / 명단 / 알림 배지 같은 상황 트리거가
@@ -14,7 +13,7 @@
 # 2) Dynamic composition — LEFT/RIGHT 강제 대신 7가지 layout 후보 중 narrative
 #    의 beat 에 맞는 것을 LLM 이 선택. variation 도 허용.
 # 3) Rich core_object 후보 — 20+ UI 자산을 명시해서 시나리오 안에서 다양화 강제.
-# 4) Nano Banana 2 의 SOTA 텍스트 렌더링을 활용 — English short labels / 숫자
+# 4) OpenAI 이미지 모델의 텍스트 렌더링을 활용 — English short labels / 숫자
 #    / 이모지 적극 사용. Korean characters 만 금지 (한국어 렌더링 여전히 깨짐).
 # 5) Few-shot 3건 — 서로 다른 composition 으로 작성해 패턴 학습 유도.
 IMAGE_PROMPT_GUIDE = """
