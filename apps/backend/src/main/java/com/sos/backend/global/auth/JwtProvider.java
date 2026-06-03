@@ -84,16 +84,6 @@ public class JwtProvider {
             .toLocalDateTime();
     }
 
-    // 토큰 유효성 검증
-    public boolean validateToken(String token) {
-        try {
-            getClaims(token);
-            return true;
-        } catch (JwtException | IllegalArgumentException e) {
-            return false;
-        }
-    }
-
     // 토큰 유효성 검증하고, 실패 시 만료/위조 구분된 CustomException throw
     public void validateOrThrow(String token) {
         try {

@@ -1,6 +1,7 @@
 package com.sos.backend.global.auth;
 
 import com.sos.backend.domain.user.enums.UserStatus;
+import com.sos.backend.global.common.exception.CustomException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -27,21 +28,26 @@ public class JwtFilter extends OncePerRequestFilter {
 
         String token = resolveToken(request);
 
-        if (token != null && jwtProvider.validateToken(token)) {
-            Long userId = jwtProvider.getUserId(token);
-            String email = jwtProvider.getEmail(token);
-            UserStatus userStatus = userStatusCacheService.getStatus(userId);
+        if (token != null) {
+            try {
+                jwtProvider.validateOrThrow(token);
 
-            if (userStatus == UserStatus.WITHDRAWAL_PENDING || userStatus == UserStatus.WITHDRAWN) {
-                filterChain.doFilter(request, response);
-                return;
+                Long userId = jwtProvider.getUserId(token);
+                String email = jwtProvider.getEmail(token);
+                UserStatus userStatus = userStatusCacheService.getStatus(userId);
+
+                // 탈퇴/탈퇴대기 유저는 인증을 걸지 않음 (기존 동작 유지)
+                if (userStatus != UserStatus.WITHDRAWAL_PENDING
+                    && userStatus != UserStatus.WITHDRAWN) {
+                    UsernamePasswordAuthenticationToken authentication =
+                        new UsernamePasswordAuthenticationToken(
+                            userId, email, Collections.emptyList());
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                }
+            } catch (CustomException e) {
+                // 사유 stash → entry point가 읽어 ApiResponse 401 생성
+                request.setAttribute(JwtAuthenticationEntryPoint.AUTH_ERROR_ATTRIBUTE, e.getErrorCode());
             }
-
-            UsernamePasswordAuthenticationToken authentication =
-                new UsernamePasswordAuthenticationToken(
-                    userId, email, Collections.emptyList());
-
-            SecurityContextHolder.getContext().setAuthentication(authentication);
         }
 
         filterChain.doFilter(request, response);
