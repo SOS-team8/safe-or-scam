@@ -1,31 +1,17 @@
-"""이미지 생성 모듈 (Google Gemini 3.1 Flash Image / Nano Banana 2 via Gemini API).
+"""이미지 생성 모듈 (OpenAI Image API).
 
-#53 — Imagen 4 family 가 2026-06 EOL 예정이라 Nano Banana 2 (model id:
-`gemini-3.1-flash-image-preview`) 로 교체. 텍스트 렌더링이 SOTA 라 UI mockup
-이미지 안의 영문 라벨/숫자가 깨지지 않는다.
-
-호출 채널: Vertex AI 가 아닌 **Gemini API (ai.google.dev)** — Preview 모델은
-Vertex AI 의 publisher endpoint 가 아직 모든 프로젝트에 풀려있지 않아 404 가
-발생하지만, Gemini API 는 GEMINI_API_KEY 만 있으면 바로 호출 가능. 운영(Cloud
-Run) 단계에서 Vertex AI 로 옮길 일이 생기면 그때 vertexai=True 모드로 다시
-스위치 (코드 한 줄 분기).
-
-SDK 호출 패턴이 Imagen 의 generate_images 가 아니라 Gemini 의 generate_content
-(response_modalities=["TEXT","IMAGE"]) 라 응답 형태가 다르다. 시나리오별 seed
-옵션은 generate_content 에 노출돼 있지 않아 제거 — 인물 일관성은 prompt 안의
-protagonist description/appearance 강제 포함으로 보장 (Nano Banana 2 의
-character consistency 가 우수).
+OpenAI Image API는 base64 PNG를 반환한다. 기존 저장 경로와 URL contract
+(`/api/v1/images/<scenario_id>/<node_id>.png`)은 유지한다.
 """
 import asyncio
+import base64
 import logging
-import os
 import time
 from pathlib import Path
 from uuid import uuid4
 from functools import partial
 
-from google import genai
-from google.genai import types
+from openai import OpenAI
 
 from app.config import settings
 
@@ -39,7 +25,7 @@ def _generate_image_sync(
     prompt: str,
     node_id: str,
     scenario_id: str | None = None,
-    seed: int | None = None,  # 호환을 위한 인자, Gemini 호출에서는 미사용
+    seed: int | None = None,  # 호환을 위한 인자, OpenAI 호출에서는 미사용
 ) -> str | None:
     """동기 이미지 생성 (스레드에서 실행, 지수 백오프 재시도).
 
@@ -47,10 +33,10 @@ def _generate_image_sync(
         prompt: 이미지 생성 프롬프트 (영문)
         node_id: 노드 ID (파일명에 사용)
         scenario_id: 시나리오 ID (파일명 prefix)
-        seed: 호환 인자 — Nano Banana 2 호출에서는 무시
+        seed: 호환 인자 — OpenAI Image API 호출에서는 무시
     """
-    if not settings.gemini_api_key:
-        logger.warning("Image generation skipped: GEMINI_API_KEY not configured")
+    if not settings.openai_api_key:
+        logger.warning("Image generation skipped: OPENAI_API_KEY not configured")
         return None
 
     IMAGES_DIR.mkdir(parents=True, exist_ok=True)
@@ -58,45 +44,30 @@ def _generate_image_sync(
     max_retries = settings.image_retry_count
     base_delay = settings.image_retry_delay
 
-    # 16:9 widescreen 은 prompt 안에 명시 (Gemini generate_content 에 aspect_ratio
-    # 옵션이 직접 노출돼 있지 않다).
     framed_prompt = (
         f"Generate a 16:9 widescreen webtoon illustration.\n\n{prompt}"
     )
 
     for attempt in range(max_retries + 1):
         try:
-            # Gemini API 직접 호출 (Vertex AI 가 아님 — preview 모델이 Vertex 에서
-            # 일부 프로젝트에 풀려있지 않아 404 가 나는 회귀를 회피).
-            client = genai.Client(api_key=settings.gemini_api_key)
+            client = OpenAI(api_key=settings.openai_api_key)
 
-            response = client.models.generate_content(
+            result = client.images.generate(
                 model=settings.image_model,
-                contents=[framed_prompt],
-                config=types.GenerateContentConfig(
-                    response_modalities=["TEXT", "IMAGE"],
-                ),
+                prompt=framed_prompt,
             )
 
-            # response 에서 image bytes 추출 (parts 중 inline_data 보유한 part)
-            image_bytes: bytes | None = None
-            for candidate in response.candidates or []:
-                content = getattr(candidate, "content", None)
-                if not content or not getattr(content, "parts", None):
-                    continue
-                for part in content.parts:
-                    inline = getattr(part, "inline_data", None)
-                    if inline and getattr(inline, "data", None):
-                        image_bytes = inline.data
-                        break
-                if image_bytes:
-                    break
+            image_base64 = None
+            if result.data:
+                image_base64 = getattr(result.data[0], "b64_json", None)
 
-            if not image_bytes:
-                logger.warning(f"[{node_id}] No image bytes in response")
+            if not image_base64:
+                logger.warning(f"[{node_id}] No image bytes in OpenAI response")
                 return None
 
-            # 저장 경로 (Imagen 시절과 동일 — 기존 publish_scenario.sh 호환).
+            image_bytes = base64.b64decode(image_base64)
+
+            # 저장 경로 — 기존 publish_scenario.sh 호환.
             if scenario_id:
                 scenario_dir = IMAGES_DIR / scenario_id
                 scenario_dir.mkdir(parents=True, exist_ok=True)
@@ -115,8 +86,13 @@ def _generate_image_sync(
 
         except Exception as e:
             error_str = str(e)
-            is_quota_error = "RESOURCE_EXHAUSTED" in error_str or "429" in error_str
-            is_safety_error = "SAFETY" in error_str or "blocked" in error_str.lower()
+            is_quota_error = "429" in error_str or "rate limit" in error_str.lower()
+            is_safety_error = (
+                "SAFETY" in error_str
+                or "blocked" in error_str.lower()
+                or "content_policy" in error_str.lower()
+                or "moderation" in error_str.lower()
+            )
 
             if is_safety_error:
                 # 안전 필터 차단은 재시도해도 동일하므로 즉시 실패 처리

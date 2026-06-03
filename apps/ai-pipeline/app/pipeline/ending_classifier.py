@@ -15,7 +15,7 @@ from pathlib import Path
 from dataclasses import dataclass
 
 import litellm
-from google import genai
+from openai import OpenAI
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import normalize
 
@@ -119,11 +119,11 @@ def extract_features(nodes: dict) -> list[EndingFeature]:
 # 2. 임베딩 + 구조적 특성 결합
 # ============================================================
 
-async def get_embeddings(texts: list[str], api_key: str) -> list[list[float]]:
-    """Gemini embedding API로 텍스트 임베딩 (배치 처리, rate limit 대응)"""
-    client = genai.Client(api_key=api_key)
+async def get_embeddings(texts: list[str]) -> list[list[float]]:
+    """OpenAI embedding API로 텍스트 임베딩 (배치 처리, rate limit 대응)"""
+    client = OpenAI(api_key=settings.openai_api_key)
     embeddings = []
-    batch_size = 20  # 무료 tier rate limit 대응
+    batch_size = 20
 
     total_batches = (len(texts) + batch_size - 1) // batch_size
     for i in range(0, len(texts), batch_size):
@@ -133,12 +133,12 @@ async def get_embeddings(texts: list[str], api_key: str) -> list[list[float]]:
 
         for attempt in range(3):
             try:
-                result = client.models.embed_content(
-                    model="gemini-embedding-001",
-                    contents=batch,
+                result = client.embeddings.create(
+                    model=settings.embedding_model,
+                    input=batch,
                 )
-                for emb in result.embeddings:
-                    embeddings.append(emb.values)
+                for emb in result.data:
+                    embeddings.append(emb.embedding)
                 break
             except Exception as e:
                 if "429" in str(e) and attempt < 2:
@@ -263,7 +263,7 @@ async def generate_category_names(
                         {"role": "user", "content": prompt},
                     ],
                     response_format={"type": "json_object"},
-                    api_key=settings.gemini_api_key,
+                    api_key=settings.openai_api_key,
                     timeout=30,
                 )
                 result = json.loads(response.choices[0].message.content)
@@ -334,7 +334,7 @@ async def classify_scenario_endings(
 
     # 3. 텍스트 임베딩
     texts = [f"{f.ending_text} {f.path_summary}" for f in features]
-    embeddings = await get_embeddings(texts, settings.gemini_api_key)
+    embeddings = await get_embeddings(texts)
     logger.info(f"  임베딩 {len(embeddings)}개 생성 완료")
 
     # 4. 특성 행렬 구성 + 클러스터링
@@ -483,7 +483,7 @@ async def fix_fallback_names(scenario_ids: list[str] | None = None):
                             {"role": "user", "content": prompt},
                         ],
                         response_format={"type": "json_object"},
-                        api_key=settings.gemini_api_key,
+                        api_key=settings.openai_api_key,
                         timeout=30,
                     )
                     result = json.loads(response.choices[0].message.content)
@@ -557,7 +557,7 @@ async def classify_tree_in_memory(tree: ScenarioTree) -> ScenarioTree:
 
         # 임베딩 + LLM 호출은 비용 큼 — 본 in-memory 경로에서도 동일 흐름
         texts = [f"{f.ending_text} {f.path_summary}" for f in features]
-        embeddings = await get_embeddings(texts, settings.gemini_api_key)
+        embeddings = await get_embeddings(texts)
         matrix = build_feature_matrix(features, embeddings)
         labels = cluster_endings(matrix, n_clusters=actual_k)
         categories_raw = await generate_category_names(
