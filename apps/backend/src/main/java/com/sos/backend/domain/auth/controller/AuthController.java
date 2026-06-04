@@ -151,6 +151,12 @@ public class AuthController {
     }
 
     @Operation(summary = "전체 로그아웃", description = "해당 사용자의 모든 Refresh Token을 폐기한다.")
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "전체 로그아웃 성공 (모든 Refresh Token 폐기)"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401",
+            description = "Access Token 무효/만료/미첨부 (UNAUTHORIZED / INVALID_TOKEN / EXPIRED_TOKEN)",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class)))
+    })
     @PostMapping("/logout/all")
     @SecurityRequirement(name = "bearerAuth")
     public ApiResponse<Void> logoutAll(@AuthenticationPrincipal Long userId) {
