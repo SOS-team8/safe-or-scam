@@ -2,6 +2,10 @@ package com.sos.backend.domain.user;
 
 import com.sos.backend.domain.user.entity.User;
 import com.sos.backend.domain.user.entity.UserProfile;
+import com.sos.backend.domain.user.enums.AgeGroup;
+import com.sos.backend.domain.user.enums.FamilyType;
+import com.sos.backend.domain.user.enums.Gender;
+import com.sos.backend.domain.user.enums.Occupation;
 import com.sos.backend.domain.user.enums.Role;
 import com.sos.backend.domain.user.enums.UserStatus;
 import com.sos.backend.domain.user.repository.UserProfileRepository;
@@ -17,6 +21,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Collections;
+import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -57,7 +62,15 @@ class UserMeResponseTest extends AbstractIntegrationTest {
 
         userProfileRepository.save(UserProfile.builder()
             .user(user)
+            .occupation(Occupation.EMPLOYEE)
+            .gender(Gender.MALE)
+            .ageGroup(AgeGroup.TWENTIES)
             .onboardingCompleted(true)
+            .economicActivities(List.of("investment"))
+            .communicateChannels(List.of("phone", "sms"))
+            .onlineActivities(List.of("government"))
+            .financialChannels(List.of("mobile_banking"))
+            .familyType(FamilyType.WITH_CHILDREN)
             .build());
 
         SecurityContextHolder.getContext().setAuthentication(
@@ -80,5 +93,21 @@ class UserMeResponseTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.data.role").value("USER"))
             .andExpect(jsonPath("$.data.status").value("ACTIVE"))
             .andExpect(jsonPath("$.data.createdAt").exists());
+    }
+
+    @Test
+    @DisplayName("응답에 온보딩 상세 설문값이 enum 이름으로 포함된다")
+    void responseIncludesOnboardingSurveyFields() throws Exception {
+        mockMvc.perform(get("/api/v1/users/me"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.occupation").value("EMPLOYEE"))
+            .andExpect(jsonPath("$.data.gender").value("MALE"))
+            .andExpect(jsonPath("$.data.ageGroup").value("TWENTIES"))
+            .andExpect(jsonPath("$.data.economicActivities[0]").value("INVESTMENT"))
+            .andExpect(jsonPath("$.data.communicateChannels[0]").value("PHONE"))
+            .andExpect(jsonPath("$.data.communicateChannels[1]").value("SMS"))
+            .andExpect(jsonPath("$.data.onlineActivities[0]").value("GOVERNMENT"))
+            .andExpect(jsonPath("$.data.financialChannels[0]").value("MOBILE_BANKING"))
+            .andExpect(jsonPath("$.data.familyType").value("WITH_CHILDREN"));
     }
 }

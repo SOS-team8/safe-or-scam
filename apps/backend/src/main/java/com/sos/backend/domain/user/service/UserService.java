@@ -34,7 +34,7 @@ public class UserService {
 
     public UserInfoResponse getMyInfo(Long userId) {
         User user = getUser(userId);
-        UserProfile profile = getUserProfile(userId);
+        UserProfile profile = userProfileRepository.findByUserId(userId).orElse(null);
         return UserInfoResponse.from(user, profile);
     }
 

@@ -10285,7 +10285,12 @@
   "total_endings": 241,
   "total_good_endings": 132,
   "total_bad_endings": 109,
-  "tags": [],
+  "tags": [
+    "economic:investment",
+    "financial:mobile_banking",
+    "financial:crypto",
+    "communicate:phone"
+  ],
   "created_at": "2026-06-03T03:44:05.000368Z",
   "updated_at": "2026-06-03T06:56:23.793014Z",
   "ending_categories": {

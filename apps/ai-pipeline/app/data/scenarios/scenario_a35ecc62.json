@@ -10460,7 +10460,11 @@
   "total_endings": 243,
   "total_good_endings": 126,
   "total_bad_endings": 117,
-  "tags": [],
+  "tags": [
+    "occupation:self_employed",
+    "communicate:phone",
+    "financial:mobile_banking"
+  ],
   "created_at": "2026-06-02T15:44:37.615686Z",
   "updated_at": "2026-06-02T17:11:39.091101Z",
   "ending_categories": {

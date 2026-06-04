@@ -6,6 +6,7 @@ import { createWrapper } from '@/test/test-utils'
 
 import { gameApi } from '@/features/game/api'
 import { userApi } from '@/features/user/api'
+import { useAuthStore } from '@/features/auth/store'
 import { useGameStore } from '@/features/game/store'
 import { LobbyPage } from '../pages/LobbyPage'
 import type { GameSessionResponse, ScenarioSummary } from '@/features/game/types'
@@ -35,6 +36,9 @@ const mockedCreate = gameApi.createGameSession as unknown as Mock
 const mockedActive = gameApi.fetchActiveSession as unknown as Mock
 const mockedFetchDetail = gameApi.fetchScenarioDetail as unknown as Mock
 const mockedGetMe = userApi.getMe as unknown as Mock
+
+const findFirstRecommendedStartButton = async () =>
+  (await screen.findAllByRole('button', { name: /바로 시작하기/ }))[0]
 
 const baseProfile: UserProfile = {
   name: '테스터',
@@ -87,6 +91,12 @@ describe('LobbyPage', () => {
       root_node_id: 'n0',
       nodes: {},
     })
+    useAuthStore.setState({
+      accessToken: 'fake-access-token',
+      refreshToken: 'fake-refresh-token',
+      role: 'USER',
+      isAuthenticated: true,
+    })
     useGameStore.getState().reset()
   })
 
@@ -99,7 +109,7 @@ describe('LobbyPage', () => {
     expect(screen.getByText(/시나리오를 불러오고 있어요/)).toBeInTheDocument()
   })
 
-  it('renders fetched scenarios and the featured recommendation', async () => {
+  it('renders fetched scenarios and two featured recommendations', async () => {
     mockedFetch.mockResolvedValueOnce(baseScenarios)
 
     const { Wrapper } = createWrapper({ routerInitialEntries: ['/lobby'] })
@@ -108,8 +118,50 @@ describe('LobbyPage', () => {
     await waitFor(() => {
       expect(screen.getAllByText('택배 스미싱').length).toBeGreaterThan(0)
     })
-    expect(screen.getByText('보안 인증 알림')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /바로 시작하기/ })).toBeInTheDocument()
+    expect(screen.getAllByText('보안 인증 알림').length).toBeGreaterThan(0)
+    expect(screen.getAllByRole('button', { name: /바로 시작하기/ })).toHaveLength(2)
+    expect(screen.getByText('추천 1')).toBeInTheDocument()
+    expect(screen.getByText('추천 2')).toBeInTheDocument()
+  })
+
+  it('shows the top two survey-based recommendations before the original first scenario', async () => {
+    mockedGetMe.mockResolvedValueOnce({
+      ...baseProfile,
+      economicActivities: ['INVESTMENT'],
+      communicateChannels: ['PHONE'],
+      onlineActivities: ['GOVERNMENT'],
+      financialChannels: ['MOBILE_BANKING'],
+      familyType: 'WITH_CHILDREN',
+    } satisfies UserProfile)
+    mockedFetch.mockResolvedValueOnce([
+      {
+        ...baseScenarios[0],
+        tags: ['gender:female'],
+      },
+      {
+        ...baseScenarios[1],
+        tags: ['communicate:phone', 'financial:mobile_banking'],
+      },
+      {
+        ...baseScenarios[0],
+        scenario_id: 's3',
+        title: '정부기관 사칭',
+        tags: ['online:government', 'economic:investment'],
+      },
+    ])
+
+    const { Wrapper } = createWrapper({ routerInitialEntries: ['/lobby'] })
+    render(<LobbyPage />, { wrapper: Wrapper })
+
+    await waitFor(() => {
+      expect(screen.getByText('추천 1')).toBeInTheDocument()
+    })
+
+    const recommendedSection = screen.getByText('맞춤 추천').closest('section')
+    expect(recommendedSection).not.toBeNull()
+    expect(recommendedSection!.textContent).toContain('보안 인증 알림')
+    expect(recommendedSection!.textContent).toContain('정부기관 사칭')
+    expect(recommendedSection!.textContent).not.toContain('택배 스미싱')
   })
 
   it('shows empty state when scenario list is empty', async () => {
@@ -171,7 +223,10 @@ describe('LobbyPage', () => {
     const user = userEvent.setup()
     const startButtons = await screen.findAllByRole('button', { name: /시작하기/ })
     // Click the s2 card's start button by finding within s2 article
-    const s2Article = screen.getByText('보안 인증 알림').closest('article')
+    const s2Title = screen
+      .getAllByText('보안 인증 알림')
+      .find((element) => element.tagName.toLowerCase() === 'h3')
+    const s2Article = s2Title?.closest('article')
     expect(s2Article).not.toBeNull()
     const button = s2Article!.querySelector('button')!
     expect(button.textContent).toMatch(/시작하기/)
@@ -199,7 +254,7 @@ describe('LobbyPage', () => {
     render(<LobbyPage />, { wrapper: Wrapper })
 
     const user = userEvent.setup()
-    const startButton = await screen.findByRole('button', { name: /바로 시작하기/ })
+    const startButton = await findFirstRecommendedStartButton()
     await user.click(startButton)
 
     await waitFor(() => {
@@ -243,7 +298,7 @@ describe('LobbyPage', () => {
     render(<LobbyPage />, { wrapper: Wrapper })
 
     const user = userEvent.setup()
-    const startButton = await screen.findByRole('button', { name: /바로 시작하기/ })
+    const startButton = await findFirstRecommendedStartButton()
     await user.click(startButton)
 
     // 다이얼로그가 등장 — "이어하기" 버튼이 존재
@@ -302,7 +357,7 @@ describe('LobbyPage', () => {
     render(<LobbyPage />, { wrapper: Wrapper })
 
     const user = userEvent.setup()
-    const startButton = await screen.findByRole('button', { name: /바로 시작하기/ })
+    const startButton = await findFirstRecommendedStartButton()
     await user.click(startButton)
 
     const restartButton = await screen.findByRole('button', { name: '처음부터' })
@@ -348,7 +403,7 @@ describe('LobbyPage', () => {
     render(<LobbyPage />, { wrapper: Wrapper })
 
     const user = userEvent.setup()
-    const startButton = await screen.findByRole('button', { name: /바로 시작하기/ })
+    const startButton = await findFirstRecommendedStartButton()
     await user.click(startButton)
 
     await screen.findByRole('button', { name: '이어하기' })

@@ -13,7 +13,7 @@
     2. 각 시나리오를 scenarios 컬렉션에 upsert (idempotent)
        - metadata 필드 제외
        - nodes 순회하여 total_endings / total_good_endings / total_bad_endings 파생
-       - tags=[], updated_at=now
+       - JSON tags 보존, updated_at=now
     3. 예시 데이터 시드 (user_id=1):
        - 완료된 플레이 2건: good ending 1, bad ending 1
        - 진행 중 세션 1건
@@ -55,18 +55,23 @@ def _load_scenario_json(file_path: Path) -> dict[str, Any]:
         return json.load(f)
 
 
+def _scenario_id(raw: dict[str, Any]) -> str:
+    """신/구 시나리오 JSON 키를 모두 지원."""
+    return raw.get("scenario_id") or raw["id"]
+
+
 def _to_scenario_doc(raw: dict[str, Any]) -> Scenario:
     """JSON dict → Scenario Document.
 
-    - `id` → `scenario_id` rename
+    - `id` 또는 `scenario_id` → `scenario_id`
     - `metadata` 제외
     - 파생 필드 계산
-    - `tags=[]`, `updated_at=now`
+    - JSON tags 보존, `updated_at=now`
     """
     total, good, bad = _derive_ending_counts(raw["nodes"])
     now = datetime.now(UTC)
     return Scenario(
-        scenario_id=raw["id"],
+        scenario_id=_scenario_id(raw),
         title=raw["title"],
         description=raw["description"],
         phishing_type=raw["phishing_type"],
@@ -78,7 +83,7 @@ def _to_scenario_doc(raw: dict[str, Any]) -> Scenario:
         total_endings=total,
         total_good_endings=good,
         total_bad_endings=bad,
-        tags=[],
+        tags=raw.get("tags", []),
         created_at=raw["created_at"],
         updated_at=now,
     )
@@ -206,7 +211,7 @@ async def _seed_example_data(scenarios_dir: Path) -> None:
         "log_id",
         PlayLog(
             log_id="example_log_1",
-            scenario_id=sc_a["id"],
+            scenario_id=_scenario_id(sc_a),
             user_id=EXAMPLE_USER_ID,
             path=path_a,
             final_node_id=final_a,
@@ -225,7 +230,7 @@ async def _seed_example_data(scenarios_dir: Path) -> None:
         "session_id",
         GameSession(
             session_id="example_session_completed_1",
-            scenario_id=sc_a["id"],
+            scenario_id=_scenario_id(sc_a),
             user_id=EXAMPLE_USER_ID,
             current_node_id=final_a,
             resources=Resources(trust=2, money=4, awareness=4),
@@ -249,7 +254,7 @@ async def _seed_example_data(scenarios_dir: Path) -> None:
         "log_id",
         PlayLog(
             log_id="example_log_2",
-            scenario_id=sc_b["id"],
+            scenario_id=_scenario_id(sc_b),
             user_id=EXAMPLE_USER_ID,
             path=path_b,
             final_node_id=final_b,
@@ -268,7 +273,7 @@ async def _seed_example_data(scenarios_dir: Path) -> None:
         "session_id",
         GameSession(
             session_id="example_session_completed_2",
-            scenario_id=sc_b["id"],
+            scenario_id=_scenario_id(sc_b),
             user_id=EXAMPLE_USER_ID,
             current_node_id=final_b,
             resources=Resources(trust=4, money=0, awareness=1),
@@ -289,7 +294,7 @@ async def _seed_example_data(scenarios_dir: Path) -> None:
         "session_id",
         GameSession(
             session_id="example_session_playing_1",
-            scenario_id=sc_c["id"],
+            scenario_id=_scenario_id(sc_c),
             user_id=EXAMPLE_USER_ID,
             current_node_id=sc_c["root_node_id"],
             resources=Resources(),  # 기본값 (3/3/1)
@@ -327,11 +332,11 @@ async def _upsert_progress(
     total, _, _ = _derive_ending_counts(scenario_raw["nodes"])
     rate = len(discovered) / total if total > 0 else 0.0
     existing = await UserScenarioProgress.find_one(
-        {"user_id": EXAMPLE_USER_ID, "scenario_id": scenario_raw["id"]}
+        {"user_id": EXAMPLE_USER_ID, "scenario_id": _scenario_id(scenario_raw)}
     )
     doc = UserScenarioProgress(
         user_id=EXAMPLE_USER_ID,
-        scenario_id=scenario_raw["id"],
+        scenario_id=_scenario_id(scenario_raw),
         discovered_endings=discovered,
         total_endings=total,
         completion_rate=rate,

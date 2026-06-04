@@ -10390,7 +10390,11 @@
   "total_endings": 243,
   "total_good_endings": 134,
   "total_bad_endings": 109,
-  "tags": [],
+  "tags": [
+    "communicate:sms",
+    "online:government",
+    "financial:mobile_banking"
+  ],
   "created_at": "2026-06-02T04:05:26.260355Z",
   "updated_at": "2026-06-02T05:25:57.247338Z",
   "ending_categories": {
