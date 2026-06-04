@@ -37,6 +37,7 @@ export type CommunicateChannel =
   | 'SNS'
   | 'EMAIL'
   | 'COMMUNITY'
+  | 'NONE'
 
 export type OnlineActivity =
   | 'USED_TRADE'
@@ -97,6 +98,11 @@ export type UserProfile = {
   occupation: Occupation | null
   gender: Gender | null
   ageGroup: AgeGroup | null
+  economicActivities?: EconomicActivity[]
+  communicateChannels?: CommunicateChannel[]
+  onlineActivities?: OnlineActivity[]
+  financialChannels?: FinancialChannel[]
+  familyType?: FamilyType | null
 }
 
 export type UpdateProfileRequest = {

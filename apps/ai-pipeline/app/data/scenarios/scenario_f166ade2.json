@@ -10407,7 +10407,12 @@
   "total_endings": 242,
   "total_good_endings": 127,
   "total_bad_endings": 115,
-  "tags": [],
+  "tags": [
+    "communicate:messenger",
+    "communicate:sns",
+    "financial:overseas_remit",
+    "family:alone"
+  ],
   "created_at": "2026-06-03T07:37:27.310229Z",
   "updated_at": "2026-06-03T09:22:43.344289Z",
   "ending_categories": {

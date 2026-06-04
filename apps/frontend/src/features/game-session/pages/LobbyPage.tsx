@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 import { toGameEngineError } from '@/features/game/api'
@@ -8,6 +8,7 @@ import {
   useFetchActiveSession,
   useScenarios,
 } from '@/features/game/hooks'
+import { getRecommendedScenarios } from '@/features/game/recommendation'
 import { useGameStore } from '@/features/game/store'
 import type { Difficulty, ScenarioSummary } from '@/features/game/types'
 import { useUserProfile } from '@/features/user/hooks'
@@ -209,7 +210,10 @@ export function LobbyPage() {
   const isStartingSession =
     fetchActiveMutation.isPending || createSessionMutation.isPending
 
-  const featuredScenario = scenariosQuery.data?.[0] ?? null
+  const recommendedScenarios = useMemo(
+    () => getRecommendedScenarios(profileQuery.data, scenariosQuery.data, 2),
+    [profileQuery.data, scenariosQuery.data],
+  )
 
   return (
     <section className="space-y-8 py-6">
@@ -302,22 +306,32 @@ export function LobbyPage() {
         </section>
       ) : null}
 
-      {featuredScenario ? (
+      {recommendedScenarios.length > 0 ? (
         <section className="rounded-lg border border-emerald-300/30 bg-emerald-300/10 p-5">
           <p className="text-sm font-semibold text-emerald-200">맞춤 추천</p>
-          <div className="mt-3 flex flex-col justify-between gap-4 md:flex-row md:items-center">
-            <div>
-              <h2 className="text-xl font-semibold text-white">{featuredScenario.title}</h2>
-              <p className="mt-2 text-slate-300">{featuredScenario.description}</p>
-            </div>
-            <button
-              type="button"
-              disabled={isStartingSession}
-              onClick={() => handleStart(featuredScenario.scenario_id)}
-              className="rounded-md bg-emerald-400 px-4 py-3 font-semibold text-slate-950 transition hover:bg-emerald-300 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
-            >
-              {isStartingSession ? '세션 생성 중...' : '바로 시작하기'}
-            </button>
+          <div className="mt-3 grid gap-4 md:grid-cols-2">
+            {recommendedScenarios.map((scenario, index) => (
+              <article
+                key={scenario.scenario_id}
+                className="flex h-full flex-col rounded-lg border border-emerald-200/20 bg-slate-950/35 p-4"
+              >
+                <p className="text-xs font-semibold text-emerald-200">
+                  추천 {index + 1}
+                </p>
+                <h2 className="mt-2 text-xl font-semibold text-white">{scenario.title}</h2>
+                <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-300">
+                  {scenario.description}
+                </p>
+                <button
+                  type="button"
+                  disabled={isStartingSession}
+                  onClick={() => handleStart(scenario.scenario_id)}
+                  className="mt-auto rounded-md bg-emerald-400 px-4 py-3 font-semibold text-slate-950 transition hover:bg-emerald-300 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
+                >
+                  {isStartingSession ? '세션 생성 중...' : '바로 시작하기'}
+                </button>
+              </article>
+            ))}
           </div>
         </section>
       ) : null}

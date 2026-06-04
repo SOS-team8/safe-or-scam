@@ -71,6 +71,32 @@ class UserServiceTest {
             assertThat(response.occupation()).isEqualTo(Occupation.EMPLOYEE);
             assertThat(response.gender()).isEqualTo(Gender.MALE);
             assertThat(response.ageGroup()).isEqualTo(AgeGroup.TWENTIES);
+            assertThat(response.economicActivities()).containsExactly(EconomicActivity.INVESTMENT);
+            assertThat(response.communicateChannels()).containsExactly(CommunicateChannel.PHONE, CommunicateChannel.SMS);
+            assertThat(response.onlineActivities()).containsExactly(OnlineActivity.GOVERNMENT);
+            assertThat(response.financialChannels()).containsExactly(FinancialChannel.MOBILE_BANKING);
+            assertThat(response.familyType()).isEqualTo(FamilyType.WITH_CHILDREN);
+        }
+
+        @Test
+        @DisplayName("프로필이 없으면 설문 상세값을 빈 배열과 null로 반환한다")
+        void getMyInfo_withoutProfile() {
+            Long userId = 1L;
+            User user = createUser(userId, Role.GUEST, UserStatus.ACTIVE);
+
+            given(userRepository.findById(userId)).willReturn(Optional.of(user));
+            given(userProfileRepository.findByUserId(userId)).willReturn(Optional.empty());
+
+            UserInfoResponse response = userService.getMyInfo(userId);
+
+            assertThat(response.occupation()).isNull();
+            assertThat(response.gender()).isNull();
+            assertThat(response.ageGroup()).isNull();
+            assertThat(response.economicActivities()).isEmpty();
+            assertThat(response.communicateChannels()).isEmpty();
+            assertThat(response.onlineActivities()).isEmpty();
+            assertThat(response.financialChannels()).isEmpty();
+            assertThat(response.familyType()).isNull();
         }
 
         @Test
@@ -202,11 +228,11 @@ class UserServiceTest {
             .gender(Gender.MALE)
             .ageGroup(AgeGroup.TWENTIES)
             .onboardingCompleted(false)
-            .economicActivities(List.of())
-            .communicateChannels(List.of())
-            .onlineActivities(List.of())
-            .financialChannels(List.of())
-            .familyType(FamilyType.WITH_PARENTS)
+            .economicActivities(List.of("investment"))
+            .communicateChannels(List.of("phone", "sms"))
+            .onlineActivities(List.of("government"))
+            .financialChannels(List.of("mobile_banking"))
+            .familyType(FamilyType.WITH_CHILDREN)
             .build();
     }
 

@@ -10326,7 +10326,12 @@
   "total_endings": 243,
   "total_good_endings": 137,
   "total_bad_endings": 106,
-  "tags": [],
+  "tags": [
+    "online:government",
+    "online:online_shopping",
+    "economic:online_shopping",
+    "financial:mobile_banking"
+  ],
   "created_at": "2026-05-26T03:36:41.770456Z",
   "updated_at": "2026-05-26T04:18:51.696222Z",
   "ending_categories": {
