@@ -8,6 +8,7 @@ import com.sos.backend.domain.auth.dto.response.SignupResponse;
 import com.sos.backend.domain.auth.service.AuthService;
 import com.sos.backend.domain.auth.service.EmailVerificationService;
 import com.sos.backend.global.common.response.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -54,6 +55,7 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
+    @SecurityRequirement(name = "bearerAuth")
     public ApiResponse<Void> logout(
         @Valid @RequestBody LogoutRequest request,
         @AuthenticationPrincipal Long userId
@@ -63,6 +65,7 @@ public class AuthController {
     }
 
     @PostMapping("/logout/all")
+    @SecurityRequirement(name = "bearerAuth")
     public ApiResponse<Void> logoutAll(@AuthenticationPrincipal Long userId) {
         authService.logoutAll(userId);
         return ApiResponse.success(null);
