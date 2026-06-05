@@ -22,6 +22,11 @@ springdoc:
 cors:
   allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}
 
+app:
+  internal:
+    # game-engine >> backend 서버 간 호출 인증용 공유 시크릿. game-engine 의 INTERNAL_API_KEY 와 동일해야 함.
+    api-key: ${INTERNAL_API_KEY:local-internal-api-key-at-least-16-bytes}
+
 jwt:
   secret: ${JWT_SECRET}
   access-token-expiration: 1800000     # 30분(밀리초)
