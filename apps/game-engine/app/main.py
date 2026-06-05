@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import game_sessions, scenarios
+from app.api.routes import game_sessions, scenarios, internal
 from app.db.mongo import close_mongo, init_mongo, ping
 
 
@@ -33,6 +33,9 @@ app.add_middleware(
 
 app.include_router(scenarios.router, prefix="/api/v1")
 app.include_router(game_sessions.router, prefix="/api/v1")
+
+# 서비스 간 internal API — /internal/* , API Key 인증, 스키마/문서 비노출.
+app.include_router(internal.router, prefix="/internal", include_in_schema=False)
 
 
 @app.get("/health")
