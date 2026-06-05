@@ -9,10 +9,8 @@ import java.util.List;
 
 public interface UserAchievementRepository extends JpaRepository<UserAchievement, Long> {
 
-    @Query("select count(ua) > 0 from UserAchievement ua "
-        + "where ua.user.id = :userId and ua.achievement.achievementId = :achievementId")
-    boolean existsByUserAndAchievement(@Param("userId") Long userId,
-                                       @Param("achievementId") Long achievementId);
+    @Query("select ua.achievement.achievementId from UserAchievement ua where ua.user.id = :userId")
+    List<Long> findAchievementIdsByUserId(@Param("userId") Long userId);
 
     @Query("select ua from UserAchievement ua join fetch ua.achievement "
         + "where ua.user.id = :userId order by ua.achievedAt desc")

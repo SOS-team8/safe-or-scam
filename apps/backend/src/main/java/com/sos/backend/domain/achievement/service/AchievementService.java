@@ -14,8 +14,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -32,8 +34,11 @@ public class AchievementService {
         List<Achievement> newlyGranted = new ArrayList<>();
         LocalDateTime now = LocalDateTime.now();
 
+        // 보유 업적 ID 를 한 번에 조회해 메모리에서 중복 확인 (N+1 회피)
+        Set<Long> ownedAchievementIds = new HashSet<>(userAchievementRepository.findAchievementIdsByUserId(user.getId()));
+
         for (Achievement achievement : achievementRepository.findAll()) {
-            if (userAchievementRepository.existsByUserAndAchievement(user.getId(), achievement.getAchievementId())) {
+            if (ownedAchievementIds.contains(achievement.getAchievementId())) {
                 continue;
             }
             if (!isSatisfied(achievement, ctx)) {
