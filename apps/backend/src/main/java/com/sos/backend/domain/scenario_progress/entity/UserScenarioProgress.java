@@ -7,6 +7,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -49,4 +50,33 @@ public class UserScenarioProgress {
 
     @Column(name = "last_played_at", nullable = false)
     private LocalDateTime lastPlayedAt;
+
+    /** 신규(첫 플레이) 진행도. */
+    public static UserScenarioProgress init(User user, String scenarioId, int totalEndings, LocalDateTime now) {
+        return UserScenarioProgress.builder()
+            .user(user)
+            .scenarioId(scenarioId)
+            .discoveredEnding(new ArrayList<>())
+            .totalEndings(totalEndings)
+            .completionRate(0f)
+            .playCount(0)
+            .lastPlayedAt(now)
+            .build();
+    }
+
+    /**
+     * 결말 도달 1건 반영. 발견한 결말 노드를 합집합으로 누적하고 수집도를 재계산한다.
+     * totalEndings 엔딩 개수 매번 최신값으로 갱신.
+     */
+    public void recordEnding(String endingNodeId, int totalEndings, LocalDateTime now) {
+        if (endingNodeId != null && !discoveredEnding.contains(endingNodeId)) {
+            discoveredEnding.add(endingNodeId);
+        }
+        this.totalEndings = totalEndings;
+        this.completionRate = totalEndings > 0
+            ? (float) discoveredEnding.size() / totalEndings
+            : 0f;
+        this.playCount += 1;
+        this.lastPlayedAt = now;
+    }
 }
