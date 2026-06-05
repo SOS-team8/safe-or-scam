@@ -40,3 +40,7 @@ auth:
   verification-token:
     secret: ${VERIFICATION_TOKEN_SECRET:local-verification-token-secret-at-least-32b}
     expires-in-seconds: 300
+
+game-engine:
+  base-url: ${GAME_ENGINE_BASE_URL:http://localhost:8000}
+  internal-api-key: ${INTERNAL_API_KEY:ci-smoke-default-internal-key-please-override-min-32-bytes-string}

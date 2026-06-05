@@ -51,3 +51,7 @@ mail:
   sender:
     from: noreply@safeorscam.com
     sender-name: Safe or Scam
+
+game-engine:
+  base-url: ${GAME_ENGINE_BASE_URL:http://localhost:8000}
+  internal-api-key: ${INTERNAL_API_KEY}
