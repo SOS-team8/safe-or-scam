@@ -6,15 +6,9 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.util.Optional;
-
 public interface UserScenarioProgressRepository extends JpaRepository<UserScenarioProgress, Long> {
 
     @Modifying
     @Query("delete from UserScenarioProgress usp where usp.user.id = :userId")
     int deleteAllByUserId(@Param("userId") Long userId);
-
-    @Query("select usp from UserScenarioProgress usp where usp.user.id = :userId and usp.scenarioId = :scenarioId")
-    Optional<UserScenarioProgress> findByUserIdAndScenarioId(@Param("userId") Long userId,
-                                                             @Param("scenarioId") String scenarioId);
 }

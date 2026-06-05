@@ -6,8 +6,6 @@ import com.sos.backend.domain.achievement.service.AchievementService;
 import com.sos.backend.domain.notification.service.NotificationService;
 import com.sos.backend.domain.play_log.entity.PlayLog;
 import com.sos.backend.domain.play_log.repository.PlayLogRepository;
-import com.sos.backend.domain.scenario_progress.entity.UserScenarioProgress;
-import com.sos.backend.domain.scenario_progress.repository.UserScenarioProgressRepository;
 import com.sos.backend.domain.stat.dto.GameCompletedRequest;
 import com.sos.backend.domain.stat.dto.GameCompletedResponse;
 import com.sos.backend.domain.user.entity.User;
@@ -25,8 +23,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * 게임 완료 동기화 처리: 통계/진행도 갱신 → 업적 평가·부여 → 업적 알림 생성.
+ * 게임 완료 동기화 처리: 누적 통계 갱신 → 업적 평가·부여 → 업적 알림 생성.
  * play_log_id 로 멱등성을 보장(중복 동기화 시 빈 결과 반환).
+ * 시나리오별 수집도(progress)는 game-engine MongoDB 가 소유하며, 업적 평가용
+ * 수집도는 요청 본문의 completion_rate 로 전달받는다(backend 미적재).
  */
 @Service
 @RequiredArgsConstructor
@@ -34,7 +34,6 @@ public class StatsSyncService {
 
     private final UserRepository userRepository;
     private final UserStatRepository userStatRepository;
-    private final UserScenarioProgressRepository progressRepository;
     private final PlayLogRepository playLogRepository;
     private final AchievementService achievementService;
     private final NotificationService notificationService;
@@ -51,20 +50,12 @@ public class StatsSyncService {
         LocalDateTime completedAt = req.completedAt() != null ? req.completedAt() : now;
         boolean goodEnding = "ending_good".equals(req.endingType());
 
-        // 2. 누적 통계 갱신
+        // 1. 누적 통계 갱신
         UserStat stat = userStatRepository.findByUserId(user.getId())
             .orElseGet(() -> userStatRepository.save(UserStat.init(user)));
         stat.recordCompletion(goodEnding, req.dangerousCountOrZero(), req.totalScoreOrZero());
 
-        // 3. 시나리오 진행도(수집도) 갱신
-        UserScenarioProgress progress = progressRepository
-            .findByUserIdAndScenarioId(user.getId(), req.scenarioId())
-            .orElseGet(() -> progressRepository.save(
-                UserScenarioProgress.init(user, req.scenarioId(), req.scenarioTotalEndings(), completedAt)));
-        progress.recordEnding(req.finalNodeId(), req.scenarioTotalEndings(), completedAt);
-
-
-        // 4. 완료 기록 + 멱등성 키 저장
+        // 2. 완료 기록 + 멱등성 키 저장
         playLogRepository.save(PlayLog.builder()
             .playLogId(req.playLogId())
             .user(user)
@@ -78,16 +69,16 @@ public class StatsSyncService {
             .createdAt(now)
             .build());
 
-        // 5. 업적 평가·부여
+        // 3. 업적 평가·부여 (수집도는 game-engine 이 계산해 보낸 completion_rate 사용)
         AchievementContext ctx = new AchievementContext(
             stat.getCompletePlays(),
             stat.getGoodEndings(),
             req.dangerousCountOrZero(),
-            progress.getCompletionRate()
+            req.completionRateOrZero()
         );
         List<Achievement> unlocked = achievementService.evaluateAndGrant(user, ctx);
 
-        // 6. 업적 달성 알림 생성
+        // 4. 업적 달성 알림 생성
         for (Achievement achievement : unlocked) {
             notificationService.create(
                 user,

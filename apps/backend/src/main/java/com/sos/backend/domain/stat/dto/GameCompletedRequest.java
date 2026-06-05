@@ -40,10 +40,11 @@ public record GameCompletedRequest(
     @JsonProperty("final_node_id")
     String finalNodeId,
 
-    @Schema(description = "이 시나리오의 전체 결말 수")
-    @NotNull
-    @JsonProperty("scenario_total_endings")
-    Integer scenarioTotalEndings,
+    @Schema(description = "이 시나리오의 수집도(0.0~1.0). game-engine 이 MongoDB 기준으로 계산해 전달 "
+        + "— 업적(FULL_COLLECTION) 평가에 사용. backend 는 진행도를 적재하지 않음.",
+        example = "1.0")
+    @JsonProperty("completion_rate")
+    Float completionRate,
 
     @Schema(description = "최종 점수")
     @JsonProperty("total_score")
@@ -69,5 +70,9 @@ public record GameCompletedRequest(
 
     public int dangerousCountOrZero() {
         return dangerousCount != null ? dangerousCount : 0;
+    }
+
+    public float completionRateOrZero() {
+        return completionRate != null ? completionRate : 0f;
     }
 }

@@ -25,7 +25,7 @@ class GameCompletedRequestDeserializeTest {
               "user_id": 1,
               "scenario_id": "s-1",
               "ending_type": "ending_good",
-              "scenario_total_endings": 2,
+              "completion_rate": 1.0,
               "completed_at": %s
             }
             """.formatted(completedAtJson);
