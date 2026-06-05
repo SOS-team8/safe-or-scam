@@ -21,7 +21,7 @@ public class PlayLog {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "play_log_id", nullable = false, length = 255)
+    @Column(name = "play_log_id", nullable = false, unique = true, length = 255)
     private String playLogId;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
