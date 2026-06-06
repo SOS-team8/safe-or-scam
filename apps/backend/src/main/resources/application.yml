@@ -25,7 +25,8 @@ cors:
 app:
   internal:
     # game-engine >> backend 서버 간 호출 인증용 공유 시크릿. game-engine 의 INTERNAL_API_KEY 와 동일해야 함.
-    api-key: ${INTERNAL_API_KEY:local-internal-api-key-at-least-16-bytes}
+    api-key: ${INTERNAL_API_KEY}
+    base-url: ${GAME_ENGINE_BASE_URL:http://localhost:8000}
 
 jwt:
   secret: ${JWT_SECRET}
@@ -56,3 +57,4 @@ mail:
   sender:
     from: noreply@safeorscam.com
     sender-name: Safe or Scam
+
