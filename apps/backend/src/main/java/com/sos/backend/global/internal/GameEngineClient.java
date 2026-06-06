@@ -21,13 +21,13 @@ public class GameEngineClient {
 
     private final RestClient restClient;
 
-    public GameEngineClient(RestClient.Builder builder, GameEngineProperties properties) {
+    public GameEngineClient(RestClient.Builder builder, InternalApiProperties properties) {
         ClientHttpRequestFactorySettings settings = ClientHttpRequestFactorySettings.defaults()
             .withConnectTimeout(Duration.ofSeconds(2))
             .withReadTimeout(Duration.ofSeconds(3));
         this.restClient = builder
             .baseUrl(properties.baseUrl())
-            .defaultHeader(API_KEY_HEADER, properties.internalApiKey())
+            .defaultHeader(API_KEY_HEADER, properties.apiKey())
             .requestFactory(ClientHttpRequestFactoryBuilder.detect().build(settings))
             .build();
     }

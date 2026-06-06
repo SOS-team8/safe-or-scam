@@ -3,7 +3,7 @@ package com.sos.backend.domain.stat.controller;
 import com.sos.backend.domain.stat.dto.GameCompletedRequest;
 import com.sos.backend.domain.stat.dto.GameCompletedResponse;
 import com.sos.backend.domain.stat.service.StatsSyncService;
-import com.sos.backend.global.common.config.InternalApiProperties;
+import com.sos.backend.global.internal.InternalApiProperties;
 import com.sos.backend.global.common.exception.CustomException;
 import com.sos.backend.global.common.exception.ErrorCode;
 import com.sos.backend.global.common.response.ApiResponse;

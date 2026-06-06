@@ -31,7 +31,7 @@ class Settings(BaseSettings):
     # backend 와 동일 키 공유 (infra/.env). default 는 CI import smoke 통과용 —
     # 운영/dev 는 반드시 INTERNAL_API_KEY 환경변수로 override.
     internal_api_key: str = (
-        "ci-smoke-default-internal-key-please-override-min-32-bytes-string"
+        "local-internal-api-key-at-least-16-bytes"
     )
 
 
