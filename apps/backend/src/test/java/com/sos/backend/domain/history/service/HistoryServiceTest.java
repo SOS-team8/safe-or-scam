@@ -7,6 +7,8 @@ import static org.mockito.BDDMockito.given;
 import com.sos.backend.domain.history.dto.response.ScenarioProgressResponse;
 import com.sos.backend.global.internal.GameEngineClient;
 import com.sos.backend.global.internal.dto.ScenarioProgressInternalResponse;
+
+import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,7 +29,7 @@ class HistoryServiceTest {
     void getScenarioProgress_mapsInternalToPublic() {
         long userId = 1001L;
         given(gameEngineClient.getUserProgress(userId)).willReturn(List.of(
-            new ScenarioProgressInternalResponse("scenario_5d6e8982", 0.0138, 3, 217, "2026-04-01T14:30:00.000Z")
+            new ScenarioProgressInternalResponse("scenario_5d6e8982", 0.0138, 3, 217, LocalDateTime.of(2026,4,1,14,30,0))
         ));
 
         List<ScenarioProgressResponse> result = historyService.getScenarioProgress(userId);
@@ -37,7 +39,7 @@ class HistoryServiceTest {
         assertThat(result.get(0).completionRate()).isEqualTo(0.0138);
         assertThat(result.get(0).discoveredCount()).isEqualTo(3);
         assertThat(result.get(0).totalEndings()).isEqualTo(217);
-        assertThat(result.get(0).lastPlayedAt()).isEqualTo("2026-04-01T14:30:00.000Z");
+        assertThat(result.get(0).lastPlayedAt()).isEqualTo(LocalDateTime.of(2026,4,1,14,30,0));
     }
 
     @Test
