@@ -30,7 +30,11 @@ public enum ErrorCode {
     EMAIL_VERIFICATION_CODE_INVALID(HttpStatus.BAD_REQUEST, "유효하지 않은 인증코드입니다"),
     EMAIL_VERIFICATION_ATTEMPTS_EXCEEDED(HttpStatus.BAD_REQUEST, "인증 시도 횟수를 초과했습니다"),
 
-    // Internal API (Game Engine)
+    // Notification
+    NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "알림을 찾을 수 없습니다"),
+
+    // Internal (server-to-server)
+    INVALID_INTERNAL_API_KEY(HttpStatus.UNAUTHORIZED, "유효하지 않은 내부 API 키입니다"),
     INTERNAL_API_ERROR(HttpStatus.BAD_GATEWAY, "외부 서비스 호출에 실패했습니다");
 
     private final HttpStatus status;
