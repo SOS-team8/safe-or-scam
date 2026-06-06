@@ -22,11 +22,11 @@ import java.security.MessageDigest;
 
 /**
  * 서버 간 내부 호출 전용. 사용자 JWT 가 아닌 X-Internal-Api-Key 헤더로 인증한다.
- * (SecurityConfig 에서 /api/v1/internal/** 는 permitAll, 여기서 키를 직접 검증)
+ * (SecurityConfig 에서 /api/internal/** 는 permitAll, 여기서 키를 직접 검증)
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/internal")
+@RequestMapping("/api/internal")
 @Tag(name = "Internal", description = "서버 간 동기화 API (game-engine 전용)")
 public class InternalStatsController {
 

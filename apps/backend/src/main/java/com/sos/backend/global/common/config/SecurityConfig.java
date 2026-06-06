@@ -58,7 +58,7 @@ public class SecurityConfig {
                     "/api/v1/auth/signup",
                     "/api/v1/auth/login",
                     "/api/v1/auth/refresh",
-                    "/api/v1/internal/**"
+                    "/api/internal/**"
                 ).permitAll()
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .anyRequest().authenticated()

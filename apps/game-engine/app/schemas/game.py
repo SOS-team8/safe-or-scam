@@ -105,7 +105,7 @@ class MoveResponse(BaseModel):
 
 
 class ScenarioProgressResponse(BaseModel):
-    """internal: GET /internal/progress/{user_id} 응답 항목.
+    """internal: GET /api/internal/progress/{user_id} 응답 항목.
 
     유저가 결말을 1개 이상 도달한 시나리오만 (progress 문서 존재 = finalize 발생).
     snake_case 유지 (contract, alias 금지). discovered_count 는 계산값.

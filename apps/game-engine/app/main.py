@@ -35,7 +35,7 @@ app.include_router(scenarios.router, prefix="/api/v1")
 app.include_router(game_sessions.router, prefix="/api/v1")
 
 # 서비스 간 internal API — /internal/* , API Key 인증, 스키마/문서 비노출.
-app.include_router(internal.router, prefix="/internal", include_in_schema=False)
+app.include_router(internal.router, prefix="/api/internal", include_in_schema=False)
 
 
 @app.get("/health")

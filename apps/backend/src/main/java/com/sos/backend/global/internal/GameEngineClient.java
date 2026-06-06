@@ -35,7 +35,7 @@ public class GameEngineClient {
     public List<ScenarioProgressInternalResponse> getUserProgress(long userId) {
         try {
             List<ScenarioProgressInternalResponse> result = restClient.get()
-                .uri("/internal/progress/{userId}", userId)
+                .uri("/api/internal/progress/{userId}", userId)
                 .retrieve()
                 .body(new ParameterizedTypeReference<List<ScenarioProgressInternalResponse>>() {});
             return result != null ? result : List.of();
