@@ -64,10 +64,15 @@ public class GameEngineClient {
 
     public PlayLogDetailInternalResponse getPlayLogDetail(String logId, long userId) {
         try {
-            return restClient.get()
+            PlayLogDetailInternalResponse result = restClient.get()
                 .uri("/api/internal/play-logs/{logId}?user_id={userId}", logId, userId)
                 .retrieve()
                 .body(PlayLogDetailInternalResponse.class);
+            if (result == null) {
+                log.error("Game Engine internal play-log detail returned empty body: logId={}, userId={}", logId, userId);
+                throw new CustomException(ErrorCode.INTERNAL_API_ERROR);
+            }
+            return result;
         } catch (HttpClientErrorException.NotFound e) {
             // engine 404 (미존재/타인 소유) → 공개 404. 502 로 collapse 금지.
             throw new CustomException(ErrorCode.PLAY_LOG_NOT_FOUND);
