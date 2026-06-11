@@ -3,6 +3,7 @@ package com.sos.backend.global.internal;
 import com.sos.backend.global.common.exception.CustomException;
 import com.sos.backend.global.common.exception.ErrorCode;
 import com.sos.backend.global.internal.dto.ScenarioProgressInternalResponse;
+import com.sos.backend.global.internal.dto.PlayLogSummaryInternalResponse;
 import java.time.Duration;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +42,20 @@ public class GameEngineClient {
             return result != null ? result : List.of();
         } catch (RestClientException e) {
             log.error("Game Engine internal progress call failed: userId={}", userId, e);
+            throw new CustomException(ErrorCode.INTERNAL_API_ERROR);
+        }
+    }
+
+    public List<PlayLogSummaryInternalResponse> getPlayLogs(long userId, String scenarioId) {
+        try {
+            List<PlayLogSummaryInternalResponse> result = restClient.get()
+                .uri("/api/internal/play-logs/user/{userId}?scenario_id={scenarioId}", userId, scenarioId)
+                .retrieve()
+                .body(new ParameterizedTypeReference<List<PlayLogSummaryInternalResponse>>() {});
+            return result != null ? result : List.of();
+        } catch (RestClientException e) {
+            log.error("Game Engine internal play-logs call failed: userId={}, scenarioId={}",
+                userId, scenarioId, e);
             throw new CustomException(ErrorCode.INTERNAL_API_ERROR);
         }
     }
