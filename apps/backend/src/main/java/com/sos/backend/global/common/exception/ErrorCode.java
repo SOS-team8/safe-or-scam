@@ -33,6 +33,9 @@ public enum ErrorCode {
     // Notification
     NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "알림을 찾을 수 없습니다"),
 
+    // History
+    PLAY_LOG_NOT_FOUND(HttpStatus.NOT_FOUND, "플레이 기록을 찾을 수 없습니다"),
+
     // Internal (server-to-server)
     INVALID_INTERNAL_API_KEY(HttpStatus.UNAUTHORIZED, "유효하지 않은 내부 API 키입니다"),
     INTERNAL_API_ERROR(HttpStatus.BAD_GATEWAY, "외부 서비스 호출에 실패했습니다");
