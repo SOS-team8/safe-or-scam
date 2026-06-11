@@ -116,3 +116,36 @@ class ScenarioProgressResponse(BaseModel):
     discovered_count: int
     total_endings: int
     last_played_at: datetime
+
+class PlayLogSummaryResponse(BaseModel):
+    """internal: GET /api/internal/play-logs/user/{user_id}?scenario_id={id} 응답
+    
+    전부 play_log denorm — 시나리오 join 불필요. completed_at desc 정렬은 라우트 책임.
+    """
+
+    log_id: str
+    ending_type: Literal["ending_good", "ending_bad"]
+    total_score: int
+    dangerous_count: int
+    duration_seconds: int
+    completed_at: datetime
+
+
+class EndingCategoryView(BaseModel):
+    """결말 카테고리 표시용. ending_classifier 미실행 시 None."""
+
+    label: str
+    description: str
+
+
+class PlayLogDetailResponse(BaseModel):
+    """internal: GET /api/internal/play-logs/{log_id}?user_id={userId} 응답
+
+    사진 + 결말 요약만. final_resource·플레이 스탯 제외 (play_log 에 denorm 돼 있어 추후 필요 시 무비용 추가). 식별자 + 결말 콘텐츠.
+    """
+
+    log_id: str
+    scenario_id: str
+    image_url: str | None = None
+    text: str
+    ending_category: EndingCategoryView | None = None
