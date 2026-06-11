@@ -1,5 +1,6 @@
 package com.sos.backend.domain.history.service;
 
+import com.sos.backend.domain.history.dto.response.PlayLogDetailResponse;
 import com.sos.backend.domain.history.dto.response.PlayLogSummaryResponse;
 import com.sos.backend.domain.history.dto.response.ScenarioProgressResponse;
 import com.sos.backend.global.internal.GameEngineClient;
@@ -23,5 +24,11 @@ public class HistoryService {
         return gameEngineClient.getPlayLogs(userId, scenarioId).stream()
             .map(PlayLogSummaryResponse::from)
             .toList();
+    }
+
+    public PlayLogDetailResponse getPlayLogDetail(String logId, Long userId) {
+        return PlayLogDetailResponse.from(
+            gameEngineClient.getPlayLogDetail(logId, userId)
+        );
     }
 }
