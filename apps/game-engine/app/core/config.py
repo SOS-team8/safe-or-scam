@@ -33,6 +33,10 @@ class Settings(BaseSettings):
     internal_api_key: str = (
         "local-internal-api-key-at-least-16-bytes"
     )
+    
+    # game-engine >> backend 발신(POST /api/internal/stats/game-completed) 대상 base-url.
+    # 로컬은 backend 가 호스트 8080 에서 구동. 운영/배포는 BACKEND_BASE_URL 환경변수로 override.
+    backend_base_url: str = "http://localhost:8080"
 
 
 settings = Settings()  # type: ignore[call-arg]

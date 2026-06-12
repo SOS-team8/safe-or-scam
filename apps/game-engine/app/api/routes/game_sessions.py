@@ -10,9 +10,10 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Response, status
 
 from app.core.auth import get_current_user
+from app.core.backend_client import GameCompletedPayload, notify_game_completed
 from app.models.common import Resources
 from app.models.game_session import GameSession
 from app.models.play_log import PlayLog
@@ -93,16 +94,24 @@ async def _finalize_ending(
     final_node_id: str,
     ending_type: str,
     now: datetime,
-) -> None:
+) -> GameCompletedPayload:
     """ending 도달 시 부가 처리:
-    1. session.status = "completed", completed_at, visited_endings
+    1. session.status = "completed" 를 먼저 persist
+       (이후 문서 쓰기가 실패해도 세션이 playing 으로 남지 않게 → 이어하기 재완료로 인한 중복 집계 방지)
     2. PlayLog insert
     3. UserScenarioProgress upsert
+
+    backend 통계 동기화 발신용 payload 를 반환한다(HTTP 발신은 호출자 책임).
     """
     session.status = "completed"
     session.completed_at = now
     if final_node_id not in session.visited_endings:
         session.visited_endings.append(final_node_id)
+
+    # completed 세션을 먼저 확정. 이후 PlayLog/progress 쓰기가 실패해도 세션이
+    # playing 이 아니므로 이어하기 대상에서 빠져 재 finalize(중복 집계)가 막힌다.
+    # 대가: 후속 쓰기 실패 시 그 판 기록 1회 유실 — 중복보다 안전한 트레이드오프.
+    await session.save()
 
     # 1) path 계산 (choices_history -> 각 node 의 choice index)
     path: list[int] = []
@@ -132,8 +141,10 @@ async def _finalize_ending(
         0, session.resources.trust + session.resources.money + session.resources.awareness
     ) * 10
 
+    # Mongo log_id 와 backend play_log_id 를 동일 값으로 (멱등 정합)
+    log_id = uuid4().hex
     play_log = PlayLog(
-        log_id=uuid4().hex,
+        log_id=log_id,
         scenario_id=session.scenario_id,
         user_id=session.user_id,
         path=path,
@@ -156,16 +167,17 @@ async def _finalize_ending(
     )
     if existing_progress is None:
         discovered = [final_node_id]
+        completion_rate = (
+            len(discovered) / scenario.total_endings
+            if scenario.total_endings > 0
+            else 0.0
+        )
         progress = UserScenarioProgress(
             user_id=session.user_id,
             scenario_id=session.scenario_id,
             discovered_endings=discovered,
             total_endings=scenario.total_endings,
-            completion_rate=(
-                len(discovered) / scenario.total_endings
-                if scenario.total_endings > 0
-                else 0.0
-            ),
+            completion_rate=completion_rate,
             play_count=1,
             last_played_at=now,
         )
@@ -174,14 +186,30 @@ async def _finalize_ending(
         if final_node_id not in existing_progress.discovered_endings:
             existing_progress.discovered_endings.append(final_node_id)
         existing_progress.total_endings = scenario.total_endings
-        existing_progress.completion_rate = (
+        completion_rate = (
             len(existing_progress.discovered_endings) / scenario.total_endings
             if scenario.total_endings > 0
             else 0.0
         )
+        existing_progress.completion_rate = completion_rate
         existing_progress.play_count += 1
         existing_progress.last_played_at = now
         await existing_progress.save()
+
+    # 3) backend 발신용 payload (HTTP 발신은 move 핸들러가 best-effort 로 수행)
+    return GameCompletedPayload(
+        play_log_id=log_id,
+        user_id=session.user_id,
+        scenario_id=session.scenario_id,
+        session_id=session.session_id,
+        ending_type=ending_type,
+        final_node_id=final_node_id,
+        completion_rate=completion_rate,
+        total_score=total_score,
+        dangerous_count=session.dangerous_count,
+        duration_seconds=duration_seconds,
+        completed_at=now.isoformat(),
+    )
 
 
 # -------- routes --------
@@ -351,6 +379,7 @@ async def get_session(
 async def make_move(
     session_id: str,
     body: MoveRequest,
+    background_tasks: BackgroundTasks,
     user: dict = Depends(get_current_user),
 ) -> MoveResponse:
     user_id = user["user_id"]
@@ -383,17 +412,22 @@ async def make_move(
             status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
         ) from e
 
+    payload: GameCompletedPayload | None = None
     if result.is_finished:
         assert result.ending_type is not None
-        await _finalize_ending(
+        payload = await _finalize_ending(
             session,
             scenario,
             final_node_id=session.current_node_id,
             ending_type=result.ending_type,
             now=now,
         )
+    else:
+        await session.save()
 
-    await session.save()
+    # backend 통계 동기화 발신 — 응답 후 백그라운드(best-effort, 실패해도 게임 완료는 성공)
+    if payload is not None:
+        background_tasks.add_task(notify_game_completed, payload)
 
     return _build_move_response(
         session,
