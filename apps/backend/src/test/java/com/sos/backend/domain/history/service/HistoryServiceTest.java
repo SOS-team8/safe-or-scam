@@ -45,8 +45,8 @@ class HistoryServiceTest {
         assertThat(result).hasSize(1);
         assertThat(result.get(0).scenarioId()).isEqualTo("scenario_5d6e8982");
         assertThat(result.get(0).completionRate()).isEqualTo(0.0138);
-        assertThat(result.get(0).discoveredCount()).isEqualTo(3);
-        assertThat(result.get(0).totalEndings()).isEqualTo(217);
+        assertThat(result.get(0).discoveredCategoryCount()).isEqualTo(3);
+        assertThat(result.get(0).totalCategories()).isEqualTo(217);
         assertThat(result.get(0).lastPlayedAt()).isEqualTo(LocalDateTime.of(2026,4,1,14,30,0));
     }
 
