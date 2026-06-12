@@ -10,10 +10,10 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Response, status
 
 from app.core.auth import get_current_user
-from app.core.backend_client import GameCompletedPayload
+from app.core.backend_client import GameCompletedPayload, notify_game_completed
 from app.models.common import Resources
 from app.models.game_session import GameSession
 from app.models.play_log import PlayLog
@@ -373,6 +373,7 @@ async def get_session(
 async def make_move(
     session_id: str,
     body: MoveRequest,
+    background_tasks: BackgroundTasks,
     user: dict = Depends(get_current_user),
 ) -> MoveResponse:
     user_id = user["user_id"]
@@ -405,9 +406,10 @@ async def make_move(
             status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
         ) from e
 
+    payload: GameCompletedPayload | None = None
     if result.is_finished:
         assert result.ending_type is not None
-        await _finalize_ending(
+        payload = await _finalize_ending(
             session,
             scenario,
             final_node_id=session.current_node_id,
@@ -416,6 +418,10 @@ async def make_move(
         )
 
     await session.save()
+
+    # backend 통계 동기화 발신 — 응답 후 백그라운드(best-effort, 실패해도 게임 완료는 성공)
+    if payload is not None:
+        background_tasks.add_task(notify_game_completed, payload)
 
     return _build_move_response(
         session,
