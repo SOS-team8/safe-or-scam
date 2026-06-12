@@ -8,6 +8,7 @@ import { EmailVerificationPage } from '@/features/auth/pages/EmailVerificationPa
 import { useAuthStore } from '@/features/auth/store'
 import { GamePlayPage } from '@/features/game/pages/GamePlayPage'
 import { LobbyPage } from '@/features/game-session/pages/LobbyPage'
+import { NotificationBell } from '@/features/notification/components/NotificationBell'
 import { MyPage } from '@/features/user/pages/MyPage'
 import { OnboardingPage } from '@/features/user/pages/OnboardingPage'
 import { LandingPage } from '@/pages/LandingPage'
@@ -17,6 +18,7 @@ function App() {
   const { hasMeIntegrityError, retryMe } = useAuthBootstrap()
 
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+  const role = useAuthStore((state) => state.role)
   const logoutMutation = useLogout()
   const [isIntegrityToastDismissed, setIsIntegrityToastDismissed] = useState(false)
   const isIntegrityToastVisible = hasMeIntegrityError && !isIntegrityToastDismissed
@@ -46,6 +48,7 @@ function App() {
                 >
                   마이페이지
                 </Link>
+                {role === 'USER' ? <NotificationBell /> : null}
                 <button
                   type="button"
                   disabled={logoutMutation.isPending}

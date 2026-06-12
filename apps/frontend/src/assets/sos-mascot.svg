@@ -1,0 +1,33 @@
+<svg viewBox="214 116 252 282" role="img" xmlns="http://www.w3.org/2000/svg">
+  <title>S.O.S 마스코트 로봇</title>
+  <defs>
+    <linearGradient id="sosMascotBody" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#F8FAFC" />
+      <stop offset="0.55" stop-color="#CBD5E1" />
+      <stop offset="1" stop-color="#7C8BA1" />
+    </linearGradient>
+    <clipPath id="sosMascotBodyClip"><ellipse cx="340" cy="250" rx="88" ry="104" /></clipPath>
+  </defs>
+  <ellipse cx="340" cy="378" rx="74" ry="13" fill="none" stroke="#22D3EE" stroke-opacity="0.35" stroke-width="2" />
+  <ellipse cx="340" cy="372" rx="48" ry="8" fill="none" stroke="#22D3EE" stroke-opacity="0.6" stroke-width="2" />
+  <ellipse cx="340" cy="368" rx="60" ry="9" fill="#000000" opacity="0.45" />
+  <line x1="340" y1="136" x2="340" y2="152" stroke="#94A3B8" stroke-width="3" stroke-linecap="round" />
+  <circle cx="340" cy="130" r="7" fill="#34D399" />
+  <circle cx="337" cy="127" r="2.4" fill="#FFFFFF" opacity="0.7" />
+  <ellipse cx="240" cy="278" rx="17" ry="32" fill="url(#sosMascotBody)" transform="rotate(16 240 278)" />
+  <ellipse cx="440" cy="278" rx="17" ry="32" fill="url(#sosMascotBody)" transform="rotate(-16 440 278)" />
+  <ellipse cx="340" cy="250" rx="88" ry="104" fill="url(#sosMascotBody)" />
+  <g clip-path="url(#sosMascotBodyClip)">
+    <ellipse cx="368" cy="300" rx="78" ry="74" fill="#334155" opacity="0.22" />
+    <ellipse cx="298" cy="172" rx="34" ry="20" fill="#FFFFFF" opacity="0.6" />
+    <rect x="276" y="194" width="128" height="74" rx="37" fill="#0B1220" />
+    <rect x="276" y="194" width="128" height="74" rx="37" fill="none" stroke="#1E293B" stroke-width="1.5" />
+    <ellipse cx="302" cy="208" rx="22" ry="7" fill="#FFFFFF" opacity="0.12" />
+  </g>
+  <circle cx="316" cy="232" r="16" fill="#22D3EE" opacity="0.16" />
+  <circle cx="364" cy="232" r="16" fill="#22D3EE" opacity="0.16" />
+  <circle cx="316" cy="232" r="9.5" fill="#22D3EE" />
+  <circle cx="364" cy="232" r="9.5" fill="#22D3EE" />
+  <circle cx="313" cy="229" r="3" fill="#E0FBFF" />
+  <circle cx="361" cy="229" r="3" fill="#E0FBFF" />
+</svg>
