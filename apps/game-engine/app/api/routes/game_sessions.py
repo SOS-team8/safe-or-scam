@@ -160,35 +160,44 @@ async def _finalize_ending(
     )
     await play_log.insert()
 
-    # 2) progress upsert
+    # 2) progress upsert (결말 유형 category 기준)
+    #    도달 노드의 ending_category 를 수집. 분모 = 시나리오 결말 유형 수.
+    #    ending_categories 미분류(None)거나 dangling 카테고리면 수집 제외(rate 0 폴백).
+    final_node = scenario.nodes.get(final_node_id)
+    category_id = final_node.ending_category if final_node else None
+    ending_categories = scenario.ending_categories or {}
+    total_categories = len(ending_categories)
+    is_valid_category = bool(category_id and category_id in ending_categories)
+
     existing_progress = await UserScenarioProgress.find_one(
         UserScenarioProgress.user_id == session.user_id,
         UserScenarioProgress.scenario_id == session.scenario_id,
     )
     if existing_progress is None:
-        discovered = [final_node_id]
+        discovered = [category_id] if is_valid_category else []
         completion_rate = (
-            len(discovered) / scenario.total_endings
-            if scenario.total_endings > 0
-            else 0.0
+            len(discovered) / total_categories if total_categories > 0 else 0.0
         )
         progress = UserScenarioProgress(
             user_id=session.user_id,
             scenario_id=session.scenario_id,
-            discovered_endings=discovered,
-            total_endings=scenario.total_endings,
+            discovered_categories=discovered,
+            total_categories=total_categories,
             completion_rate=completion_rate,
             play_count=1,
             last_played_at=now,
         )
         await progress.insert()
     else:
-        if final_node_id not in existing_progress.discovered_endings:
-            existing_progress.discovered_endings.append(final_node_id)
-        existing_progress.total_endings = scenario.total_endings
+        if (
+            is_valid_category
+            and category_id not in existing_progress.discovered_categories
+        ):
+            existing_progress.discovered_categories.append(category_id)
+        existing_progress.total_categories = total_categories
         completion_rate = (
-            len(existing_progress.discovered_endings) / scenario.total_endings
-            if scenario.total_endings > 0
+            len(existing_progress.discovered_categories) / total_categories
+            if total_categories > 0
             else 0.0
         )
         existing_progress.completion_rate = completion_rate
