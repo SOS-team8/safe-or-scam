@@ -13,6 +13,7 @@ from uuid import uuid4
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 
 from app.core.auth import get_current_user
+from app.core.backend_client import GameCompletedPayload
 from app.models.common import Resources
 from app.models.game_session import GameSession
 from app.models.play_log import PlayLog
@@ -93,11 +94,13 @@ async def _finalize_ending(
     final_node_id: str,
     ending_type: str,
     now: datetime,
-) -> None:
+) -> GameCompletedPayload:
     """ending 도달 시 부가 처리:
     1. session.status = "completed", completed_at, visited_endings
     2. PlayLog insert
     3. UserScenarioProgress upsert
+
+    backend 통계 동기화 발신용 payload 를 반환한다(HTTP 발신은 호출자 책임).
     """
     session.status = "completed"
     session.completed_at = now
@@ -132,8 +135,10 @@ async def _finalize_ending(
         0, session.resources.trust + session.resources.money + session.resources.awareness
     ) * 10
 
+    # Mongo log_id 와 backend play_log_id 를 동일 값으로 (멱등 정합)
+    log_id = uuid4().hex
     play_log = PlayLog(
-        log_id=uuid4().hex,
+        log_id=log_id,
         scenario_id=session.scenario_id,
         user_id=session.user_id,
         path=path,
@@ -156,16 +161,17 @@ async def _finalize_ending(
     )
     if existing_progress is None:
         discovered = [final_node_id]
+        completion_rate = (
+            len(discovered) / scenario.total_endings
+            if scenario.total_endings > 0
+            else 0.0
+        )
         progress = UserScenarioProgress(
             user_id=session.user_id,
             scenario_id=session.scenario_id,
             discovered_endings=discovered,
             total_endings=scenario.total_endings,
-            completion_rate=(
-                len(discovered) / scenario.total_endings
-                if scenario.total_endings > 0
-                else 0.0
-            ),
+            completion_rate=completion_rate,
             play_count=1,
             last_played_at=now,
         )
@@ -174,14 +180,30 @@ async def _finalize_ending(
         if final_node_id not in existing_progress.discovered_endings:
             existing_progress.discovered_endings.append(final_node_id)
         existing_progress.total_endings = scenario.total_endings
-        existing_progress.completion_rate = (
+        completion_rate = (
             len(existing_progress.discovered_endings) / scenario.total_endings
             if scenario.total_endings > 0
             else 0.0
         )
+        existing_progress.completion_rate = completion_rate
         existing_progress.play_count += 1
         existing_progress.last_played_at = now
         await existing_progress.save()
+
+    # 3) backend 발신용 payload (HTTP 발신은 move 핸들러가 best-effort 로 수행)
+    return GameCompletedPayload(
+        play_log_id=log_id,
+        user_id=session.user_id,
+        scenario_id=session.scenario_id,
+        session_id=session.session_id,
+        ending_type=ending_type,
+        final_node_id=final_node_id,
+        completion_rate=completion_rate,
+        total_score=total_score,
+        dangerous_count=session.dangerous_count,
+        duration_seconds=duration_seconds,
+        completed_at=now.isoformat(),
+    )
 
 
 # -------- routes --------
