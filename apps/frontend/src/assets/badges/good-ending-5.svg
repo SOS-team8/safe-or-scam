@@ -1,0 +1,19 @@
+<svg viewBox="0 0 120 120" role="img" xmlns="http://www.w3.org/2000/svg">
+  <title>안전 길잡이 배지</title>
+  <defs>
+    <linearGradient id="ge5Ring" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6EE7B7" />
+      <stop offset="1" stop-color="#059669" />
+    </linearGradient>
+  </defs>
+  <circle cx="60" cy="60" r="56" fill="#065F46" />
+  <circle cx="60" cy="60" r="54" fill="url(#ge5Ring)" />
+  <circle cx="60" cy="60" r="44" fill="#04231B" />
+  <circle cx="60" cy="60" r="44" fill="none" stroke="#FFFFFF" stroke-opacity="0.08" stroke-width="2" />
+  <path d="M60 34 L85 43 V62 C85 76.5 74.5 87 60 93 C45.5 87 35 76.5 35 62 V43 Z" fill="#10B981" />
+  <path d="M60 34 L35 43 V62 C35 76.5 45.5 87 60 93 Z" fill="#34D399" />
+  <path d="M49 62.5 L58 71.5 L73 53" fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M88 34 L89.6 38.4 L94 40 L89.6 41.6 L88 46 L86.4 41.6 L82 40 L86.4 38.4 Z" fill="#FFFFFF" opacity="0.9" />
+  <circle cx="31" cy="82" r="2.5" fill="#6EE7B7" opacity="0.7" />
+  <circle cx="88" cy="82" r="2" fill="#FFFFFF" opacity="0.5" />
+</svg>

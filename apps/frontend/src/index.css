@@ -31,6 +31,14 @@
   --sos-color-bg-base: #020617;
   --sos-color-bg-raised: #0f172a;
   --sos-color-bg-panel: #111827;
+  --sos-color-surface-1: rgb(255 255 255 / 0.04);
+  --sos-color-surface-2: rgb(255 255 255 / 0.07);
+  --sos-color-inset: rgb(2 6 23 / 0.45);
+  --sos-shadow-raised:
+    inset 0 1px 0 rgb(255 255 255 / 0.06), 0 1px 2px rgb(2 6 23 / 0.5),
+    0 12px 32px rgb(2 6 23 / 0.35);
+  --sos-shadow-dialog:
+    inset 0 1px 0 rgb(255 255 255 / 0.06), 0 24px 64px rgb(2 6 23 / 0.6);
   --sos-color-border-muted: rgb(255 255 255 / 0.1);
   --sos-color-border-cyan: rgb(34 211 238 / 0.32);
   --sos-color-border-emerald: rgb(52 211 153 / 0.36);
@@ -68,7 +76,12 @@
   --color-sos-emerald: var(--sos-color-emerald);
   --color-sos-cyan: var(--sos-color-cyan);
   --color-sos-red: var(--sos-color-red);
+  --color-sos-surface-1: var(--sos-color-surface-1);
+  --color-sos-surface-2: var(--sos-color-surface-2);
+  --color-sos-inset: var(--sos-color-inset);
   --shadow-sos-card: var(--sos-surface-card-shadow);
+  --shadow-sos-raised: var(--sos-shadow-raised);
+  --shadow-sos-dialog: var(--sos-shadow-dialog);
 }
 
 * {
