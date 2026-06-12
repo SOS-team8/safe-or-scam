@@ -158,16 +158,16 @@ function ScenarioProgressCard({
       <div className="mt-4 space-y-2">
         <div className="flex items-center justify-between text-xs text-slate-400">
           <span>
-            결말 수집 {progress.discoveredCount}/{progress.totalEndings}
+            결말 유형 수집 {progress.discoveredCategoryCount}/{progress.totalCategories}
           </span>
           <span className="tabular-nums">{rate}%</span>
         </div>
         <div
           role="progressbar"
-          aria-label="결말 수집도"
-          aria-valuenow={progress.discoveredCount}
+          aria-label="결말 유형 수집도"
+          aria-valuenow={progress.discoveredCategoryCount}
           aria-valuemin={0}
-          aria-valuemax={progress.totalEndings}
+          aria-valuemax={progress.totalCategories}
           className="h-2 overflow-hidden rounded-full bg-slate-800"
         >
           <div className="h-full rounded-full bg-emerald-400" style={{ width: `${rate}%` }} />
