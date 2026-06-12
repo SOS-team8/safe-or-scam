@@ -41,10 +41,8 @@ async def list_user_progress(user_id: int) -> list[ScenarioProgressResponse]:
         ScenarioProgressResponse(
             scenario_id=r.scenario_id,
             completion_rate=r.completion_rate,
-            # Phase 1: 모델은 category 기준. 응답 키(discovered_count/total_endings)는
-            # Phase 2 에서 리네임 — 여기선 값만 유형 기준으로 흐름.
-            discovered_count=len(r.discovered_categories),
-            total_endings=r.total_categories,
+            discovered_category_count=len(r.discovered_categories),
+            total_categories=r.total_categories,
             last_played_at=r.last_played_at,
         )
         for r in rows
