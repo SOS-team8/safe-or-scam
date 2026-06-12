@@ -96,7 +96,8 @@ async def _finalize_ending(
     now: datetime,
 ) -> GameCompletedPayload:
     """ending 도달 시 부가 처리:
-    1. session.status = "completed", completed_at, visited_endings
+    1. session.status = "completed" 를 먼저 persist
+       (이후 문서 쓰기가 실패해도 세션이 playing 으로 남지 않게 → 이어하기 재완료로 인한 중복 집계 방지)
     2. PlayLog insert
     3. UserScenarioProgress upsert
 
@@ -106,6 +107,11 @@ async def _finalize_ending(
     session.completed_at = now
     if final_node_id not in session.visited_endings:
         session.visited_endings.append(final_node_id)
+
+    # completed 세션을 먼저 확정. 이후 PlayLog/progress 쓰기가 실패해도 세션이
+    # playing 이 아니므로 이어하기 대상에서 빠져 재 finalize(중복 집계)가 막힌다.
+    # 대가: 후속 쓰기 실패 시 그 판 기록 1회 유실 — 중복보다 안전한 트레이드오프.
+    await session.save()
 
     # 1) path 계산 (choices_history -> 각 node 의 choice index)
     path: list[int] = []
@@ -416,8 +422,8 @@ async def make_move(
             ending_type=result.ending_type,
             now=now,
         )
-
-    await session.save()
+    else:
+        await session.save()
 
     # backend 통계 동기화 발신 — 응답 후 백그라운드(best-effort, 실패해도 게임 완료는 성공)
     if payload is not None:
