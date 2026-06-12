@@ -206,10 +206,84 @@ async def test_move_reaching_ending_finalizes_session_and_records_log_progress(
         UserScenarioProgress.scenario_id == REGRESSION_SCENARIO_ID,
     )
     assert progress is not None
-    assert progress.discovered_endings == ["n_end_good"]
+    assert progress.discovered_categories == ["smart_block"]
     assert progress.play_count == 1
-    assert progress.total_endings == 2  # scenario.total_endings
+    assert progress.total_categories == 2  # 결말 유형 수 (smart_block, financial_loss)
+    assert progress.completion_rate == 0.5  # 1/2 유형
+
+
+async def _play_to_ending(
+    client: httpx.AsyncClient, scenario_id: str, second_choice: str
+) -> httpx.Response:
+    """n0_c1 → {second_choice} 로 결말까지. second_choice=n1_c1(good)/n1_c2(bad)."""
+    create = await client.post(
+        "/api/v1/game-sessions", json={"scenario_id": scenario_id}
+    )
+    sid = create.json()["session_id"]
+    await client.post(
+        f"/api/v1/game-sessions/{sid}/move", json={"choice_id": "n0_c1"}
+    )
+    res = await client.post(
+        f"/api/v1/game-sessions/{sid}/move", json={"choice_id": second_choice}
+    )
+    assert res.json()["is_finished"] is True
+    return res
+
+
+async def test_progress_full_collection_reaches_rate_1(
+    client: httpx.AsyncClient, _seeded_scenario
+):
+    """서로 다른 유형 2종 모두 도달 → completion_rate 1.0 (FULL_COLLECTION 조건)."""
+    await _play_to_ending(client, REGRESSION_SCENARIO_ID, "n1_c1")  # smart_block
+    await _play_to_ending(client, REGRESSION_SCENARIO_ID, "n1_c2")  # financial_loss
+
+    progress = await UserScenarioProgress.find_one(
+        UserScenarioProgress.user_id == 42,
+        UserScenarioProgress.scenario_id == REGRESSION_SCENARIO_ID,
+    )
+    assert sorted(progress.discovered_categories) == ["financial_loss", "smart_block"]
+    assert progress.total_categories == 2
+    assert progress.completion_rate == 1.0
+    assert progress.play_count == 2
+
+
+async def test_progress_dedup_same_category(
+    client: httpx.AsyncClient, _seeded_scenario
+):
+    """같은 유형 재도달 → discovered 중복 없음, rate 유지, play_count만 증가."""
+    await _play_to_ending(client, REGRESSION_SCENARIO_ID, "n1_c1")  # smart_block
+    await _play_to_ending(client, REGRESSION_SCENARIO_ID, "n1_c1")  # smart_block 재도달
+
+    progress = await UserScenarioProgress.find_one(
+        UserScenarioProgress.user_id == 42,
+        UserScenarioProgress.scenario_id == REGRESSION_SCENARIO_ID,
+    )
+    assert progress.discovered_categories == ["smart_block"]
+    assert progress.total_categories == 2
     assert progress.completion_rate == 0.5
+    assert progress.play_count == 2
+
+
+async def test_progress_fallback_when_scenario_has_no_categories(
+    client: httpx.AsyncClient, test_db
+):
+    """ending_categories=None 시나리오 → 수집 제외, total 0, rate 0.0, 크래시 없음."""
+    s = build_regression_scenario()
+    s.scenario_id = "regression_no_cats"
+    s.ending_categories = None
+    await s.insert()
+
+    res = await _play_to_ending(client, "regression_no_cats", "n1_c1")
+    assert res.status_code == 200
+
+    progress = await UserScenarioProgress.find_one(
+        UserScenarioProgress.user_id == 42,
+        UserScenarioProgress.scenario_id == "regression_no_cats",
+    )
+    assert progress is not None
+    assert progress.discovered_categories == []
+    assert progress.total_categories == 0
+    assert progress.completion_rate == 0.0
 
 
 async def test_move_invalid_choice_id_returns_400(

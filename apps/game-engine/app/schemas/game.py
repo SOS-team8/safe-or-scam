@@ -107,14 +107,15 @@ class MoveResponse(BaseModel):
 class ScenarioProgressResponse(BaseModel):
     """internal: GET /api/internal/progress/{user_id} 응답 항목.
 
-    유저가 결말을 1개 이상 도달한 시나리오만 (progress 문서 존재 = finalize 발생).
-    snake_case 유지 (contract, alias 금지). discovered_count 는 계산값.
+    결말 **유형(ending_category)** 기준 수집 진행도. 유저가 결말 1개 이상 도달한
+    시나리오만 (progress 문서 존재 = finalize 발생). snake_case 유지 (contract, alias 금지).
+    discovered_category_count 는 계산값(len(discovered_categories)).
     """
 
     scenario_id: str
     completion_rate: float
-    discovered_count: int
-    total_endings: int
+    discovered_category_count: int
+    total_categories: int
     last_played_at: datetime
 
 class PlayLogSummaryResponse(BaseModel):

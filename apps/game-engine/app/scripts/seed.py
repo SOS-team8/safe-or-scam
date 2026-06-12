@@ -83,6 +83,9 @@ def _to_scenario_doc(raw: dict[str, Any]) -> Scenario:
         total_endings=total,
         total_good_endings=good,
         total_bad_endings=bad,
+        # ending_classifier 결과 보존 — 누락 시 재시드가 ending_categories 를 None 으로
+        # 덮어써 유형 기준 진행도가 조용히 죽음(total 0 → rate 0). ai-pipeline 미러와 동일 컬렉션.
+        ending_categories=raw.get("ending_categories"),
         tags=raw.get("tags", []),
         created_at=raw["created_at"],
         updated_at=now,
@@ -325,20 +328,31 @@ async def _upsert_by_key(model_cls, key_field: str, doc) -> None:
 
 async def _upsert_progress(
     scenario_raw: dict[str, Any],
-    discovered: list[str],
+    discovered_node_ids: list[str],
     now: datetime,
 ) -> None:
-    """user_scenario_progress upsert."""
-    total, _, _ = _derive_ending_counts(scenario_raw["nodes"])
-    rate = len(discovered) / total if total > 0 else 0.0
+    """user_scenario_progress upsert (결말 유형 category 기준).
+
+    도달 결말 노드(discovered_node_ids)를 node.ending_category 로 매핑해 distinct 유형 수집.
+    분모 = 시나리오 결말 유형 수(len(ending_categories)). 미분류/dangling 카테고리는 제외.
+    """
+    nodes = scenario_raw["nodes"]
+    ending_categories = scenario_raw.get("ending_categories") or {}
+    total = len(ending_categories)
+    discovered_categories: list[str] = []
+    for node_id in discovered_node_ids:
+        cat = (nodes.get(node_id) or {}).get("ending_category")
+        if cat and cat in ending_categories and cat not in discovered_categories:
+            discovered_categories.append(cat)
+    rate = len(discovered_categories) / total if total > 0 else 0.0
     existing = await UserScenarioProgress.find_one(
         {"user_id": EXAMPLE_USER_ID, "scenario_id": _scenario_id(scenario_raw)}
     )
     doc = UserScenarioProgress(
         user_id=EXAMPLE_USER_ID,
         scenario_id=_scenario_id(scenario_raw),
-        discovered_endings=discovered,
-        total_endings=total,
+        discovered_categories=discovered_categories,
+        total_categories=total,
         completion_rate=rate,
         play_count=1,
         last_played_at=now,

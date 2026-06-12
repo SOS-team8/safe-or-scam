@@ -31,6 +31,7 @@ from app.models.common import (
     Choice,
     DangerFeedback,
     EducationalContent,
+    EndingCategory,
     ResourceDelta,
     ScenarioNode,
 )
@@ -169,7 +170,21 @@ def build_regression_scenario() -> Scenario:
         total_endings=2,
         total_good_endings=1,
         total_bad_endings=1,
-        ending_categories=None,
+        # 결말 유형 2종 (노드의 ending_category 와 일치). 유형 기준 진행도 검증용.
+        ending_categories={
+            "smart_block": EndingCategory(
+                category_id="smart_block",
+                label="스마트 차단",
+                description="피싱을 알아채고 차단했다.",
+                node_ids=["n_end_good"],
+            ),
+            "financial_loss": EndingCategory(
+                category_id="financial_loss",
+                label="금전 피해",
+                description="피해를 입었다.",
+                node_ids=["n_end_bad"],
+            ),
+        },
         tags=[],
         created_at=_NOW,
         updated_at=_NOW,

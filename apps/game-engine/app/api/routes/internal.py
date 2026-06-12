@@ -41,8 +41,8 @@ async def list_user_progress(user_id: int) -> list[ScenarioProgressResponse]:
         ScenarioProgressResponse(
             scenario_id=r.scenario_id,
             completion_rate=r.completion_rate,
-            discovered_count=len(r.discovered_endings),
-            total_endings=r.total_endings,
+            discovered_category_count=len(r.discovered_categories),
+            total_categories=r.total_categories,
             last_played_at=r.last_played_at,
         )
         for r in rows

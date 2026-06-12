@@ -11,8 +11,8 @@ import java.time.LocalDateTime;
 public record ScenarioProgressInternalResponse(
     String scenarioId,
     double completionRate,
-    int discoveredCount,
-    int totalEndings,
+    int discoveredCategoryCount,
+    int totalCategories,
     @JsonDeserialize(using = FlexibleUtcDateTimeDeserializer.class)
     LocalDateTime lastPlayedAt
 ) {

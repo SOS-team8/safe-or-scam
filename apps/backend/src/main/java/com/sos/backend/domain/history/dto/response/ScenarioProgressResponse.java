@@ -7,16 +7,16 @@ import java.time.LocalDateTime;
 public record ScenarioProgressResponse(
     String scenarioId,
     double completionRate,
-    int discoveredCount,
-    int totalEndings,
+    int discoveredCategoryCount,
+    int totalCategories,
     LocalDateTime lastPlayedAt
 ) {
     public static ScenarioProgressResponse from(ScenarioProgressInternalResponse internal) {
         return new ScenarioProgressResponse(
             internal.scenarioId(),
             internal.completionRate(),
-            internal.discoveredCount(),
-            internal.totalEndings(),
+            internal.discoveredCategoryCount(),
+            internal.totalCategories(),
             internal.lastPlayedAt()
         );
     }

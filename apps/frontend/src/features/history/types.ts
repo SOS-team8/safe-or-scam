@@ -3,8 +3,8 @@
 export type ScenarioProgress = {
   scenarioId: string
   completionRate: number // 0.0 ~ 1.0
-  discoveredCount: number
-  totalEndings: number
+  discoveredCategoryCount: number
+  totalCategories: number
   lastPlayedAt: string // ISO 8601
 }
 
