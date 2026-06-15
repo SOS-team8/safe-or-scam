@@ -72,7 +72,20 @@ async def notify_game_completed(
         # 아니면 최상위에서 unlocked_achievements 를 찾는다(언래핑 응답에도 견고).
         container = parsed.get("data") if isinstance(parsed.get("data"), dict) else parsed
         raw = container.get("unlocked_achievements") or []
-        return [UnlockedAchievementView.model_validate(item) for item in raw]
+        # 항목 단위 내결함: 한 항목의 검증 실패가 정상 항목까지 유실시키지 않도록
+        # 개별 항목은 skip 하고 나머지는 누적한다.
+        unlocked: list[UnlockedAchievementView] = []
+        for item in raw:
+            try:
+                unlocked.append(UnlockedAchievementView.model_validate(item))
+            except Exception:
+                logger.warning(
+                    "skipping invalid unlocked achievement item (play_log_id=%s): %r",
+                    payload.play_log_id,
+                    item,
+                    exc_info=True,
+                )
+        return unlocked
     except Exception as exc:
         status = getattr(getattr(exc, "response", None), "status_code", None)
         logger.warning(

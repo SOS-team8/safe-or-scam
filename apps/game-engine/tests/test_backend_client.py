@@ -61,3 +61,48 @@ async def test_absorbs_connection_error():
 
     async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
         await notify_game_completed(_payload(), client=client)
+
+
+async def test_parses_unlocked_achievements_from_wrapped_response():
+    body = {
+        "data": {
+            "unlocked_achievements": [
+                {
+                    "code": "FIRST_CLEAR",
+                    "title": "첫 시나리오 플레이 완료",
+                    "description": "첫 시나리오를 끝까지 플레이하면 열립니다.",
+                    "icon_url": None,
+                }
+            ]
+        }
+    }
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json=body)
+
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+        result = await notify_game_completed(_payload(), client=client)
+
+    assert len(result) == 1
+    assert result[0].code == "FIRST_CLEAR"
+
+
+async def test_skips_invalid_items_but_keeps_valid_ones():
+    # 항목 하나가 깨져도 정상 항목은 유실되지 않아야 한다(항목 단위 내결함).
+    body = {
+        "data": {
+            "unlocked_achievements": [
+                {"code": "FIRST_CLEAR", "title": "ok", "description": "d", "icon_url": None},
+                {"title": "missing-code"},  # code 누락 → 검증 실패
+                "not-an-object",  # 형식 오류
+            ]
+        }
+    }
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json=body)
+
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+        result = await notify_game_completed(_payload(), client=client)
+
+    assert [a.code for a in result] == ["FIRST_CLEAR"]
