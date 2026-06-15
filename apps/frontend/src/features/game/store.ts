@@ -10,6 +10,7 @@ import type {
   Resources,
   ScenarioNode,
   SessionStatus,
+  UnlockedAchievement,
 } from './types'
 
 /**
@@ -34,6 +35,7 @@ type GameSnapshot = {
   isFinished: boolean
   endingType: EndingType | null
   endingCategory: string | null
+  unlockedAchievements: UnlockedAchievement[]
   pendingEducationalContent: EducationalContent | null
   pendingDangerFeedback: DangerFeedback | null
   phase: GamePhase
@@ -74,6 +76,7 @@ const buildSnapshotFromSession = (
   isFinished: false,
   endingType: null,
   endingCategory: null,
+  unlockedAchievements: [],
   pendingEducationalContent: null,
   pendingDangerFeedback: null,
   phase: hasMeaningfulText(prologue) ? 'prologue' : 'playing',
@@ -94,6 +97,7 @@ const buildSnapshotFromMove = (
   isFinished: move.is_finished,
   endingType: move.ending_type,
   endingCategory: move.ending_category,
+  unlockedAchievements: move.unlocked_achievements ?? [],
   pendingEducationalContent: move.educational_content,
   pendingDangerFeedback: move.danger_feedback,
   // is_finished면 ended로. 아니면 이전 phase를 유지 — prologue 중 GET /session 응답이
@@ -124,6 +128,7 @@ export const useGameStore = create<GameStore>((set) => ({
             isFinished: response.is_finished,
             endingType: response.ending_type,
             endingCategory: response.ending_category,
+            unlockedAchievements: response.unlocked_achievements ?? [],
             pendingEducationalContent: response.educational_content,
             pendingDangerFeedback: response.danger_feedback,
             phase: response.is_finished ? 'ended' : 'playing',

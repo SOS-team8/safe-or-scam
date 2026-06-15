@@ -80,11 +80,23 @@ class GameSessionResponse(BaseModel):
     completed_at: datetime | None = None
 
 
+class UnlockedAchievementView(BaseModel):
+    """이번 결말 도달로 새로 달성한 업적. backend GameCompletedResponse 의
+    unlocked_achievements 항목과 1:1 (snake_case 동일)."""
+
+    code: str
+    title: str
+    description: str
+    icon_url: str | None = None
+
+
 class MoveResponse(BaseModel):
     """game-engine-api v2 §3-4 Response.
 
     /move, /undo, GET /{id} 모두 동일 shape. 단 GET /{id} 와 /undo 응답에서
     `danger_feedback`/`educational_content` 는 항상 null (이전 move 정보 보존하지 않음).
+    `unlocked_achievements` 는 결말 도달(/move 로 is_finished 전환)한 그 응답에서만
+    채워지고, 그 외(GET/undo, 진행 중)에는 빈 배열이다.
     """
 
     session_id: str
@@ -100,6 +112,7 @@ class MoveResponse(BaseModel):
     is_finished: bool
     ending_type: Literal["ending_good", "ending_bad"] | None = None
     ending_category: str | None = None
+    unlocked_achievements: list[UnlockedAchievementView] = []
     started_at: datetime
     completed_at: datetime | None = None
 

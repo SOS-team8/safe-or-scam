@@ -156,8 +156,21 @@ export interface MoveResponse {
   is_finished: boolean
   ending_type: EndingType | null
   ending_category: string | null
+  /**
+   * 이번 결말 도달로 새로 달성한 업적. game-engine /move 결말 응답에는 항상 포함되며
+   * (없으면 빈 배열), 구버전 응답/일부 테스트 픽스처 호환을 위해 optional 로 둔다.
+   */
+  unlocked_achievements?: UnlockedAchievement[]
   started_at: string
   completed_at: string | null
+}
+
+/** game-engine MoveResponse.unlocked_achievements 항목 (backend 와 snake_case 동일). */
+export interface UnlockedAchievement {
+  code: string
+  title: string
+  description: string
+  icon_url: string | null
 }
 
 /**

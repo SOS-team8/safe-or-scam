@@ -1,11 +1,14 @@
 import { useMemo, useState } from 'react'
 
+import { AchievementUnlockedDialog } from '@/features/achievement/components/AchievementUnlockedDialog'
+
 import type {
   ChoiceHistoryEntry,
   EndingType,
   Resources,
   ScenarioNode,
   ScenarioTree,
+  UnlockedAchievement,
 } from '../types'
 import { DangerFeedbackModal } from './DangerFeedbackModal'
 import { ResourceBar } from './ResourceBar'
@@ -17,6 +20,7 @@ type EndingScreenProps = {
   resources: Resources
   history: ChoiceHistoryEntry[]
   scenarioTree?: ScenarioTree | null
+  unlockedAchievements?: UnlockedAchievement[]
   onReplay: () => void
   onSelectOther: () => void
 }
@@ -42,10 +46,14 @@ export function EndingScreen({
   resources,
   history,
   scenarioTree,
+  unlockedAchievements = [],
   onReplay,
   onSelectOther,
 }: EndingScreenProps) {
   const isGood = endingType === 'ending_good'
+
+  // 결말 도달로 새로 달성한 업적이 있으면 축하 모달을 띄운다(확인 시 닫힘).
+  const [showUnlockedDialog, setShowUnlockedDialog] = useState(unlockedAchievements.length > 0)
 
   const choiceLookup = useMemo(() => buildChoiceLookup(scenarioTree), [scenarioTree])
 
@@ -77,6 +85,18 @@ export function EndingScreen({
 
   return (
     <section className="space-y-6 animate-sos-fade-slide">
+      {showUnlockedDialog ? (
+        <AchievementUnlockedDialog
+          achievements={unlockedAchievements.map((a) => ({
+            code: a.code,
+            title: a.title,
+            description: a.description,
+            iconUrl: a.icon_url,
+          }))}
+          onClose={() => setShowUnlockedDialog(false)}
+        />
+      ) : null}
+
       <header
         className={`space-y-3 rounded-lg border p-6 ${
           isGood

@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
+import { notificationKeys } from '@/features/notification/queryKeys'
+
 import { gameApi } from './api'
 import { gameKeys } from './queryKeys'
 import { useGameStore } from './store'
@@ -77,6 +79,10 @@ export const useSubmitChoice = (sessionId: string) => {
     onSuccess: (response) => {
       applyMove(response)
       queryClient.setQueryData(gameKeys.session(sessionId), response)
+      // 결말 도달 시 업적 알림이 서버에 생성됐을 수 있으므로 네비바 벨을 갱신한다.
+      if (response.is_finished && (response.unlocked_achievements?.length ?? 0) > 0) {
+        void queryClient.invalidateQueries({ queryKey: notificationKeys.list() })
+      }
     },
   })
 }

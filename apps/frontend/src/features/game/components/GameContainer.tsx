@@ -174,6 +174,7 @@ export function GameContainer({ sessionId }: GameContainerProps) {
         resources={snapshot.resources}
         history={snapshot.history}
         scenarioTree={scenarioQuery.data ?? null}
+        unlockedAchievements={snapshot.unlockedAchievements}
         onReplay={() => {
           resetStore()
           navigate('/lobby', { replace: true })
