@@ -97,7 +97,7 @@ export function PlayLogDetailDialog({ logId, endingType, onClose }: PlayLogDetai
         aria-modal="true"
         aria-labelledby="play-log-detail-title"
         tabIndex={-1}
-        className="max-h-[calc(100vh-4rem)] w-full max-w-md overflow-y-auto rounded-xl border border-white/8 bg-slate-900 p-6 shadow-sos-dialog"
+        className="max-h-[calc(100vh-4rem)] w-full max-w-md overflow-y-auto rounded-xl border border-sos-line bg-slate-900 p-6 shadow-sos-dialog"
       >
         <p
           className={`text-sm font-semibold ${ending.isGood ? 'text-emerald-200' : 'text-red-200'}`}
@@ -141,12 +141,12 @@ export function PlayLogDetailDialog({ logId, endingType, onClose }: PlayLogDetai
 
             <h2
               id="play-log-detail-title"
-              className="mt-4 text-xl font-semibold tracking-[-0.01em] text-white"
+              className="mt-4 text-xl font-semibold tracking-[-0.01em] text-sos-strong"
             >
               {detail.endingCategory?.label ?? '결말'}
             </h2>
             {detail.endingCategory?.description ? (
-              <p className="mt-1 text-sm text-slate-400">{detail.endingCategory.description}</p>
+              <p className="mt-1 text-sm text-sos-muted">{detail.endingCategory.description}</p>
             ) : null}
             <p className="mt-3 whitespace-pre-line text-[15px] leading-7 text-slate-200">
               {detail.text}
@@ -159,7 +159,7 @@ export function PlayLogDetailDialog({ logId, endingType, onClose }: PlayLogDetai
             ref={closeButtonRef}
             type="button"
             onClick={onClose}
-            className="rounded-lg border border-white/10 px-4 py-3 text-sm font-semibold text-slate-200 transition hover:border-emerald-300 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200"
+            className="rounded-lg border border-white/10 px-4 py-3 text-sm font-semibold text-slate-200 transition hover:border-emerald-300 hover:text-sos-strong focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200"
           >
             닫기
           </button>

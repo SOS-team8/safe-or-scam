@@ -44,6 +44,13 @@
   --sos-color-border-emerald: rgb(52 211 153 / 0.36);
   --sos-color-text-primary: #e2e8f0;
   --sos-color-text-muted: #94a3b8;
+  /* 시맨틱 텍스트/라인 토큰 (값은 현행 raw 유틸리티와 동일 — 다크 시각 변화 없음).
+     라이트 모드(2단계)는 :root[data-theme="light"] 에서 이 값들만 재정의하면 된다. */
+  --sos-color-text-strong: #ffffff;
+  --sos-color-text-body: #cbd5e1;
+  --sos-color-text-faint: #64748b;
+  --sos-color-line: rgb(255 255 255 / 0.08);
+  --sos-color-line-strong: rgb(255 255 255 / 0.16);
   --sos-color-emerald: #34d399;
   --sos-color-cyan: #22d3ee;
   --sos-color-red: #f87171;
@@ -79,6 +86,12 @@
   --color-sos-surface-1: var(--sos-color-surface-1);
   --color-sos-surface-2: var(--sos-color-surface-2);
   --color-sos-inset: var(--sos-color-inset);
+  --color-sos-strong: var(--sos-color-text-strong);
+  --color-sos-body: var(--sos-color-text-body);
+  --color-sos-muted: var(--sos-color-text-muted);
+  --color-sos-faint: var(--sos-color-text-faint);
+  --color-sos-line: var(--sos-color-line);
+  --color-sos-line-strong: var(--sos-color-line-strong);
   --shadow-sos-card: var(--sos-surface-card-shadow);
   --shadow-sos-raised: var(--sos-shadow-raised);
   --shadow-sos-dialog: var(--sos-shadow-dialog);

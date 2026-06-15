@@ -75,7 +75,7 @@ export function NarrationPanel({
       role="button"
       tabIndex={isComplete ? -1 : 0}
       aria-pressed={false}
-      className={`space-y-5 rounded-lg border border-white/10 bg-white/5 p-6 shadow-2xl shadow-slate-950/20 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300/40 ${
+      className={`space-y-5 rounded-xl border border-sos-line bg-sos-surface-1 p-6 shadow-sos-raised transition focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300/40 ${
         isComplete ? 'cursor-default' : 'cursor-pointer'
       }`}
     >
@@ -111,7 +111,7 @@ export function NarrationPanel({
       {!isComplete ? (
         <p
           aria-live="polite"
-          className="text-xs text-slate-400/80"
+          className="text-xs text-sos-muted/80"
         >
           클릭하면 전체 텍스트를 바로 볼 수 있어요
         </p>

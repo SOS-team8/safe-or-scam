@@ -34,8 +34,8 @@ export function SignupPage() {
   return (
     <section className="mx-auto max-w-md space-y-6 py-10">
       <div className="space-y-2">
-        <h1 className="text-3xl font-semibold text-white">회원가입</h1>
-        <p className="text-slate-300">피싱 대응 훈련을 위한 기본 계정을 만듭니다.</p>
+        <h1 className="text-3xl font-semibold text-sos-strong">회원가입</h1>
+        <p className="text-sos-body">피싱 대응 훈련을 위한 기본 계정을 만듭니다.</p>
       </div>
 
       <form className="space-y-4 rounded-lg border border-white/10 bg-white/3 p-6" onSubmit={handleSubmit(onSubmit)}>
@@ -51,7 +51,7 @@ export function SignupPage() {
             placeholder="홍길동"
             autoComplete="name"
             aria-invalid={Boolean(errors.name)}
-            className="w-full rounded-md border border-white/10 bg-slate-900 px-3 py-3 text-white outline-none focus:border-emerald-300"
+            className="w-full rounded-md border border-white/10 bg-slate-900 px-3 py-3 text-sos-strong outline-none focus:border-emerald-300"
             {...register('name')}
           />
           {errors.name?.message ? <p className="text-sm text-red-200">{errors.name.message}</p> : null}
@@ -63,7 +63,7 @@ export function SignupPage() {
             placeholder="sos@example.com"
             autoComplete="email"
             aria-invalid={Boolean(errors.email)}
-            className="w-full rounded-md border border-white/10 bg-slate-900 px-3 py-3 text-white outline-none focus:border-emerald-300"
+            className="w-full rounded-md border border-white/10 bg-slate-900 px-3 py-3 text-sos-strong outline-none focus:border-emerald-300"
             {...register('email')}
           />
           {errors.email?.message ? <p className="text-sm text-red-200">{errors.email.message}</p> : null}
@@ -75,7 +75,7 @@ export function SignupPage() {
             placeholder="10자 이상"
             autoComplete="new-password"
             aria-invalid={Boolean(errors.password)}
-            className="w-full rounded-md border border-white/10 bg-slate-900 px-3 py-3 text-white outline-none focus:border-emerald-300"
+            className="w-full rounded-md border border-white/10 bg-slate-900 px-3 py-3 text-sos-strong outline-none focus:border-emerald-300"
             {...register('password')}
           />
           {errors.password?.message ? <p className="text-sm text-red-200">{errors.password.message}</p> : null}
@@ -83,13 +83,13 @@ export function SignupPage() {
         <button
           type="submit"
           disabled={sendVerificationMutation.isPending}
-          className="block w-full rounded-md bg-emerald-400 px-4 py-3 text-center font-semibold text-slate-950 hover:bg-emerald-300 disabled:cursor-not-allowed disabled:bg-slate-600 disabled:text-slate-300"
+          className="block w-full rounded-md bg-emerald-400 px-4 py-3 text-center font-semibold text-slate-950 hover:bg-emerald-300 disabled:cursor-not-allowed disabled:bg-slate-600 disabled:text-sos-body"
         >
           {sendVerificationMutation.isPending ? '발송 중...' : '인증 메일 받기'}
         </button>
       </form>
 
-      <p className="text-sm text-slate-400">
+      <p className="text-sm text-sos-muted">
         이미 계정이 있나요?{' '}
         <Link to="/login" className="font-medium text-emerald-300">
           로그인

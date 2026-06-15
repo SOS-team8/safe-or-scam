@@ -1,11 +1,14 @@
 import { useMemo, useState } from 'react'
 
+import { AchievementUnlockedDialog } from '@/features/achievement/components/AchievementUnlockedDialog'
+
 import type {
   ChoiceHistoryEntry,
   EndingType,
   Resources,
   ScenarioNode,
   ScenarioTree,
+  UnlockedAchievement,
 } from '../types'
 import { DangerFeedbackModal } from './DangerFeedbackModal'
 import { ResourceBar } from './ResourceBar'
@@ -17,6 +20,7 @@ type EndingScreenProps = {
   resources: Resources
   history: ChoiceHistoryEntry[]
   scenarioTree?: ScenarioTree | null
+  unlockedAchievements?: UnlockedAchievement[]
   onReplay: () => void
   onSelectOther: () => void
 }
@@ -42,10 +46,14 @@ export function EndingScreen({
   resources,
   history,
   scenarioTree,
+  unlockedAchievements = [],
   onReplay,
   onSelectOther,
 }: EndingScreenProps) {
   const isGood = endingType === 'ending_good'
+
+  // 결말 도달로 새로 달성한 업적이 있으면 축하 모달을 띄운다(확인 시 닫힘).
+  const [showUnlockedDialog, setShowUnlockedDialog] = useState(unlockedAchievements.length > 0)
 
   const choiceLookup = useMemo(() => buildChoiceLookup(scenarioTree), [scenarioTree])
 
@@ -77,6 +85,18 @@ export function EndingScreen({
 
   return (
     <section className="space-y-6 animate-sos-fade-slide">
+      {showUnlockedDialog ? (
+        <AchievementUnlockedDialog
+          achievements={unlockedAchievements.map((a) => ({
+            code: a.code,
+            title: a.title,
+            description: a.description,
+            iconUrl: a.icon_url,
+          }))}
+          onClose={() => setShowUnlockedDialog(false)}
+        />
+      ) : null}
+
       <header
         className={`space-y-3 rounded-lg border p-6 ${
           isGood
@@ -91,7 +111,7 @@ export function EndingScreen({
         >
           {isGood ? '안전한 결말' : '주의가 필요한 결말'}
         </p>
-        <h1 className="text-3xl font-semibold text-white">
+        <h1 className="text-3xl font-semibold text-sos-strong">
           {isGood ? '안전하게 마무리했어요' : '아쉽게 사기에 노출됐어요'}
         </h1>
         {endingCategoryLabel ? (
@@ -115,15 +135,15 @@ export function EndingScreen({
         <p className="text-base leading-7 text-slate-200">{endingNode.text}</p>
       </header>
 
-      <section className="space-y-3 rounded-lg border border-white/10 bg-white/5 p-6">
-        <h2 className="text-xl font-semibold text-white">최종 자원</h2>
+      <section className="space-y-3 rounded-xl border border-sos-line bg-sos-surface-1 p-6">
+        <h2 className="text-xl font-semibold text-sos-strong">최종 자원</h2>
         <ResourceBar resources={resources} />
       </section>
 
-      <section className="space-y-3 rounded-lg border border-white/10 bg-white/5 p-6">
-        <h2 className="text-xl font-semibold text-white">선택 이력</h2>
+      <section className="space-y-3 rounded-xl border border-sos-line bg-sos-surface-1 p-6">
+        <h2 className="text-xl font-semibold text-sos-strong">선택 이력</h2>
         {history.length === 0 ? (
-          <p className="text-sm text-slate-400">선택 이력이 없습니다.</p>
+          <p className="text-sm text-sos-muted">선택 이력이 없습니다.</p>
         ) : (
           <ol className="space-y-2">
             {history.map((entry, idx) => {
@@ -168,7 +188,7 @@ export function EndingScreen({
         <button
           type="button"
           onClick={onSelectOther}
-          className="rounded-md border border-white/10 px-4 py-3 text-sm font-semibold text-slate-200 transition hover:border-emerald-300 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200"
+          className="rounded-md border border-white/10 px-4 py-3 text-sm font-semibold text-slate-200 transition hover:border-emerald-300 hover:text-sos-strong focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200"
         >
           다른 시나리오 선택
         </button>

@@ -5,6 +5,7 @@ import sosMascot from '@/assets/sos-mascot.svg'
 import { AchievementsTab } from '@/features/achievement/components/AchievementsTab'
 import { useLogout } from '@/features/auth/hooks'
 import { HistoryTab } from '@/features/history/components/HistoryTab'
+import { StatsTab } from '@/features/stats/components/StatsTab'
 import { toApiError } from '@/shared/api/error'
 
 import { useUpdateProfile, useUserProfile, useWithdrawUser } from '../hooks'
@@ -106,7 +107,7 @@ const hasProfileChanges = (profile: UserProfile, form: ProfileForm) =>
 
 function ProfileSkeleton() {
   return (
-    <div className="space-y-5 rounded-xl border border-white/8 bg-sos-surface-2 p-6 shadow-sos-raised">
+    <div className="space-y-5 rounded-xl border border-sos-line bg-sos-surface-2 p-6 shadow-sos-raised">
       <div className="flex items-center gap-4">
         <div className="size-16 animate-pulse rounded-full bg-slate-800" />
         <div className="space-y-3">
@@ -198,10 +199,10 @@ function WithdrawDialog({ isSubmitting, onCancel, onConfirm }: WithdrawDialogPro
         className="w-full max-w-md rounded-xl border border-red-300/30 bg-slate-900 p-6 shadow-sos-dialog"
       >
         <p className="text-sm font-semibold text-red-200">계정 삭제</p>
-        <h2 id="withdraw-title" className="mt-3 text-2xl font-semibold text-white">
+        <h2 id="withdraw-title" className="mt-3 text-2xl font-semibold text-sos-strong">
           정말 탈퇴하시겠어요?
         </h2>
-        <div id="withdraw-description" className="mt-3 space-y-3 text-sm leading-6 text-slate-300">
+        <div id="withdraw-description" className="mt-3 space-y-3 text-sm leading-6 text-sos-body">
           <p className="rounded-md border border-red-300/25 bg-red-500/10 px-3 py-2 font-semibold text-red-100">
             복구할 수 없습니다.
           </p>
@@ -216,7 +217,7 @@ function WithdrawDialog({ isSubmitting, onCancel, onConfirm }: WithdrawDialogPro
             type="button"
             disabled={isSubmitting}
             onClick={onCancel}
-            className="rounded-lg border border-white/10 px-4 py-3 text-sm font-semibold text-slate-200 transition hover:border-emerald-300 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200 disabled:cursor-not-allowed disabled:text-slate-500"
+            className="rounded-lg border border-white/10 px-4 py-3 text-sm font-semibold text-slate-200 transition hover:border-emerald-300 hover:text-sos-strong focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200 disabled:cursor-not-allowed disabled:text-sos-faint"
           >
             취소
           </button>
@@ -224,7 +225,7 @@ function WithdrawDialog({ isSubmitting, onCancel, onConfirm }: WithdrawDialogPro
             type="button"
             disabled={isSubmitting}
             onClick={onConfirm}
-            className="rounded-lg bg-red-400 px-4 py-3 text-sm font-semibold text-slate-950 transition hover:bg-red-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-200 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
+            className="rounded-lg bg-red-400 px-4 py-3 text-sm font-semibold text-slate-950 transition hover:bg-red-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-200 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-sos-muted"
           >
             {isSubmitting ? '탈퇴 처리 중...' : '탈퇴하기'}
           </button>
@@ -332,8 +333,8 @@ export function MyPage() {
       <section className="mx-auto max-w-4xl space-y-8 py-12">
         <div className="space-y-2">
           <p className="text-sm font-medium text-emerald-300">내 계정</p>
-          <h1 className="text-3xl font-bold tracking-tight text-white">마이페이지</h1>
-          <p className="text-slate-300">내 계정과 맞춤 훈련 설정을 확인합니다.</p>
+          <h1 className="text-3xl font-bold tracking-tight text-sos-strong">마이페이지</h1>
+          <p className="text-sos-body">내 계정과 맞춤 훈련 설정을 확인합니다.</p>
         </div>
         <ProfileSkeleton />
       </section>
@@ -345,8 +346,8 @@ export function MyPage() {
       <section className="mx-auto max-w-2xl space-y-8 py-12">
         <div className="space-y-2">
           <p className="text-sm font-medium text-emerald-300">내 계정</p>
-          <h1 className="text-3xl font-bold tracking-tight text-white">마이페이지</h1>
-          <p className="text-slate-300">프로필 정보를 불러오지 못했습니다.</p>
+          <h1 className="text-3xl font-bold tracking-tight text-sos-strong">마이페이지</h1>
+          <p className="text-sos-body">프로필 정보를 불러오지 못했습니다.</p>
         </div>
         <div className="rounded-lg border border-red-300/25 bg-red-500/10 p-6">
           <p className="text-sm text-red-100">{toApiError(profileQuery.error).message}</p>
@@ -375,7 +376,7 @@ export function MyPage() {
           className={`fixed right-5 top-20 z-40 rounded-lg border px-4 py-3 text-sm font-semibold shadow-lg shadow-slate-950/30 ${
             toast.tone === 'success'
               ? 'border-emerald-300/30 bg-emerald-400 text-slate-950'
-              : 'border-red-300/30 bg-red-500 text-white'
+              : 'border-red-300/30 bg-red-500 text-sos-strong'
           }`}
         >
           {toast.message}
@@ -396,8 +397,8 @@ export function MyPage() {
 
       <div className="space-y-2">
         <p className="text-sm font-medium text-emerald-300">내 계정</p>
-        <h1 className="text-3xl font-bold tracking-tight text-white">마이페이지</h1>
-        <p className="text-slate-300">내 계정과 맞춤 훈련 설정을 확인합니다.</p>
+        <h1 className="text-3xl font-bold tracking-tight text-sos-strong">마이페이지</h1>
+        <p className="text-sos-body">내 계정과 맞춤 훈련 설정을 확인합니다.</p>
       </div>
 
       <div className="md:grid md:grid-cols-[200px_minmax(0,1fr)] md:items-start md:gap-6">
@@ -405,7 +406,7 @@ export function MyPage() {
           role="tablist"
           aria-label="마이페이지 메뉴"
           aria-orientation="vertical"
-          className="mb-6 flex gap-1.5 overflow-x-auto rounded-xl border border-white/8 bg-sos-surface-1 p-2 shadow-sos-raised md:sticky md:top-24 md:mb-0 md:flex-col md:overflow-visible"
+          className="mb-6 flex gap-1.5 overflow-x-auto rounded-xl border border-sos-line bg-sos-surface-1 p-2 shadow-sos-raised md:sticky md:top-24 md:mb-0 md:flex-col md:overflow-visible"
         >
           {profileTabs.map((tab) => (
             <button
@@ -417,7 +418,7 @@ export function MyPage() {
               className={`shrink-0 whitespace-nowrap rounded-lg px-4 py-2.5 text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200 md:w-full md:text-left ${
                 activeTab === tab.value
                   ? 'bg-emerald-300/10 text-emerald-200'
-                  : 'text-slate-400 hover:bg-white/5 hover:text-white'
+                  : 'text-sos-muted hover:bg-white/5 hover:text-sos-strong'
               }`}
             >
               {tab.label}
@@ -428,7 +429,7 @@ export function MyPage() {
         <div className="space-y-6">
           {activeTab === 'profile' ? (
             <div role="tabpanel" className="space-y-6">
-      <section className="rounded-xl border border-white/8 bg-sos-surface-2 p-5 shadow-sos-raised sm:p-6">
+      <section className="rounded-xl border border-sos-line bg-sos-surface-2 p-5 shadow-sos-raised sm:p-6">
         <div className="flex items-center gap-6">
           <div className="relative size-20 shrink-0 overflow-hidden rounded-full border border-emerald-300/40 bg-emerald-300/10">
             <img
@@ -439,20 +440,20 @@ export function MyPage() {
             />
           </div>
           <div className="pl-1">
-            <h2 className="text-2xl font-semibold tracking-[-0.01em] text-white">{profile.name}</h2>
-            <p className="mt-1.5 text-base text-slate-400">{profile.email}</p>
+            <h2 className="text-2xl font-semibold tracking-[-0.01em] text-sos-strong">{profile.name}</h2>
+            <p className="mt-1.5 text-base text-sos-muted">{profile.email}</p>
           </div>
         </div>
       </section>
 
       <form
-        className="space-y-4 rounded-xl border border-white/8 bg-sos-surface-2 p-5 shadow-sos-raised sm:p-6"
+        className="space-y-4 rounded-xl border border-sos-line bg-sos-surface-2 p-5 shadow-sos-raised sm:p-6"
         onSubmit={handleSubmit}
       >
         <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h2 className="text-xl font-semibold tracking-[-0.01em] text-white">회원 정보</h2>
-            <p className="mt-1 text-sm text-slate-400">이름과 이메일은 현재 수정할 수 없습니다.</p>
+            <h2 className="text-xl font-semibold tracking-[-0.01em] text-sos-strong">회원 정보</h2>
+            <p className="mt-1 text-sm text-sos-muted">이름과 이메일은 현재 수정할 수 없습니다.</p>
           </div>
           {isDirty ? (
             <span className="w-fit rounded-md bg-emerald-300/10 px-2 py-1 text-xs font-medium text-emerald-200">
@@ -462,24 +463,24 @@ export function MyPage() {
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <div className="rounded-lg border border-white/8 bg-sos-inset px-4 py-3">
-            <p className="text-[13px] font-medium text-slate-400">이름</p>
-            <p className="mt-1 text-[15px] text-slate-300">{profile.name}</p>
+          <div className="rounded-lg border border-sos-line bg-sos-inset px-4 py-3">
+            <p className="text-[13px] font-medium text-sos-muted">이름</p>
+            <p className="mt-1 text-[15px] text-sos-body">{profile.name}</p>
           </div>
-          <div className="rounded-lg border border-white/8 bg-sos-inset px-4 py-3">
-            <p className="text-[13px] font-medium text-slate-400">이메일</p>
-            <p className="mt-1 break-all text-[15px] text-slate-300">{profile.email}</p>
+          <div className="rounded-lg border border-sos-line bg-sos-inset px-4 py-3">
+            <p className="text-[13px] font-medium text-sos-muted">이메일</p>
+            <p className="mt-1 break-all text-[15px] text-sos-body">{profile.email}</p>
           </div>
         </div>
 
         <div className="grid gap-4 md:grid-cols-3">
           <label className="block space-y-2">
-            <span className="text-[13px] font-medium text-slate-400">직업</span>
+            <span className="text-[13px] font-medium text-sos-muted">직업</span>
             <select
               value={currentForm.occupation}
               disabled={!isEditing || updateProfileMutation.isPending}
               onChange={handleFieldChange('occupation')}
-              className="w-full rounded-lg border border-white/8 bg-sos-inset px-4 py-3 text-[15px] text-white outline-none focus:border-emerald-300 focus-visible:ring-2 focus-visible:ring-emerald-200 disabled:cursor-not-allowed disabled:bg-slate-950 disabled:text-slate-500"
+              className="w-full rounded-lg border border-sos-line bg-sos-inset px-4 py-3 text-[15px] text-sos-strong outline-none focus:border-emerald-300 focus-visible:ring-2 focus-visible:ring-emerald-200 disabled:cursor-not-allowed disabled:bg-slate-950 disabled:text-sos-faint"
             >
               <option value="">{getOptionLabel(occupationOptions, null)}</option>
               {occupationOptions.map((option) => (
@@ -491,12 +492,12 @@ export function MyPage() {
           </label>
 
           <label className="block space-y-2">
-            <span className="text-[13px] font-medium text-slate-400">연령대</span>
+            <span className="text-[13px] font-medium text-sos-muted">연령대</span>
             <select
               value={currentForm.ageGroup}
               disabled={!isEditing || updateProfileMutation.isPending}
               onChange={handleFieldChange('ageGroup')}
-              className="w-full rounded-lg border border-white/8 bg-sos-inset px-4 py-3 text-[15px] text-white outline-none focus:border-emerald-300 focus-visible:ring-2 focus-visible:ring-emerald-200 disabled:cursor-not-allowed disabled:bg-slate-950 disabled:text-slate-500"
+              className="w-full rounded-lg border border-sos-line bg-sos-inset px-4 py-3 text-[15px] text-sos-strong outline-none focus:border-emerald-300 focus-visible:ring-2 focus-visible:ring-emerald-200 disabled:cursor-not-allowed disabled:bg-slate-950 disabled:text-sos-faint"
             >
               <option value="">{getOptionLabel(ageGroupOptions, null)}</option>
               {ageGroupOptions.map((option) => (
@@ -508,12 +509,12 @@ export function MyPage() {
           </label>
 
           <label className="block space-y-2">
-            <span className="text-[13px] font-medium text-slate-400">성별</span>
+            <span className="text-[13px] font-medium text-sos-muted">성별</span>
             <select
               value={currentForm.gender}
               disabled={!isEditing || updateProfileMutation.isPending}
               onChange={handleFieldChange('gender')}
-              className="w-full rounded-lg border border-white/8 bg-sos-inset px-4 py-3 text-[15px] text-white outline-none focus:border-emerald-300 focus-visible:ring-2 focus-visible:ring-emerald-200 disabled:cursor-not-allowed disabled:bg-slate-950 disabled:text-slate-500"
+              className="w-full rounded-lg border border-sos-line bg-sos-inset px-4 py-3 text-[15px] text-sos-strong outline-none focus:border-emerald-300 focus-visible:ring-2 focus-visible:ring-emerald-200 disabled:cursor-not-allowed disabled:bg-slate-950 disabled:text-sos-faint"
             >
               <option value="">{getOptionLabel(genderOptions, null)}</option>
               {genderOptions.map((option) => (
@@ -532,14 +533,14 @@ export function MyPage() {
                 type="button"
                 disabled={updateProfileMutation.isPending}
                 onClick={handleCancelEdit}
-                className="rounded-lg border border-white/10 px-4 py-3 text-sm font-semibold text-slate-200 transition hover:border-emerald-300 hover:text-white disabled:cursor-not-allowed disabled:text-slate-500"
+                className="rounded-lg border border-white/10 px-4 py-3 text-sm font-semibold text-slate-200 transition hover:border-emerald-300 hover:text-sos-strong disabled:cursor-not-allowed disabled:text-sos-faint"
               >
                 취소
               </button>
               <button
                 type="submit"
                 disabled={isSavingDisabled}
-                className="rounded-lg bg-emerald-400 px-4 py-3 text-sm font-semibold text-slate-950 transition hover:bg-emerald-300 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
+                className="rounded-lg bg-emerald-400 px-4 py-3 text-sm font-semibold text-slate-950 transition hover:bg-emerald-300 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-sos-muted"
               >
                 {updateProfileMutation.isPending ? '저장 중...' : '저장'}
               </button>
@@ -559,11 +560,11 @@ export function MyPage() {
         </div>
       </form>
 
-              <section className="rounded-xl border border-white/8 p-6">
+              <section className="rounded-xl border border-sos-line p-6">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <h2 className="text-base font-semibold text-white">로그아웃</h2>
-                    <p className="mt-2 text-sm leading-6 text-slate-400">
+                    <h2 className="text-base font-semibold text-sos-strong">로그아웃</h2>
+                    <p className="mt-2 text-sm leading-6 text-sos-muted">
                       현재 기기에서 로그아웃합니다.
                     </p>
                   </div>
@@ -571,7 +572,7 @@ export function MyPage() {
                     type="button"
                     disabled={logoutMutation.isPending}
                     onClick={() => logoutMutation.mutate()}
-                    className="rounded-lg border border-white/10 px-4 py-3 text-sm font-semibold text-slate-200 transition hover:border-emerald-300 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200 disabled:cursor-not-allowed disabled:text-slate-500"
+                    className="rounded-lg border border-white/10 px-4 py-3 text-sm font-semibold text-slate-200 transition hover:border-emerald-300 hover:text-sos-strong focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200 disabled:cursor-not-allowed disabled:text-sos-faint"
                   >
                     {logoutMutation.isPending ? '로그아웃 중...' : '로그아웃'}
                   </button>
@@ -582,7 +583,7 @@ export function MyPage() {
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <h2 className="text-base font-semibold text-red-200">계정 삭제</h2>
-                    <p className="mt-2 text-sm leading-6 text-slate-400">
+                    <p className="mt-2 text-sm leading-6 text-sos-muted">
                       탈퇴하면 계정과 활동 기록이 영구 삭제되며 복구할 수 없습니다.
                     </p>
                   </div>
@@ -601,9 +602,9 @@ export function MyPage() {
           {activeTab === 'history' ? (
             <section
               role="tabpanel"
-              className="space-y-4 rounded-xl border border-white/8 bg-sos-surface-1 p-5 shadow-sos-raised sm:p-6"
+              className="space-y-4 rounded-xl border border-sos-line bg-sos-surface-1 p-5 shadow-sos-raised sm:p-6"
             >
-              <h2 className="text-xl font-semibold tracking-[-0.01em] text-white">히스토리</h2>
+              <h2 className="text-xl font-semibold tracking-[-0.01em] text-sos-strong">히스토리</h2>
               <HistoryTab />
             </section>
           ) : null}
@@ -611,25 +612,19 @@ export function MyPage() {
           {activeTab === 'stats' ? (
             <section
               role="tabpanel"
-              className="space-y-4 rounded-xl border border-white/8 bg-sos-surface-1 p-5 shadow-sos-raised sm:p-6"
+              className="space-y-4 rounded-xl border border-sos-line bg-sos-surface-1 p-5 shadow-sos-raised sm:p-6"
             >
-              <h2 className="text-xl font-semibold tracking-[-0.01em] text-white">통계</h2>
-              {/* TODO(BE): 사용자 통계 공개 API 추가 시 연동 (user_stats: 완료 플레이/안전 결말/평균 점수 등) */}
-              <div className="rounded-lg border border-white/8 bg-sos-inset p-6 text-center">
-                <p className="text-sm font-medium text-slate-300">통계는 준비 중이에요.</p>
-                <p className="mt-1 text-sm text-slate-500">
-                  완료한 플레이, 안전 결말 횟수, 평균 점수 같은 훈련 통계가 여기에 표시될 예정입니다.
-                </p>
-              </div>
+              <h2 className="text-xl font-semibold tracking-[-0.01em] text-sos-strong">통계</h2>
+              <StatsTab />
             </section>
           ) : null}
 
           {activeTab === 'achievements' ? (
             <section
               role="tabpanel"
-              className="space-y-4 rounded-xl border border-white/8 bg-sos-surface-1 p-5 shadow-sos-raised sm:p-6"
+              className="space-y-4 rounded-xl border border-sos-line bg-sos-surface-1 p-5 shadow-sos-raised sm:p-6"
             >
-              <h2 className="text-xl font-semibold tracking-[-0.01em] text-white">업적</h2>
+              <h2 className="text-xl font-semibold tracking-[-0.01em] text-sos-strong">업적</h2>
               <AchievementsTab
                 focusAchievementId={pendingAchievementId}
                 onFocusHandled={() => setPendingAchievementId(null)}

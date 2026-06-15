@@ -10,7 +10,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from uuid import uuid4
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 
 from app.core.auth import get_current_user
 from app.core.backend_client import GameCompletedPayload, notify_game_completed
@@ -25,6 +25,7 @@ from app.schemas.game import (
     GameSessionResponse,
     MoveRequest,
     MoveResponse,
+    UnlockedAchievementView,
 )
 from app.services.game_logic import (
     InvalidChoiceError,
@@ -67,6 +68,7 @@ def _build_move_response(
     is_finished: bool = False,
     ending_type=None,
     ending_category: str | None = None,
+    unlocked_achievements: list[UnlockedAchievementView] | None = None,
 ) -> MoveResponse:
     current_node = scenario.nodes[session.current_node_id]
     return MoveResponse(
@@ -83,6 +85,7 @@ def _build_move_response(
         is_finished=is_finished,
         ending_type=ending_type,
         ending_category=ending_category,
+        unlocked_achievements=unlocked_achievements or [],
         started_at=session.started_at,
         completed_at=session.completed_at,
     )
@@ -388,7 +391,6 @@ async def get_session(
 async def make_move(
     session_id: str,
     body: MoveRequest,
-    background_tasks: BackgroundTasks,
     user: dict = Depends(get_current_user),
 ) -> MoveResponse:
     user_id = user["user_id"]
@@ -434,9 +436,12 @@ async def make_move(
     else:
         await session.save()
 
-    # backend 통계 동기화 발신 — 응답 후 백그라운드(best-effort, 실패해도 게임 완료는 성공)
+    # backend 통계 동기화 — 결말 도달 시 동기 호출로 새로 달성한 업적을 받아 응답에 싣는다.
+    # best-effort: notify_game_completed 가 모든 예외를 흡수하고 []를 반환하므로 backend
+    # 장애/지연이 있어도 게임 완료 응답 자체는 항상 성공한다(엔딩은 정상 표시).
+    unlocked: list[UnlockedAchievementView] = []
     if payload is not None:
-        background_tasks.add_task(notify_game_completed, payload)
+        unlocked = await notify_game_completed(payload)
 
     return _build_move_response(
         session,
@@ -446,6 +451,7 @@ async def make_move(
         is_finished=result.is_finished,
         ending_type=result.ending_type,
         ending_category=result.ending_category,
+        unlocked_achievements=unlocked,
     )
 
 

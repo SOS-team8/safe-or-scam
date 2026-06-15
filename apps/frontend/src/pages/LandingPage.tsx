@@ -133,13 +133,13 @@ export function LandingPage() {
               Interactive phishing defense training
             </p>
             <div className="space-y-5">
-              <h1 className="text-glow-cyan max-w-3xl text-4xl font-bold leading-tight text-white sm:text-5xl md:text-6xl">
+              <h1 className="text-glow-cyan max-w-3xl text-4xl font-bold leading-tight text-sos-strong sm:text-5xl md:text-6xl">
                 Safe or Scam
                 <span className="mt-2 block bg-linear-to-r from-emerald-300 to-cyan-300 bg-clip-text text-transparent">
                   피싱 예방 시뮬레이터
                 </span>
               </h1>
-              <p className="max-w-2xl text-base leading-7 text-slate-300 sm:text-lg sm:leading-8">
+              <p className="max-w-2xl text-base leading-7 text-sos-body sm:text-lg sm:leading-8">
                 실제 생활에서 마주칠 법한 문자, 메신저, 금융 알림을 읽고 무엇이 수상한지 판단합니다.
                 안전한 선택을 반복해 사기 대응 감각을 몸에 익혀보세요.
               </p>
@@ -170,21 +170,21 @@ export function LandingPage() {
           {featureHighlights.map((feature) => (
             <article
               key={feature.title}
-              className="surface-card rounded-lg p-5 text-slate-300 transition hover:-translate-y-1 hover:border-cyan-300/45 hover:shadow-[0_18px_50px_rgb(34_211_238/0.12)]"
+              className="surface-card rounded-lg p-5 text-sos-body transition hover:-translate-y-1 hover:border-cyan-300/45 hover:shadow-[0_18px_50px_rgb(34_211_238/0.12)]"
             >
               <div className="text-cyan-300">{feature.icon}</div>
-              <h2 className="mt-5 text-lg font-bold text-white">{feature.title}</h2>
+              <h2 className="mt-5 text-lg font-bold text-sos-strong">{feature.title}</h2>
               <p className="mt-3 text-sm leading-6">{feature.description}</p>
             </article>
           ))}
         </div>
 
-        <div className="mt-8 border-t border-cyan-300/20 pt-6 text-sm leading-6 text-slate-300">
+        <div className="mt-8 border-t border-cyan-300/20 pt-6 text-sm leading-6 text-sos-body">
           <p>
             낯선 링크를 누르기 전, 한 번 더 멈추는 습관이 가장 강한 방어입니다.
             <Link
               to="/signup"
-              className="ml-2 font-bold text-cyan-200 underline decoration-cyan-300/50 underline-offset-4 transition hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+              className="ml-2 font-bold text-cyan-200 underline decoration-cyan-300/50 underline-offset-4 transition hover:text-sos-strong focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
             >
               지금 첫 훈련을 시작하세요.
             </Link>

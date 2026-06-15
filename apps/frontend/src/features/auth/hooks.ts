@@ -3,7 +3,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLocation, useNavigate, type Location } from 'react-router-dom'
 
 import { toApiError } from '@/shared/api/error'
-import { userKeys } from '@/features/user/queryKeys'
 
 import { authApi } from './api'
 import { authKeys } from './queryKeys'
@@ -152,8 +151,10 @@ export const useLogout = () => {
     mutationFn: () => authApi.logout({ refreshToken: refreshToken as string }),
     onSettled: () => {
       clearAuth()
-      queryClient.removeQueries({ queryKey: userKeys.me() })
-      void queryClient.invalidateQueries({ queryKey: authKeys.session() })
+      // 사용자별 캐시(프로필·통계·알림·업적·히스토리)는 모두 고정 키라 사용자 식별자가
+      // 없다. 로그아웃 시 전체 캐시를 비워 다음 로그인 사용자에게 이전 데이터가
+      // 노출되지 않게 한다(회원 탈퇴 useWithdrawUser 와 동일한 처리).
+      queryClient.clear()
       navigate('/login', { replace: true })
     },
   })

@@ -13,6 +13,21 @@ type AchievementsTabProps = {
   onFocusHandled: () => void
 }
 
+// 업적 카드 표시 순서. 목록에 없는 code 는 뒤에 원래 순서로 붙는다.
+const BADGE_DISPLAY_ORDER = [
+  'FIRST_CLEAR',
+  'PLAY_10',
+  'PLAY_30',
+  'FULL_COLLECTION',
+  'GOOD_ENDING_5',
+  'FLAWLESS',
+]
+
+const badgeDisplayRank = (code: string) => {
+  const index = BADGE_DISPLAY_ORDER.indexOf(code)
+  return index === -1 ? BADGE_DISPLAY_ORDER.length : index
+}
+
 function AchievementIcon({ achievement }: { achievement: AchievementSummary }) {
   const [hasImageError, setHasImageError] = useState(false)
   const imageSrc = badgeImageByCode[achievement.code] ?? achievement.iconUrl
@@ -21,7 +36,7 @@ function AchievementIcon({ achievement }: { achievement: AchievementSummary }) {
     return (
       <div
         aria-hidden="true"
-        className="flex size-24 items-center justify-center rounded-full bg-slate-700 text-3xl font-semibold text-slate-300"
+        className="flex size-24 items-center justify-center rounded-full bg-slate-700 text-3xl font-semibold text-sos-body"
       >
         {achievement.title.trim().slice(0, 1) || 'S'}
       </div>
@@ -116,11 +131,15 @@ export function AchievementsTab({ focusAchievementId, onFocusHandled }: Achievem
 
   const { achievements, achievedCount, totalCount } = achievementsQuery.data
   const achievedRate = totalCount > 0 ? Math.round((achievedCount / totalCount) * 100) : 0
+  // 표시 순서: 첫 시나리오 → 반복 숙련가 → 베테랑 → 나머지(원래 순서 유지)
+  const orderedAchievements = [...achievements].sort(
+    (a, b) => badgeDisplayRank(a.code) - badgeDisplayRank(b.code),
+  )
 
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <p className="text-sm text-slate-300">
+        <p className="text-sm text-sos-body">
           <span className="font-semibold text-emerald-200">{achievedCount}</span> / {totalCount}{' '}
           달성 ({achievedRate}%)
         </p>
@@ -141,12 +160,12 @@ export function AchievementsTab({ focusAchievementId, onFocusHandled }: Achievem
 
       {achievements.length === 0 ? (
         <div className="rounded-md border border-white/10 bg-slate-900 p-6 text-center">
-          <p className="text-sm font-medium text-slate-300">표시할 업적이 없어요.</p>
-          <p className="mt-1 text-sm text-slate-500">시나리오를 플레이하며 업적을 달성해보세요.</p>
+          <p className="text-sm font-medium text-sos-body">표시할 업적이 없어요.</p>
+          <p className="mt-1 text-sm text-sos-faint">시나리오를 플레이하며 업적을 달성해보세요.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
-          {achievements.map((achievement) => (
+          {orderedAchievements.map((achievement) => (
             <button
               key={achievement.id}
               ref={(element) => {
@@ -172,17 +191,17 @@ export function AchievementsTab({ focusAchievementId, onFocusHandled }: Achievem
                   ✓
                 </span>
               ) : (
-                <span className="absolute right-3 top-3 text-xs font-medium text-slate-500">
+                <span className="absolute right-3 top-3 text-xs font-medium text-sos-faint">
                   잠금
                 </span>
               )}
 
               <AchievementIcon achievement={achievement} />
-              <h3 className="mt-3 font-semibold text-white">{achievement.title}</h3>
-              <p className="mt-1 line-clamp-2 text-sm leading-6 text-slate-400">
+              <h3 className="mt-3 font-semibold text-sos-strong">{achievement.title}</h3>
+              <p className="mt-1 line-clamp-2 text-sm leading-6 text-sos-muted">
                 {achievement.description}
               </p>
-              <p className="mt-3 text-xs text-slate-500">
+              <p className="mt-3 text-xs text-sos-faint">
                 {achievement.isAchieved && achievement.achievedAt
                   ? `달성일 ${formatAchievedDate(achievement.achievedAt)}`
                   : '잠금'}

@@ -90,20 +90,20 @@ export function AchievementDetailDialog({ achievement, onClose }: AchievementDet
         aria-modal="true"
         aria-labelledby="achievement-detail-title"
         tabIndex={-1}
-        className="w-full max-w-md rounded-lg border border-white/10 bg-slate-900 p-6 shadow-2xl shadow-slate-950/50"
+        className="w-full max-w-md rounded-xl border border-sos-line bg-slate-900 p-6 shadow-sos-dialog"
       >
         <p className="text-sm font-semibold text-emerald-200">업적 상세</p>
-        <h2 id="achievement-detail-title" className="mt-3 text-2xl font-semibold text-white">
+        <h2 id="achievement-detail-title" className="mt-3 text-2xl font-semibold text-sos-strong">
           {achievement.title}
         </h2>
-        <p className="mt-2 text-sm leading-6 text-slate-300">{achievement.description}</p>
+        <p className="mt-2 text-sm leading-6 text-sos-body">{achievement.description}</p>
 
         <dl className="mt-5 space-y-3 text-sm">
           <div className="rounded-md border border-white/10 bg-slate-950 px-3 py-3">
-            <dt className="font-medium text-slate-400">달성 여부</dt>
+            <dt className="font-medium text-sos-muted">달성 여부</dt>
             <dd
               className={`mt-1 font-semibold ${
-                achievement.isAchieved ? 'text-emerald-200' : 'text-slate-400'
+                achievement.isAchieved ? 'text-emerald-200' : 'text-sos-muted'
               }`}
             >
               {achievement.isAchieved ? '달성' : '미달성'}
@@ -111,7 +111,7 @@ export function AchievementDetailDialog({ achievement, onClose }: AchievementDet
           </div>
           {achievement.isAchieved && achievement.achievedAt ? (
             <div className="rounded-md border border-white/10 bg-slate-950 px-3 py-3">
-              <dt className="font-medium text-slate-400">달성일</dt>
+              <dt className="font-medium text-sos-muted">달성일</dt>
               <dd className="mt-1 text-slate-200">
                 {formatAchievedDate(achievement.achievedAt)}
               </dd>
@@ -124,7 +124,7 @@ export function AchievementDetailDialog({ achievement, onClose }: AchievementDet
             ref={closeButtonRef}
             type="button"
             onClick={onClose}
-            className="rounded-md border border-white/10 px-4 py-3 text-sm font-semibold text-slate-200 transition hover:border-emerald-300 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200"
+            className="rounded-md border border-white/10 px-4 py-3 text-sm font-semibold text-slate-200 transition hover:border-emerald-300 hover:text-sos-strong focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200"
           >
             닫기
           </button>

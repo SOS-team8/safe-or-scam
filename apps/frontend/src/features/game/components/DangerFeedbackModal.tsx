@@ -89,10 +89,10 @@ export function DangerFeedbackModal({
         aria-modal="true"
         aria-labelledby="danger-feedback-title"
         tabIndex={-1}
-        className="w-full max-w-lg max-h-[85vh] overflow-y-auto space-y-5 rounded-lg border border-red-300/30 bg-slate-900 p-6 shadow-2xl shadow-slate-950/50 animate-sos-fade-slide"
+        className="w-full max-w-lg max-h-[85vh] overflow-y-auto space-y-5 rounded-xl border border-red-300/30 bg-slate-900 p-6 shadow-sos-dialog animate-sos-fade-slide"
       >
         <p className="text-sm font-semibold text-red-200">위험했던 선택</p>
-        <h2 id="danger-feedback-title" className="text-2xl font-semibold text-white">
+        <h2 id="danger-feedback-title" className="text-2xl font-semibold text-sos-strong">
           {choiceText ?? '이 선택이 위험했던 이유'}
         </h2>
 
@@ -127,7 +127,7 @@ export function DangerFeedbackModal({
             ref={closeButtonRef}
             type="button"
             onClick={onClose}
-            className="rounded-md border border-white/10 px-4 py-3 text-sm font-semibold text-slate-200 transition hover:border-emerald-300 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200"
+            className="rounded-md border border-white/10 px-4 py-3 text-sm font-semibold text-slate-200 transition hover:border-emerald-300 hover:text-sos-strong focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200"
           >
             닫기
           </button>

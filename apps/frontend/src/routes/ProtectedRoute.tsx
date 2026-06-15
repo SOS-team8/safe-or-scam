@@ -28,7 +28,7 @@ export function ProtectedRoute({ allowedRoles, children }: ProtectedRouteProps) 
 
   if (!role) {
     return (
-      <div className="py-16 text-center text-sm text-slate-300">
+      <div className="py-16 text-center text-sm text-sos-body">
         인증 상태를 확인하고 있습니다.
       </div>
     )

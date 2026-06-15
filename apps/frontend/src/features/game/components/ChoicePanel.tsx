@@ -39,7 +39,7 @@ export function ChoicePanel({ choices, onChoose, disabled = false }: ChoicePanel
           type="button"
           disabled={disabled}
           onClick={() => onChoose(choice.id)}
-          className="min-h-16 rounded-md border border-white/10 bg-slate-900 px-4 py-3 text-left text-sm font-semibold text-slate-200 transition hover:border-emerald-300 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200 disabled:cursor-not-allowed disabled:border-white/5 disabled:text-slate-500"
+          className="min-h-16 rounded-lg border border-sos-line bg-sos-inset px-4 py-3 text-left text-sm font-semibold text-slate-200 transition hover:border-emerald-300 hover:text-sos-strong focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200 disabled:cursor-not-allowed disabled:border-white/5 disabled:text-sos-faint"
         >
           <span className="flex items-start gap-3">
             <span
