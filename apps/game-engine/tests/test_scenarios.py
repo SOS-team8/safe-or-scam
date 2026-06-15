@@ -58,8 +58,11 @@ async def test_list_scenarios_returns_summaries(client: httpx.AsyncClient):
         "total_endings",
         "total_good_endings",
         "total_bad_endings",
+        "total_categories",
         "tags",
     }
+    # ending_categories 미설정 시나리오 → 0
+    assert body[0]["total_categories"] == 0
     # nodes 포함 안 됨
     assert "nodes" not in body[0]
 

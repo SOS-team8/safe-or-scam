@@ -31,6 +31,7 @@ class ScenarioSummary(BaseModel):
     total_endings: int
     total_good_endings: int
     total_bad_endings: int
+    total_categories: int  # 결말 유형(ending_category) 수 = len(ending_categories). 미분류 시 0.
     tags: list[str]
 
 
@@ -133,7 +134,7 @@ class ScenarioProgressResponse(BaseModel):
 
 class PlayLogSummaryResponse(BaseModel):
     """internal: GET /api/internal/play-logs/user/{user_id}?scenario_id={id} 응답
-    
+
     전부 play_log denorm — 시나리오 join 불필요. completed_at desc 정렬은 라우트 책임.
     """
 
@@ -163,3 +164,16 @@ class PlayLogDetailResponse(BaseModel):
     image_url: str | None = None
     text: str
     ending_category: EndingCategoryView | None = None
+
+
+class PhishingBreakdownResponse(BaseModel):
+    """internal: GET /api/internal/stats/phishing-breakdown/{user_id} 응답 항목.
+
+    play_logs 를 phishing_type 으로 그룹한 유형별 강약점 집계.
+    """
+
+    phishing_type: str
+    play_count: int
+    good_count: int  # ending_good 도달 수 (safe_rate = good_count / play_count)
+    avg_dangerous: float
+    avg_score: float

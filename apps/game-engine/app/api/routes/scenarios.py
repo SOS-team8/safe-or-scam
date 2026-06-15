@@ -45,6 +45,7 @@ async def list_scenarios(
             total_endings=s.total_endings,
             total_good_endings=s.total_good_endings,
             total_bad_endings=s.total_bad_endings,
+            total_categories=len(s.ending_categories or {}),
             tags=s.tags,
         )
         for s in scenarios

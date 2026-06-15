@@ -9,3 +9,12 @@ export type UserStat = {
   avgScore: number
   bestScore: number
 }
+
+// 백엔드 PhishingBreakdownResponse 도 camelCase. safeRate 는 프론트 파생.
+export type PhishingBreakdown = {
+  phishingType: string
+  playCount: number
+  goodCount: number
+  avgDangerous: number
+  avgScore: number
+}

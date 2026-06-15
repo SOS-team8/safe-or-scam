@@ -13,6 +13,7 @@ from app.models.scenario import Scenario
 from app.models.user_scenario_progress import UserScenarioProgress
 from app.schemas.game import (
     EndingCategoryView,
+    PhishingBreakdownResponse,
     PlayLogDetailResponse,
     PlayLogSummaryResponse,
     ScenarioProgressResponse,
@@ -75,6 +76,42 @@ async def list_user_play_logs(
             dangerous_count=r.dangerous_count,
             duration_seconds=r.duration_seconds,
             completed_at=r.completed_at,
+        )
+        for r in rows
+    ]
+
+
+@router.get(
+    "/stats/phishing-breakdown/{user_id}",
+    response_model=list[PhishingBreakdownResponse],
+    summary="유저 사기 유형별 강약점 집계 (internal)",
+)
+async def get_phishing_breakdown(user_id: int) -> list[PhishingBreakdownResponse]:
+    # play_logs(완료 기록만 존재)를 phishing_type 으로 그룹. 미플레이 → 빈 목록.
+    # play_count desc 정렬, 동률은 phishing_type asc 로 결정적 순서.
+    pipeline = [
+        {"$match": {"user_id": user_id}},
+        {
+            "$group": {
+                "_id": "$phishing_type",
+                "play_count": {"$sum": 1},
+                "good_count": {
+                    "$sum": {"$cond": [{"$eq": ["$ending_type", "ending_good"]}, 1, 0]}
+                },
+                "avg_dangerous": {"$avg": "$dangerous_count"},
+                "avg_score": {"$avg": "$total_score"},
+            }
+        },
+        {"$sort": {"play_count": -1, "_id": 1}},
+    ]
+    rows = await PlayLog.aggregate(pipeline).to_list()
+    return [
+        PhishingBreakdownResponse(
+            phishing_type=r["_id"],
+            play_count=r["play_count"],
+            good_count=r["good_count"],
+            avg_dangerous=round(r["avg_dangerous"], 2),
+            avg_score=round(r["avg_score"], 2),
         )
         for r in rows
     ]

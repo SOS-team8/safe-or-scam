@@ -2,6 +2,7 @@ package com.sos.backend.global.internal;
 
 import com.sos.backend.global.common.exception.CustomException;
 import com.sos.backend.global.common.exception.ErrorCode;
+import com.sos.backend.global.internal.dto.PhishingBreakdownInternalResponse;
 import com.sos.backend.global.internal.dto.PlayLogDetailInternalResponse;
 import com.sos.backend.global.internal.dto.ScenarioProgressInternalResponse;
 import com.sos.backend.global.internal.dto.PlayLogSummaryInternalResponse;
@@ -58,6 +59,19 @@ public class GameEngineClient {
         } catch (RestClientException e) {
             log.error("Game Engine internal play-logs call failed: userId={}, scenarioId={}",
                 userId, scenarioId, e);
+            throw new CustomException(ErrorCode.INTERNAL_API_ERROR);
+        }
+    }
+
+    public List<PhishingBreakdownInternalResponse> getPhishingBreakdown(long userId) {
+        try {
+            List<PhishingBreakdownInternalResponse> result = restClient.get()
+                .uri("/api/internal/stats/phishing-breakdown/{userId}", userId)
+                .retrieve()
+                .body(new ParameterizedTypeReference<List<PhishingBreakdownInternalResponse>>() {});
+            return result != null ? result : List.of();
+        } catch (RestClientException e) {
+            log.error("Game Engine internal phishing-breakdown call failed: userId={}", userId, e);
             throw new CustomException(ErrorCode.INTERNAL_API_ERROR);
         }
     }
