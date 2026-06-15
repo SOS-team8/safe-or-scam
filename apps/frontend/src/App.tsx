@@ -1,18 +1,45 @@
-import { useState } from 'react'
+import { Suspense, lazy, useState } from 'react'
 import { Link, Navigate, Route, Routes } from 'react-router-dom'
 
 import { useAuthBootstrap, useLogout } from '@/features/auth/hooks'
-import { LoginPage } from '@/features/auth/pages/LoginPage'
-import { SignupPage } from '@/features/auth/pages/SignupPage'
-import { EmailVerificationPage } from '@/features/auth/pages/EmailVerificationPage'
 import { useAuthStore } from '@/features/auth/store'
-import { GamePlayPage } from '@/features/game/pages/GamePlayPage'
-import { LobbyPage } from '@/features/game-session/pages/LobbyPage'
 import { NotificationBell } from '@/features/notification/components/NotificationBell'
-import { MyPage } from '@/features/user/pages/MyPage'
-import { OnboardingPage } from '@/features/user/pages/OnboardingPage'
-import { LandingPage } from '@/pages/LandingPage'
 import { ProtectedRoute } from '@/routes/ProtectedRoute'
+
+// 라우트 레벨 코드 분할: 각 페이지를 별도 청크로 분리해 초기 번들을 줄인다.
+// named export 라 .then 으로 default 매핑.
+const LandingPage = lazy(() =>
+  import('@/pages/LandingPage').then((m) => ({ default: m.LandingPage })),
+)
+const LoginPage = lazy(() =>
+  import('@/features/auth/pages/LoginPage').then((m) => ({ default: m.LoginPage })),
+)
+const SignupPage = lazy(() =>
+  import('@/features/auth/pages/SignupPage').then((m) => ({ default: m.SignupPage })),
+)
+const EmailVerificationPage = lazy(() =>
+  import('@/features/auth/pages/EmailVerificationPage').then((m) => ({
+    default: m.EmailVerificationPage,
+  })),
+)
+const OnboardingPage = lazy(() =>
+  import('@/features/user/pages/OnboardingPage').then((m) => ({ default: m.OnboardingPage })),
+)
+const LobbyPage = lazy(() =>
+  import('@/features/game-session/pages/LobbyPage').then((m) => ({ default: m.LobbyPage })),
+)
+const MyPage = lazy(() => import('@/features/user/pages/MyPage').then((m) => ({ default: m.MyPage })))
+const GamePlayPage = lazy(() =>
+  import('@/features/game/pages/GamePlayPage').then((m) => ({ default: m.GamePlayPage })),
+)
+
+function RouteFallback() {
+  return (
+    <div className="py-16 text-center text-sm text-slate-400" role="status" aria-live="polite">
+      불러오는 중...
+    </div>
+  )
+}
 
 function App() {
   const { hasMeIntegrityError, retryMe } = useAuthBootstrap()
@@ -79,7 +106,8 @@ function App() {
       </header>
 
       <main className="mx-auto w-full max-w-6xl px-5 py-8">
-        <Routes>
+        <Suspense fallback={<RouteFallback />}>
+          <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
@@ -117,7 +145,8 @@ function App() {
             }
           />
           <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+          </Routes>
+        </Suspense>
       </main>
 
       {isIntegrityToastVisible ? (
