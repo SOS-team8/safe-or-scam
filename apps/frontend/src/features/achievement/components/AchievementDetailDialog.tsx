@@ -90,7 +90,7 @@ export function AchievementDetailDialog({ achievement, onClose }: AchievementDet
         aria-modal="true"
         aria-labelledby="achievement-detail-title"
         tabIndex={-1}
-        className="w-full max-w-md rounded-lg border border-white/10 bg-slate-900 p-6 shadow-2xl shadow-slate-950/50"
+        className="w-full max-w-md rounded-xl border border-white/8 bg-slate-900 p-6 shadow-sos-dialog"
       >
         <p className="text-sm font-semibold text-emerald-200">업적 상세</p>
         <h2 id="achievement-detail-title" className="mt-3 text-2xl font-semibold text-white">

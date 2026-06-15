@@ -89,7 +89,7 @@ export function DangerFeedbackModal({
         aria-modal="true"
         aria-labelledby="danger-feedback-title"
         tabIndex={-1}
-        className="w-full max-w-lg max-h-[85vh] overflow-y-auto space-y-5 rounded-lg border border-red-300/30 bg-slate-900 p-6 shadow-2xl shadow-slate-950/50 animate-sos-fade-slide"
+        className="w-full max-w-lg max-h-[85vh] overflow-y-auto space-y-5 rounded-xl border border-red-300/30 bg-slate-900 p-6 shadow-sos-dialog animate-sos-fade-slide"
       >
         <p className="text-sm font-semibold text-red-200">위험했던 선택</p>
         <h2 id="danger-feedback-title" className="text-2xl font-semibold text-white">

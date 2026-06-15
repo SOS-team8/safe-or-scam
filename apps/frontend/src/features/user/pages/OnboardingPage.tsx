@@ -393,7 +393,7 @@ export function OnboardingPage() {
         </p>
       </div>
 
-      <div className="rounded-lg border border-white/10 bg-white/3 p-5 shadow-2xl shadow-slate-950/20 sm:p-6">
+      <div className="rounded-xl border border-white/8 bg-sos-surface-1 p-5 shadow-sos-raised sm:p-6">
         <div className="space-y-3">
           <div className="flex items-center justify-between text-sm text-slate-300">
             <span>

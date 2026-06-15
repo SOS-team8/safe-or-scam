@@ -135,12 +135,12 @@ export function EndingScreen({
         <p className="text-base leading-7 text-slate-200">{endingNode.text}</p>
       </header>
 
-      <section className="space-y-3 rounded-lg border border-white/10 bg-white/5 p-6">
+      <section className="space-y-3 rounded-xl border border-white/8 bg-sos-surface-1 p-6">
         <h2 className="text-xl font-semibold text-white">최종 자원</h2>
         <ResourceBar resources={resources} />
       </section>
 
-      <section className="space-y-3 rounded-lg border border-white/10 bg-white/5 p-6">
+      <section className="space-y-3 rounded-xl border border-white/8 bg-sos-surface-1 p-6">
         <h2 className="text-xl font-semibold text-white">선택 이력</h2>
         {history.length === 0 ? (
           <p className="text-sm text-slate-400">선택 이력이 없습니다.</p>

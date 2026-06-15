@@ -99,7 +99,7 @@ export function GameContainer({ sessionId }: GameContainerProps) {
       <section
         role="status"
         aria-live="polite"
-        className="space-y-4 rounded-lg border border-white/10 bg-white/5 p-6 text-sm text-slate-300"
+        className="space-y-4 rounded-xl border border-white/8 bg-sos-surface-1 p-6 text-sm text-slate-300"
       >
         세션을 불러오고 있어요...
       </section>

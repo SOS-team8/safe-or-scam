@@ -42,7 +42,7 @@ function ScenarioCard({
   isBusy: boolean
 }) {
   return (
-    <article className="flex h-full flex-col rounded-lg border border-white/10 bg-white/5 p-5">
+    <article className="flex h-full flex-col rounded-xl border border-white/8 bg-sos-surface-2 p-5 shadow-sos-raised">
       <div className="flex items-center justify-between gap-3">
         <span className="rounded-md bg-slate-800 px-2 py-1 text-xs text-slate-300">
           {difficultyLabel[scenario.difficulty] ?? scenario.difficulty}
@@ -229,7 +229,7 @@ export function LobbyPage() {
             aria-labelledby="onboarding-complete-title"
             aria-describedby="onboarding-complete-description"
             tabIndex={-1}
-            className="w-full max-w-md rounded-lg border border-emerald-300/30 bg-slate-900 p-6 shadow-2xl shadow-slate-950/50"
+            className="w-full max-w-md rounded-xl border border-emerald-300/30 bg-slate-900 p-6 shadow-sos-dialog"
           >
             <p className="text-sm font-semibold text-emerald-300">프로필 저장 완료</p>
             <h2 id="onboarding-complete-title" className="mt-3 text-2xl font-semibold text-white">
@@ -301,7 +301,7 @@ export function LobbyPage() {
       ) : null}
 
       {scenariosQuery.isSuccess && scenariosQuery.data.length === 0 ? (
-        <section className="rounded-lg border border-white/10 bg-white/5 p-6 text-center text-slate-300">
+        <section className="rounded-xl border border-white/8 bg-sos-surface-1 p-6 text-center text-slate-300">
           <p>표시할 시나리오가 아직 없어요. 잠시 후 다시 확인해주세요.</p>
         </section>
       ) : null}

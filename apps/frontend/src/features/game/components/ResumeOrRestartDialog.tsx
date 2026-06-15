@@ -101,7 +101,7 @@ export function ResumeOrRestartDialog({
         aria-labelledby="resume-restart-title"
         aria-describedby="resume-restart-description"
         tabIndex={-1}
-        className="relative w-full max-w-md space-y-5 rounded-lg border border-emerald-300/30 bg-slate-900 p-6 shadow-2xl shadow-slate-950/50 animate-sos-fade-slide"
+        className="relative w-full max-w-md space-y-5 rounded-xl border border-emerald-300/30 bg-slate-900 p-6 shadow-sos-dialog animate-sos-fade-slide"
       >
         <button
           type="button"
