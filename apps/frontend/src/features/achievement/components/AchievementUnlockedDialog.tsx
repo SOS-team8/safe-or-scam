@@ -31,7 +31,7 @@ function UnlockedBadge({ achievement }: { achievement: UnlockedAchievementView }
     return (
       <div
         aria-hidden="true"
-        className="flex size-20 items-center justify-center rounded-full bg-slate-700 text-2xl font-semibold text-slate-300"
+        className="flex size-20 items-center justify-center rounded-full bg-slate-700 text-2xl font-semibold text-sos-body"
       >
         {achievement.title.trim().slice(0, 1) || 'S'}
       </div>
@@ -133,7 +133,7 @@ export function AchievementUnlockedDialog({
         </p>
         <h2
           id="achievement-unlocked-title"
-          className="mt-2 text-2xl font-bold tracking-tight text-white"
+          className="mt-2 text-2xl font-bold tracking-tight text-sos-strong"
         >
           업적 달성!
         </h2>
@@ -142,8 +142,8 @@ export function AchievementUnlockedDialog({
           {achievements.map((achievement) => (
             <li key={achievement.code} className="flex flex-col items-center">
               <UnlockedBadge achievement={achievement} />
-              <h3 className="mt-3 text-lg font-semibold text-white">{achievement.title}</h3>
-              <p className="mt-1 text-sm leading-6 text-slate-400">{achievement.description}</p>
+              <h3 className="mt-3 text-lg font-semibold text-sos-strong">{achievement.title}</h3>
+              <p className="mt-1 text-sm leading-6 text-sos-muted">{achievement.description}</p>
             </li>
           ))}
         </ul>

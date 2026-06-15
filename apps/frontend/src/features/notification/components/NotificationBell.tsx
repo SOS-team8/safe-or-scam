@@ -68,7 +68,7 @@ export function NotificationBell() {
         aria-expanded={isOpen}
         aria-label={unreadCount > 0 ? `알림, 읽지 않은 알림 ${unreadCount}개` : '알림'}
         onClick={() => setIsOpen((open) => !open)}
-        className="relative flex size-9 items-center justify-center rounded-lg border border-white/10 text-slate-300 transition hover:border-emerald-300 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+        className="relative flex size-9 items-center justify-center rounded-lg border border-white/10 text-sos-body transition hover:border-emerald-300 hover:text-sos-strong focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
       >
         <svg viewBox="0 0 24 24" aria-hidden="true" className="size-5">
           <path

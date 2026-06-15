@@ -72,8 +72,8 @@ export function EmailVerificationPage() {
   return (
     <section className="mx-auto max-w-md space-y-6 py-10">
       <div className="space-y-2">
-        <h1 className="text-3xl font-semibold text-white">메일 인증</h1>
-        <p className="text-slate-300">이메일로 받은 6자리 인증 코드를 입력하세요.</p>
+        <h1 className="text-3xl font-semibold text-sos-strong">메일 인증</h1>
+        <p className="text-sos-body">이메일로 받은 6자리 인증 코드를 입력하세요.</p>
       </div>
 
       <form className="space-y-5 rounded-lg border border-white/10 bg-white/3 p-6" onSubmit={handleSubmit(onSubmit)}>
@@ -97,7 +97,7 @@ export function EmailVerificationPage() {
             autoComplete="one-time-code"
             aria-invalid={Boolean(errors.code)}
             disabled={!signupDraft || pending}
-            className="w-full rounded-md border border-white/10 bg-slate-900 px-3 py-3 text-center text-2xl font-semibold tracking-normal text-white outline-none focus:border-emerald-300 disabled:cursor-not-allowed disabled:bg-slate-800 disabled:text-slate-500"
+            className="w-full rounded-md border border-white/10 bg-slate-900 px-3 py-3 text-center text-2xl font-semibold tracking-normal text-sos-strong outline-none focus:border-emerald-300 disabled:cursor-not-allowed disabled:bg-slate-800 disabled:text-sos-faint"
             {...register('code')}
           />
           {errors.code?.message ? <p className="text-sm text-red-200">{errors.code.message}</p> : null}
@@ -105,14 +105,14 @@ export function EmailVerificationPage() {
         <button
           type="submit"
           disabled={!signupDraft || pending}
-          className="block w-full rounded-md bg-emerald-400 px-4 py-3 text-center font-semibold text-slate-950 hover:bg-emerald-300 disabled:cursor-not-allowed disabled:bg-slate-600 disabled:text-slate-300"
+          className="block w-full rounded-md bg-emerald-400 px-4 py-3 text-center font-semibold text-slate-950 hover:bg-emerald-300 disabled:cursor-not-allowed disabled:bg-slate-600 disabled:text-sos-body"
         >
           {pending ? '확인 중...' : '인증 완료'}
         </button>
       </form>
 
       {!signupDraft ? (
-        <p className="text-sm text-slate-400">
+        <p className="text-sm text-sos-muted">
           <Link to="/signup" className="font-medium text-emerald-300">
             회원가입으로 돌아가기
           </Link>

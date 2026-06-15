@@ -20,9 +20,9 @@ function StatsSkeleton() {
 
 function MetricCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-white/8 bg-sos-inset px-4 py-3">
-      <p className="text-[13px] font-medium text-slate-400">{label}</p>
-      <p className="mt-1 text-2xl font-semibold tabular-nums text-white">{value}</p>
+    <div className="rounded-lg border border-sos-line bg-sos-inset px-4 py-3">
+      <p className="text-[13px] font-medium text-sos-muted">{label}</p>
+      <p className="mt-1 text-2xl font-semibold tabular-nums text-sos-strong">{value}</p>
     </div>
   )
 }
@@ -55,15 +55,15 @@ export function StatsTab() {
 
   if (stats.completePlays === 0) {
     return (
-      <div className="rounded-lg border border-white/8 bg-sos-inset p-6 text-center">
-        <p className="text-sm font-medium text-slate-300">아직 통계가 없어요.</p>
-        <p className="mt-1 text-sm text-slate-500">
+      <div className="rounded-lg border border-sos-line bg-sos-inset p-6 text-center">
+        <p className="text-sm font-medium text-sos-body">아직 통계가 없어요.</p>
+        <p className="mt-1 text-sm text-sos-faint">
           시나리오를 완료하면 훈련 통계가 여기에 쌓입니다.
         </p>
         <button
           type="button"
           onClick={() => navigate('/lobby')}
-          className="mt-4 rounded-lg border border-white/10 px-4 py-3 text-sm font-semibold text-slate-200 transition hover:border-emerald-300 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200"
+          className="mt-4 rounded-lg border border-white/10 px-4 py-3 text-sm font-semibold text-slate-200 transition hover:border-emerald-300 hover:text-sos-strong focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200"
         >
           시나리오 보러 가기
         </button>
@@ -84,10 +84,10 @@ export function StatsTab() {
         <MetricCard label="누적 위험 선택" value={String(stats.totalDangerousChoices)} />
       </div>
 
-      <div className="rounded-lg border border-white/8 bg-sos-inset p-4">
+      <div className="rounded-lg border border-sos-line bg-sos-inset p-4">
         <div className="flex items-center justify-between text-sm">
-          <span className="font-medium text-slate-300">안전 vs 주의 결말</span>
-          <span className="tabular-nums text-slate-400">안전 {goodRate}%</span>
+          <span className="font-medium text-sos-body">안전 vs 주의 결말</span>
+          <span className="tabular-nums text-sos-muted">안전 {goodRate}%</span>
         </div>
         <div
           role="progressbar"
@@ -107,11 +107,11 @@ export function StatsTab() {
       </div>
 
       {achievements ? (
-        <div className="rounded-lg border border-white/8 bg-sos-inset px-4 py-3">
-          <p className="text-[13px] font-medium text-slate-400">업적 달성도</p>
-          <p className="mt-1 text-2xl font-semibold tabular-nums text-white">
+        <div className="rounded-lg border border-sos-line bg-sos-inset px-4 py-3">
+          <p className="text-[13px] font-medium text-sos-muted">업적 달성도</p>
+          <p className="mt-1 text-2xl font-semibold tabular-nums text-sos-strong">
             {achievements.achievedCount}
-            <span className="text-base font-medium text-slate-400">
+            <span className="text-base font-medium text-sos-muted">
               {' '}
               / {achievements.totalCount}
             </span>

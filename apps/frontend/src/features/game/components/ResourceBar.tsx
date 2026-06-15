@@ -80,7 +80,7 @@ export function ResourceBar({ resources, previousResources }: ResourceBarProps) 
     <div
       role="group"
       aria-label="자원 현황"
-      className="grid gap-3 rounded-xl border border-white/8 bg-sos-surface-1 p-4 sm:grid-cols-3"
+      className="grid gap-3 rounded-xl border border-sos-line bg-sos-surface-1 p-4 sm:grid-cols-3"
     >
       {RESOURCE_META.map(({ key, label, ariaLabel, baseColor }) => {
         const value = resources[key]

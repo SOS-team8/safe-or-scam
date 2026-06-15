@@ -87,7 +87,7 @@ export function EducationalPopup({ content, isOpen, onDismiss }: EducationalPopu
         className="w-full max-w-lg max-h-[85vh] overflow-y-auto space-y-5 rounded-xl border border-emerald-300/30 bg-slate-900 p-6 shadow-sos-dialog animate-sos-fade-slide"
       >
         <p className="text-sm font-semibold text-emerald-300">학습 포인트</p>
-        <h2 id="educational-popup-title" className="text-2xl font-semibold text-white">
+        <h2 id="educational-popup-title" className="text-2xl font-semibold text-sos-strong">
           {content.title}
         </h2>
         <p

@@ -60,7 +60,7 @@ export function PrologueScreen({
         <p className="text-xs font-semibold uppercase tracking-widest text-emerald-200">
           새로운 시나리오
         </p>
-        <h1 className="text-2xl font-semibold text-white sm:text-3xl">
+        <h1 className="text-2xl font-semibold text-sos-strong sm:text-3xl">
           {title || '시나리오 로딩 중...'}
         </h1>
       </header>
@@ -77,7 +77,7 @@ export function PrologueScreen({
         role="button"
         tabIndex={isComplete ? -1 : 0}
         aria-pressed={false}
-        className={`space-y-5 rounded-xl border border-white/8 bg-sos-surface-1 p-6 shadow-sos-raised transition focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300/40 ${
+        className={`space-y-5 rounded-xl border border-sos-line bg-sos-surface-1 p-6 shadow-sos-raised transition focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300/40 ${
           isComplete ? 'cursor-default' : 'cursor-pointer'
         }`}
       >
@@ -95,7 +95,7 @@ export function PrologueScreen({
           </div>
         ) : null}
         {isLoading ? (
-          <p className="text-sm text-slate-400">시나리오를 불러오고 있어요...</p>
+          <p className="text-sm text-sos-muted">시나리오를 불러오고 있어요...</p>
         ) : (
           <div className="space-y-3 text-base leading-7 text-slate-200">
             {displayedText.split(/\n+/).map((paragraph, idx, arr) => (
@@ -116,7 +116,7 @@ export function PrologueScreen({
           </div>
         )}
         {!isComplete && !isLoading && prologue.length > 0 ? (
-          <p aria-live="polite" className="text-xs text-slate-400/80">
+          <p aria-live="polite" className="text-xs text-sos-muted/80">
             클릭하면 전체 텍스트를 바로 볼 수 있어요
           </p>
         ) : null}

@@ -99,7 +99,7 @@ export function GameContainer({ sessionId }: GameContainerProps) {
       <section
         role="status"
         aria-live="polite"
-        className="space-y-4 rounded-xl border border-white/8 bg-sos-surface-1 p-6 text-sm text-slate-300"
+        className="space-y-4 rounded-xl border border-sos-line bg-sos-surface-1 p-6 text-sm text-sos-body"
       >
         세션을 불러오고 있어요...
       </section>
@@ -121,7 +121,7 @@ export function GameContainer({ sessionId }: GameContainerProps) {
         <button
           type="button"
           onClick={() => navigate('/lobby', { replace: true })}
-          className="rounded-md border border-white/10 px-4 py-3 text-sm font-semibold text-slate-200 hover:border-emerald-300 hover:text-white"
+          className="rounded-md border border-white/10 px-4 py-3 text-sm font-semibold text-slate-200 hover:border-emerald-300 hover:text-sos-strong"
         >
           로비로 돌아가기
         </button>

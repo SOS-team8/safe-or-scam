@@ -15,7 +15,7 @@ function HistorySkeleton() {
   return (
     <div className="space-y-3">
       {[0, 1].map((index) => (
-        <div key={index} className="space-y-3 rounded-lg border border-white/8 bg-sos-inset p-4">
+        <div key={index} className="space-y-3 rounded-lg border border-sos-line bg-sos-inset p-4">
           <div className="h-5 w-1/3 animate-pulse rounded bg-slate-800" />
           <div className="h-2 w-full animate-pulse rounded-full bg-slate-800" />
         </div>
@@ -62,7 +62,7 @@ function PlayLogList({
 
   if (playLogs.length === 0) {
     return (
-      <p className="rounded-lg border border-white/8 bg-slate-950/40 p-4 text-center text-sm text-slate-500">
+      <p className="rounded-lg border border-sos-line bg-slate-950/40 p-4 text-center text-sm text-sos-faint">
         이 시나리오의 완료 기록이 아직 없어요.
       </p>
     )
@@ -78,7 +78,7 @@ function PlayLogList({
             <button
               type="button"
               onClick={() => onSelect({ logId: log.logId, endingType: log.endingType })}
-              className="flex w-full items-center justify-between gap-3 rounded-lg border border-white/8 bg-slate-950/40 px-4 py-3 text-left transition hover:border-emerald-300/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200"
+              className="flex w-full items-center justify-between gap-3 rounded-lg border border-sos-line bg-slate-950/40 px-4 py-3 text-left transition hover:border-emerald-300/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200"
             >
               <div className="min-w-0">
                 <span
@@ -90,12 +90,12 @@ function PlayLogList({
                 >
                   {ending.label}
                 </span>
-                <p className="mt-1.5 truncate text-xs text-slate-500">
+                <p className="mt-1.5 truncate text-xs text-sos-faint">
                   {formatDateTime(log.completedAt)} · {formatDuration(log.durationSeconds)}
                 </p>
               </div>
               <div className="shrink-0 text-right">
-                <p className="text-sm font-semibold tabular-nums text-white">{log.totalScore}점</p>
+                <p className="text-sm font-semibold tabular-nums text-sos-strong">{log.totalScore}점</p>
                 {log.dangerousCount > 0 ? (
                   <p className="text-xs tabular-nums text-red-200">
                     위험 선택 {log.dangerousCount}
@@ -128,7 +128,7 @@ function ScenarioProgressCard({
   const rate = Math.round(progress.completionRate * 100)
 
   return (
-    <article className="rounded-lg border border-white/8 bg-sos-inset p-4">
+    <article className="rounded-lg border border-sos-line bg-sos-inset p-4">
       <button
         type="button"
         aria-expanded={isExpanded}
@@ -136,13 +136,13 @@ function ScenarioProgressCard({
         className="flex w-full items-start justify-between gap-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200"
       >
         <div className="min-w-0">
-          <h3 className="truncate font-semibold text-white">{title}</h3>
-          <p className="mt-1 text-sm text-slate-400">최근 플레이 {formatDate(progress.lastPlayedAt)}</p>
+          <h3 className="truncate font-semibold text-sos-strong">{title}</h3>
+          <p className="mt-1 text-sm text-sos-muted">최근 플레이 {formatDate(progress.lastPlayedAt)}</p>
         </div>
         <svg
           viewBox="0 0 20 20"
           aria-hidden="true"
-          className={`mt-1 size-5 shrink-0 text-slate-400 transition ${isExpanded ? 'rotate-180' : ''}`}
+          className={`mt-1 size-5 shrink-0 text-sos-muted transition ${isExpanded ? 'rotate-180' : ''}`}
         >
           <path
             d="M6 8l4 4 4-4"
@@ -156,7 +156,7 @@ function ScenarioProgressCard({
       </button>
 
       <div className="mt-4 space-y-2">
-        <div className="flex items-center justify-between text-xs text-slate-400">
+        <div className="flex items-center justify-between text-xs text-sos-muted">
           <span>
             결말 유형 수집 {progress.discoveredCategoryCount}/{progress.totalCategories}
           </span>
@@ -175,7 +175,7 @@ function ScenarioProgressCard({
       </div>
 
       {isExpanded ? (
-        <div className="mt-4 border-t border-white/8 pt-4">
+        <div className="mt-4 border-t border-sos-line pt-4">
           <PlayLogList scenarioId={progress.scenarioId} onSelect={onSelectLog} />
         </div>
       ) : null}
@@ -222,13 +222,13 @@ export function HistoryTab() {
 
   if (progressList.length === 0) {
     return (
-      <div className="rounded-lg border border-white/8 bg-sos-inset p-6 text-center">
-        <p className="text-sm font-medium text-slate-300">아직 플레이 기록이 없어요.</p>
-        <p className="mt-1 text-sm text-slate-500">시나리오를 플레이하면 결과가 여기에 모입니다.</p>
+      <div className="rounded-lg border border-sos-line bg-sos-inset p-6 text-center">
+        <p className="text-sm font-medium text-sos-body">아직 플레이 기록이 없어요.</p>
+        <p className="mt-1 text-sm text-sos-faint">시나리오를 플레이하면 결과가 여기에 모입니다.</p>
         <button
           type="button"
           onClick={() => navigate('/lobby')}
-          className="mt-4 rounded-lg border border-white/10 px-4 py-3 text-sm font-semibold text-slate-200 transition hover:border-emerald-300 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200"
+          className="mt-4 rounded-lg border border-white/10 px-4 py-3 text-sm font-semibold text-slate-200 transition hover:border-emerald-300 hover:text-sos-strong focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200"
         >
           시나리오 보러 가기
         </button>

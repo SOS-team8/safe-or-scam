@@ -107,7 +107,7 @@ export function ResumeOrRestartDialog({
           type="button"
           onClick={onClose}
           aria-label="닫기"
-          className="absolute right-3 top-3 rounded-md p-2 text-slate-400 transition hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200"
+          className="absolute right-3 top-3 rounded-md p-2 text-sos-muted transition hover:text-sos-strong focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200"
         >
           <span aria-hidden="true">×</span>
         </button>
@@ -115,15 +115,15 @@ export function ResumeOrRestartDialog({
         <p className="text-sm font-semibold text-emerald-300">진행 중인 게임</p>
         <h2
           id="resume-restart-title"
-          className="text-2xl font-semibold text-white"
+          className="text-2xl font-semibold text-sos-strong"
         >
           이어서 플레이할까요?
         </h2>
         <p
           id="resume-restart-description"
-          className="text-sm leading-7 text-slate-300"
+          className="text-sm leading-7 text-sos-body"
         >
-          <span className="font-semibold text-white">{scenarioTitle}</span>에 진행 중인
+          <span className="font-semibold text-sos-strong">{scenarioTitle}</span>에 진행 중인
           게임이 있어요. 이어서 마저 풀거나 새로 시작할 수 있어요.
         </p>
 
@@ -133,11 +133,11 @@ export function ResumeOrRestartDialog({
               type="button"
               onClick={onRestart}
               disabled={isBusy}
-              className="w-full rounded-md border border-white/10 px-4 py-3 text-sm font-semibold text-slate-200 transition hover:border-emerald-300 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200 disabled:cursor-not-allowed disabled:opacity-50"
+              className="w-full rounded-md border border-white/10 px-4 py-3 text-sm font-semibold text-slate-200 transition hover:border-emerald-300 hover:text-sos-strong focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200 disabled:cursor-not-allowed disabled:opacity-50"
             >
               처음부터
             </button>
-            <p className="text-xs text-slate-400/80">기존 진행 기록은 사라집니다</p>
+            <p className="text-xs text-sos-muted/80">기존 진행 기록은 사라집니다</p>
           </div>
           <div className="flex flex-1 flex-col gap-1">
             <button
@@ -149,7 +149,7 @@ export function ResumeOrRestartDialog({
             >
               이어하기
             </button>
-            <p className="text-xs text-slate-400/80" aria-hidden="true">&nbsp;</p>
+            <p className="text-xs text-sos-muted/80" aria-hidden="true">&nbsp;</p>
           </div>
         </div>
       </div>

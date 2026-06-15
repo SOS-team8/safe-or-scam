@@ -302,7 +302,7 @@ function StepNavigation({
         type="button"
         disabled={isFirstStep || isSubmitting}
         onClick={onPrevious}
-        className="rounded-md border border-white/10 px-4 py-3 text-sm font-semibold text-slate-200 transition hover:border-emerald-300 hover:text-white disabled:cursor-not-allowed disabled:border-white/5 disabled:text-slate-600"
+        className="rounded-md border border-white/10 px-4 py-3 text-sm font-semibold text-slate-200 transition hover:border-emerald-300 hover:text-sos-strong disabled:cursor-not-allowed disabled:border-white/5 disabled:text-slate-600"
       >
         이전
       </button>
@@ -310,7 +310,7 @@ function StepNavigation({
         type="button"
         disabled={!canContinue || isSubmitting}
         onClick={onNext}
-        className="rounded-md bg-emerald-400 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-emerald-300 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
+        className="rounded-md bg-emerald-400 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-emerald-300 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-sos-muted"
       >
         {isSubmitting ? '저장 중...' : isLastStep ? '완료' : '다음'}
       </button>
@@ -387,15 +387,15 @@ export function OnboardingPage() {
     <section className="mx-auto max-w-3xl space-y-6 py-6 sm:py-10">
       <div className="space-y-2">
         <p className="text-sm font-semibold text-emerald-300">Safe or Scam 프로필 설정</p>
-        <p className="text-3xl font-semibold text-white">맞춤 피싱 훈련을 준비해볼게요</p>
-        <p className="text-slate-300">
+        <p className="text-3xl font-semibold text-sos-strong">맞춤 피싱 훈련을 준비해볼게요</p>
+        <p className="text-sos-body">
           몇 가지 생활 패턴을 알려주시면 더 현실적인 시나리오를 추천합니다.
         </p>
       </div>
 
-      <div className="rounded-xl border border-white/8 bg-sos-surface-1 p-5 shadow-sos-raised sm:p-6">
+      <div className="rounded-xl border border-sos-line bg-sos-surface-1 p-5 shadow-sos-raised sm:p-6">
         <div className="space-y-3">
-          <div className="flex items-center justify-between text-sm text-slate-300">
+          <div className="flex items-center justify-between text-sm text-sos-body">
             <span>
               {visibleStepIndex + 1} / {onboardingSteps.length}
             </span>
@@ -414,11 +414,11 @@ export function OnboardingPage() {
             <h1
               id="onboarding-question-title"
               tabIndex={0}
-              className="text-2xl font-semibold text-white outline-none focus-visible:ring-2 focus-visible:ring-emerald-200"
+              className="text-2xl font-semibold text-sos-strong outline-none focus-visible:ring-2 focus-visible:ring-emerald-200"
             >
               {step.title}
             </h1>
-            <p className="text-sm leading-6 text-slate-300">{step.description}</p>
+            <p className="text-sm leading-6 text-sos-body">{step.description}</p>
           </div>
 
           <OptionGroup

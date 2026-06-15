@@ -42,17 +42,17 @@ function ScenarioCard({
   isBusy: boolean
 }) {
   return (
-    <article className="flex h-full flex-col rounded-xl border border-white/8 bg-sos-surface-2 p-5 shadow-sos-raised">
+    <article className="flex h-full flex-col rounded-xl border border-sos-line bg-sos-surface-2 p-5 shadow-sos-raised">
       <div className="flex items-center justify-between gap-3">
-        <span className="rounded-md bg-slate-800 px-2 py-1 text-xs text-slate-300">
+        <span className="rounded-md bg-slate-800 px-2 py-1 text-xs text-sos-body">
           {difficultyLabel[scenario.difficulty] ?? scenario.difficulty}
         </span>
         <span className="text-xs font-medium text-emerald-300">
           {scenario.phishing_type}
         </span>
       </div>
-      <h3 className="mt-4 text-lg font-semibold text-white">{scenario.title}</h3>
-      <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-300">
+      <h3 className="mt-4 text-lg font-semibold text-sos-strong">{scenario.title}</h3>
+      <p className="mt-2 line-clamp-3 text-sm leading-6 text-sos-body">
         {scenario.description}
       </p>
       <div className="mt-auto pt-4">
@@ -60,7 +60,7 @@ function ScenarioCard({
           type="button"
           disabled={isBusy}
           onClick={() => onStart(scenario.scenario_id)}
-          className="w-full rounded-md bg-emerald-400 px-4 py-3 text-sm font-semibold text-slate-950 transition hover:bg-emerald-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
+          className="w-full rounded-md bg-emerald-400 px-4 py-3 text-sm font-semibold text-slate-950 transition hover:bg-emerald-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-sos-muted"
         >
           {isBusy ? '세션 생성 중...' : '시작하기'}
         </button>
@@ -232,10 +232,10 @@ export function LobbyPage() {
             className="w-full max-w-md rounded-xl border border-emerald-300/30 bg-slate-900 p-6 shadow-sos-dialog"
           >
             <p className="text-sm font-semibold text-emerald-300">프로필 저장 완료</p>
-            <h2 id="onboarding-complete-title" className="mt-3 text-2xl font-semibold text-white">
+            <h2 id="onboarding-complete-title" className="mt-3 text-2xl font-semibold text-sos-strong">
               맞춤 시나리오가 준비됐어요
             </h2>
-            <p id="onboarding-complete-description" className="mt-3 leading-7 text-slate-300">
+            <p id="onboarding-complete-description" className="mt-3 leading-7 text-sos-body">
               답변해주신 생활 패턴을 바탕으로 추천 훈련을 골라두었어요. 이제 실제 메시지처럼
               보이는 상황을 플레이하며 안전 신호와 위험 신호를 연습해볼까요?
             </p>
@@ -243,7 +243,7 @@ export function LobbyPage() {
               <button
                 type="button"
                 onClick={() => setIsOnboardingPopupOpen(false)}
-                className="rounded-md border border-white/10 px-4 py-3 text-sm font-semibold text-slate-200 transition hover:border-emerald-300 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200"
+                className="rounded-md border border-white/10 px-4 py-3 text-sm font-semibold text-slate-200 transition hover:border-emerald-300 hover:text-sos-strong focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200"
               >
                 조금 둘러볼게요
               </button>
@@ -262,8 +262,8 @@ export function LobbyPage() {
 
       <div className="space-y-2">
         <p className="text-sm font-medium text-emerald-300">오늘의 피싱 훈련</p>
-        <h1 className="text-3xl font-semibold text-white">안녕하세요, {userName}님</h1>
-        <p className="text-slate-300">실제 메시지처럼 보이는 시나리오로 위험 신호를 찾아보세요.</p>
+        <h1 className="text-3xl font-semibold text-sos-strong">안녕하세요, {userName}님</h1>
+        <p className="text-sos-body">실제 메시지처럼 보이는 시나리오로 위험 신호를 찾아보세요.</p>
       </div>
 
       {errorMessage ? (
@@ -276,7 +276,7 @@ export function LobbyPage() {
       ) : null}
 
       {scenariosQuery.isPending ? (
-        <p role="status" aria-live="polite" className="text-sm text-slate-300">
+        <p role="status" aria-live="polite" className="text-sm text-sos-body">
           시나리오를 불러오고 있어요...
         </p>
       ) : null}
@@ -301,7 +301,7 @@ export function LobbyPage() {
       ) : null}
 
       {scenariosQuery.isSuccess && scenariosQuery.data.length === 0 ? (
-        <section className="rounded-xl border border-white/8 bg-sos-surface-1 p-6 text-center text-slate-300">
+        <section className="rounded-xl border border-sos-line bg-sos-surface-1 p-6 text-center text-sos-body">
           <p>표시할 시나리오가 아직 없어요. 잠시 후 다시 확인해주세요.</p>
         </section>
       ) : null}
@@ -318,15 +318,15 @@ export function LobbyPage() {
                 <p className="text-xs font-semibold text-emerald-200">
                   추천 {index + 1}
                 </p>
-                <h2 className="mt-2 text-xl font-semibold text-white">{scenario.title}</h2>
-                <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-300">
+                <h2 className="mt-2 text-xl font-semibold text-sos-strong">{scenario.title}</h2>
+                <p className="mt-2 line-clamp-3 text-sm leading-6 text-sos-body">
                   {scenario.description}
                 </p>
                 <button
                   type="button"
                   disabled={isStartingSession}
                   onClick={() => handleStart(scenario.scenario_id)}
-                  className="mt-auto rounded-md bg-emerald-400 px-4 py-3 font-semibold text-slate-950 transition hover:bg-emerald-300 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
+                  className="mt-auto rounded-md bg-emerald-400 px-4 py-3 font-semibold text-slate-950 transition hover:bg-emerald-300 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-sos-muted"
                 >
                   {isStartingSession ? '세션 생성 중...' : '바로 시작하기'}
                 </button>
@@ -338,7 +338,7 @@ export function LobbyPage() {
 
       {scenariosQuery.data && scenariosQuery.data.length > 0 ? (
         <section className="space-y-4">
-          <h2 className="text-xl font-semibold text-white">전체 시나리오</h2>
+          <h2 className="text-xl font-semibold text-sos-strong">전체 시나리오</h2>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {scenariosQuery.data.map((scenario) => (
               <ScenarioCard
