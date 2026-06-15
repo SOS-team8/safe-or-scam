@@ -6,8 +6,8 @@ best-effort: 실패해도 게임 완료는 항상 성공해야 하므로 모든 
 
 결말 도달 시 새로 달성한 업적 목록을 응답(ApiResponse<GameCompletedResponse>)에서
 파싱해 호출자(move 핸들러)가 MoveResponse 로 클라이언트에 전달한다. 호출자는 이 결과를
-await 하므로 backend 가 느리면 결말 응답이 지연될 수 있으나, 타임아웃(2s/3s) + 예외 흡수로
-게임 완료 자체는 항상 성공한다.
+await 하므로 backend 가 느리면 결말 응답이 지연될 수 있으나, 타임아웃(connect 2s/read 1.5s) +
+예외 흡수로 게임 완료 자체는 항상 성공한다.
 """
 from __future__ import annotations
 
@@ -22,7 +22,9 @@ from app.schemas.game import UnlockedAchievementView
 logger = logging.getLogger(__name__)
 
 _ENDPOINT = "/api/internal/stats/game-completed"
-_TIMEOUT = httpx.Timeout(connect=2.0, read=3.0, write=3.0, pool=3.0)
+# read 를 1.5s 로 단축: 이 호출이 /move 응답(=엔딩 화면)을 블록하므로, backend 지연 시
+# 사용자가 엔딩을 보기까지의 최악 대기를 줄인다. 실패 시 [] 반환(best-effort)이라 안전.
+_TIMEOUT = httpx.Timeout(connect=2.0, read=1.5, write=3.0, pool=3.0)
 
 
 class GameCompletedPayload(BaseModel):
