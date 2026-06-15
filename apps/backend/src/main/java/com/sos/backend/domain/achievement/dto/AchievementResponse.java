@@ -30,12 +30,22 @@ public record AchievementResponse(
 
     @Schema(description = "달성 시각 (미달성이면 null)")
     @JsonProperty("achieved_at")
-    LocalDateTime achievedAt
+    LocalDateTime achievedAt,
+
+    @Schema(description = "누적 진행 수치. 누적 N/M 이 불가한 업적(FLAWLESS·FULL_COLLECTION)은 null", example = "3")
+    @JsonProperty("progress_current")
+    Integer progressCurrent,
+
+    @Schema(description = "달성 임계값. 누적 N/M 이 불가한 업적은 null", example = "5")
+    @JsonProperty("progress_target")
+    Integer progressTarget
 ) {
-    public static AchievementResponse of(Achievement a, LocalDateTime achievedAt) {
+    public static AchievementResponse of(
+        Achievement a, LocalDateTime achievedAt, Integer progressCurrent, Integer progressTarget
+    ) {
         return new AchievementResponse(
             a.getAchievementId(), a.getCode(), a.getTitle(), a.getDescription(), a.getIconUrl(),
-            achievedAt != null, achievedAt
+            achievedAt != null, achievedAt, progressCurrent, progressTarget
         );
     }
 }
