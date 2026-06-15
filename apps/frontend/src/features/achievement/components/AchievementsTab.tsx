@@ -13,6 +13,21 @@ type AchievementsTabProps = {
   onFocusHandled: () => void
 }
 
+// 업적 카드 표시 순서. 목록에 없는 code 는 뒤에 원래 순서로 붙는다.
+const BADGE_DISPLAY_ORDER = [
+  'FIRST_CLEAR',
+  'PLAY_10',
+  'PLAY_30',
+  'FULL_COLLECTION',
+  'GOOD_ENDING_5',
+  'FLAWLESS',
+]
+
+const badgeDisplayRank = (code: string) => {
+  const index = BADGE_DISPLAY_ORDER.indexOf(code)
+  return index === -1 ? BADGE_DISPLAY_ORDER.length : index
+}
+
 function AchievementIcon({ achievement }: { achievement: AchievementSummary }) {
   const [hasImageError, setHasImageError] = useState(false)
   const imageSrc = badgeImageByCode[achievement.code] ?? achievement.iconUrl
@@ -116,6 +131,10 @@ export function AchievementsTab({ focusAchievementId, onFocusHandled }: Achievem
 
   const { achievements, achievedCount, totalCount } = achievementsQuery.data
   const achievedRate = totalCount > 0 ? Math.round((achievedCount / totalCount) * 100) : 0
+  // 표시 순서: 첫 시나리오 → 반복 숙련가 → 베테랑 → 나머지(원래 순서 유지)
+  const orderedAchievements = [...achievements].sort(
+    (a, b) => badgeDisplayRank(a.code) - badgeDisplayRank(b.code),
+  )
 
   return (
     <div className="space-y-4">
@@ -146,7 +165,7 @@ export function AchievementsTab({ focusAchievementId, onFocusHandled }: Achievem
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
-          {achievements.map((achievement) => (
+          {orderedAchievements.map((achievement) => (
             <button
               key={achievement.id}
               ref={(element) => {

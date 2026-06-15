@@ -1,0 +1,36 @@
+<svg viewBox="0 0 120 120" role="img" xmlns="http://www.w3.org/2000/svg">
+  <title>반복 숙련가 배지</title>
+  <defs>
+    <linearGradient id="p10Ring" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#E2E8F0" />
+      <stop offset="1" stop-color="#64748B" />
+    </linearGradient>
+    <marker
+      id="p10Arrow"
+      markerUnits="userSpaceOnUse"
+      markerWidth="17"
+      markerHeight="17"
+      viewBox="0 0 10 10"
+      refX="2.5"
+      refY="5"
+      orient="auto"
+    >
+      <path d="M0 0 L9 5 L0 10 Z" fill="#E2E8F0" />
+    </marker>
+  </defs>
+  <circle cx="60" cy="60" r="56" fill="#475569" />
+  <circle cx="60" cy="60" r="54" fill="url(#p10Ring)" />
+  <circle cx="60" cy="60" r="44" fill="#111827" />
+  <circle cx="60" cy="60" r="44" fill="none" stroke="#FFFFFF" stroke-opacity="0.08" stroke-width="2" />
+  <path
+    d="M67.87 38.38 A23 23 0 1 1 40.08 48.5"
+    fill="none"
+    stroke="#E2E8F0"
+    stroke-width="8.5"
+    stroke-linecap="round"
+    marker-end="url(#p10Arrow)"
+  />
+  <path d="M89 33 L90.8 38 L96 39.8 L90.8 41.6 L89 46.6 L87.2 41.6 L82 39.8 L87.2 38 Z" fill="#FFFFFF" opacity="0.9" />
+  <circle cx="30" cy="82" r="2.5" fill="#E2E8F0" opacity="0.7" />
+  <circle cx="90" cy="84" r="2" fill="#FFFFFF" opacity="0.5" />
+</svg>

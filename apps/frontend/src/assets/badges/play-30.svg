@@ -1,0 +1,32 @@
+<svg viewBox="0 0 120 120" role="img" xmlns="http://www.w3.org/2000/svg">
+  <title>베테랑 배지</title>
+  <defs>
+    <linearGradient id="p30Ring" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#F4CDC0" />
+      <stop offset="1" stop-color="#B76E79" />
+    </linearGradient>
+  </defs>
+  <circle cx="60" cy="60" r="56" fill="#7A4750" />
+  <circle cx="60" cy="60" r="54" fill="url(#p30Ring)" />
+  <circle cx="60" cy="60" r="44" fill="#2A1518" />
+  <circle cx="60" cy="60" r="44" fill="none" stroke="#FFFFFF" stroke-opacity="0.08" stroke-width="2" />
+  <polygon
+    points="60,33 67,48 83,46 74,60 83,74 67,72 60,87 53,72 37,74 46,60 37,46 53,48"
+    fill="#E3A491"
+    stroke="#8C5249"
+    stroke-width="3"
+    stroke-linejoin="round"
+  />
+  <polygon
+    points="60,38 66,50 79,49 71,60 79,71 66,70 60,82 54,70 41,71 49,60 41,49 54,50"
+    fill="none"
+    stroke="#F4CDC0"
+    stroke-width="1.4"
+    stroke-linejoin="round"
+    opacity="0.85"
+  />
+  <polygon points="60,36 64,49 60,57 56,49" fill="#F7DAD0" opacity="0.75" />
+  <path d="M88 34 L89.6 38.4 L94 40 L89.6 41.6 L88 46 L86.4 41.6 L82 40 L86.4 38.4 Z" fill="#FFFFFF" opacity="0.9" />
+  <circle cx="31" cy="84" r="2.5" fill="#F4CDC0" opacity="0.7" />
+  <circle cx="89" cy="80" r="2" fill="#FFFFFF" opacity="0.5" />
+</svg>

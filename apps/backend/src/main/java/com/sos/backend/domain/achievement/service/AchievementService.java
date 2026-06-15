@@ -76,6 +76,8 @@ public class AchievementService {
         try {
             return switch (achievement.getCode()) {
                 case "FIRST_CLEAR" -> ctx.completePlays() >= Integer.parseInt(value);
+                case "PLAY_10" -> ctx.completePlays() >= Integer.parseInt(value);
+                case "PLAY_30" -> ctx.completePlays() >= Integer.parseInt(value);
                 case "FULL_COLLECTION" -> ctx.currentCompletionRate() >= Float.parseFloat(value);
                 case "GOOD_ENDING_5" -> ctx.goodEndings() >= Integer.parseInt(value);
                 case "FLAWLESS" -> ctx.dangerousCountThisPlay() <= Integer.parseInt(value);
