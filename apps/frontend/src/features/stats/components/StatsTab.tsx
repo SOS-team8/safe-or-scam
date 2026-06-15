@@ -1,9 +1,11 @@
 import { useNavigate } from 'react-router-dom'
 
-import { useAchievements } from '@/features/achievement/hooks'
 import { toApiError } from '@/shared/api/error'
 
 import { useUserStats } from '../hooks'
+import { CollectionMapSection } from './CollectionMapSection'
+import { PhishingBreakdownSection } from './PhishingBreakdownSection'
+import { RadialGauge } from './charts/RadialGauge'
 
 function StatsSkeleton() {
   return (
@@ -30,7 +32,6 @@ function MetricCard({ label, value }: { label: string; value: string }) {
 export function StatsTab() {
   const navigate = useNavigate()
   const statsQuery = useUserStats()
-  const achievementsQuery = useAchievements()
 
   if (statsQuery.isPending) {
     return <StatsSkeleton />
@@ -73,7 +74,16 @@ export function StatsTab() {
 
   const decided = stats.goodEndings + stats.badEndings
   const goodRate = decided > 0 ? Math.round((stats.goodEndings / decided) * 100) : 0
-  const achievements = achievementsQuery.data
+  const completionRate =
+    stats.totalPlays > 0 ? Math.round((stats.completePlays / stats.totalPlays) * 100) : 0
+  const avgDangerPerPlay =
+    stats.completePlays > 0 ? stats.totalDangerousChoices / stats.completePlays : 0
+  const coaching =
+    goodRate >= 70 && avgDangerPerPlay < 1
+      ? '훌륭해요! 위험 신호를 잘 피하고 있어요.'
+      : goodRate < 40
+        ? '주의 결말이 잦아요. 위험 선택을 줄여보세요.'
+        : '꾸준히 안전 결말을 늘려가고 있어요.'
 
   return (
     <div className="space-y-5">
@@ -82,6 +92,20 @@ export function StatsTab() {
         <MetricCard label="평균 점수" value={stats.avgScore.toFixed(1)} />
         <MetricCard label="최고 점수" value={String(stats.bestScore)} />
         <MetricCard label="누적 위험 선택" value={String(stats.totalDangerousChoices)} />
+      </div>
+
+      {/* 게이지(완주율)·도넛(결말 수집)을 상단 한 행으로 묶는다. */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className="flex items-center justify-around rounded-lg border border-sos-line bg-sos-inset p-4">
+          <RadialGauge value={completionRate} valueText={`${completionRate}%`} label="완주율" />
+          <div className="text-center">
+            <p className="text-2xl font-semibold tabular-nums text-sos-strong">
+              {avgDangerPerPlay.toFixed(1)}
+            </p>
+            <p className="mt-1 text-[13px] font-medium text-sos-muted">판당 평균 위험 선택</p>
+          </div>
+        </div>
+        <CollectionMapSection />
       </div>
 
       <div className="rounded-lg border border-sos-line bg-sos-inset p-4">
@@ -104,20 +128,10 @@ export function StatsTab() {
           <span className="tabular-nums text-emerald-200">안전 {stats.goodEndings}</span>
           <span className="tabular-nums text-red-200">주의 {stats.badEndings}</span>
         </div>
+        <p className="mt-3 border-t border-sos-line pt-3 text-xs text-sos-faint">{coaching}</p>
       </div>
 
-      {achievements ? (
-        <div className="rounded-lg border border-sos-line bg-sos-inset px-4 py-3">
-          <p className="text-[13px] font-medium text-sos-muted">업적 달성도</p>
-          <p className="mt-1 text-2xl font-semibold tabular-nums text-sos-strong">
-            {achievements.achievedCount}
-            <span className="text-base font-medium text-sos-muted">
-              {' '}
-              / {achievements.totalCount}
-            </span>
-          </p>
-        </div>
-      ) : null}
+      <PhishingBreakdownSection />
     </div>
   )
 }
