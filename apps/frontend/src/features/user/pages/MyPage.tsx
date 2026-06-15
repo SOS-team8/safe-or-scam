@@ -5,6 +5,7 @@ import sosMascot from '@/assets/sos-mascot.svg'
 import { AchievementsTab } from '@/features/achievement/components/AchievementsTab'
 import { useLogout } from '@/features/auth/hooks'
 import { HistoryTab } from '@/features/history/components/HistoryTab'
+import { StatsTab } from '@/features/stats/components/StatsTab'
 import { toApiError } from '@/shared/api/error'
 
 import { useUpdateProfile, useUserProfile, useWithdrawUser } from '../hooks'
@@ -614,13 +615,7 @@ export function MyPage() {
               className="space-y-4 rounded-xl border border-white/8 bg-sos-surface-1 p-5 shadow-sos-raised sm:p-6"
             >
               <h2 className="text-xl font-semibold tracking-[-0.01em] text-white">통계</h2>
-              {/* TODO(BE): 사용자 통계 공개 API 추가 시 연동 (user_stats: 완료 플레이/안전 결말/평균 점수 등) */}
-              <div className="rounded-lg border border-white/8 bg-sos-inset p-6 text-center">
-                <p className="text-sm font-medium text-slate-300">통계는 준비 중이에요.</p>
-                <p className="mt-1 text-sm text-slate-500">
-                  완료한 플레이, 안전 결말 횟수, 평균 점수 같은 훈련 통계가 여기에 표시될 예정입니다.
-                </p>
-              </div>
+              <StatsTab />
             </section>
           ) : null}
 
