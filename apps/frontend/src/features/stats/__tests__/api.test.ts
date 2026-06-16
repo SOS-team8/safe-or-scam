@@ -31,3 +31,23 @@ describe('statsApi.getUserStats', () => {
     expect(result).toEqual(stats)
   })
 })
+
+describe('statsApi.getPhishingBreakdown', () => {
+  it('GET /users/me/stats/phishing-breakdown and unwraps the list', async () => {
+    const breakdown = [
+      { phishingType: 'smishing', playCount: 5, goodCount: 3, avgDangerous: 1.4, avgScore: 62.5 },
+    ]
+    mockedGet.mockResolvedValueOnce({ data: { data: breakdown } })
+
+    const result = await statsApi.getPhishingBreakdown()
+
+    expect(mockedGet).toHaveBeenCalledWith('/api/v1/users/me/stats/phishing-breakdown')
+    expect(result).toEqual(breakdown)
+  })
+
+  it('returns an empty array when payload is not a list', async () => {
+    mockedGet.mockResolvedValueOnce({ data: { data: null } })
+
+    expect(await statsApi.getPhishingBreakdown()).toEqual([])
+  })
+})

@@ -206,7 +206,33 @@ export function AchievementsTab({ focusAchievementId, onFocusHandled }: Achievem
                   ? `달성일 ${formatAchievedDate(achievement.achievedAt)}`
                   : '잠금'}
               </p>
-              {/* TODO(BE): 업적별 진행 수치 API 추가 시 카드 하단에 실제 진행률 바 표시 */}
+              {/* 누적형 업적만 진행 바 표시. per-play/per-scenario 업적은 progressTarget 이 null 이라 생략. */}
+              {achievement.progressTarget != null &&
+              achievement.progressTarget > 0 &&
+              achievement.progressCurrent != null ? (
+                <div className="mt-3 w-full">
+                  <div
+                    role="progressbar"
+                    aria-valuenow={achievement.progressCurrent}
+                    aria-valuemin={0}
+                    aria-valuemax={achievement.progressTarget}
+                    aria-label={`진행 ${achievement.progressCurrent}/${achievement.progressTarget}`}
+                    className="h-1.5 w-full overflow-hidden rounded-full bg-slate-800"
+                  >
+                    <div
+                      className="h-full rounded-full bg-emerald-400 transition-[width]"
+                      style={{
+                        width: `${Math.round(
+                          (achievement.progressCurrent / achievement.progressTarget) * 100,
+                        )}%`,
+                      }}
+                    />
+                  </div>
+                  <p className="mt-1 text-xs tabular-nums text-sos-faint">
+                    {achievement.progressCurrent}/{achievement.progressTarget}
+                  </p>
+                </div>
+              ) : null}
             </button>
           ))}
         </div>

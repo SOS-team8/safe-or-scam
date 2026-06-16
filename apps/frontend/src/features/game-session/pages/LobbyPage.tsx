@@ -9,6 +9,7 @@ import {
   useScenarios,
 } from '@/features/game/hooks'
 import { getRecommendedScenarios } from '@/features/game/recommendation'
+import { filterScenarios } from '@/features/game/search'
 import { useGameStore } from '@/features/game/store'
 import type { Difficulty, ScenarioSummary } from '@/features/game/types'
 import { useUserProfile } from '@/features/user/hooks'
@@ -91,6 +92,7 @@ export function LobbyPage() {
   )
   const [resumePrompt, setResumePrompt] = useState<ResumePromptState | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
   const userName = profileQuery.data?.name?.trim() || '회원'
 
   useEffect(() => {
@@ -213,6 +215,11 @@ export function LobbyPage() {
   const recommendedScenarios = useMemo(
     () => getRecommendedScenarios(profileQuery.data, scenariosQuery.data, 2),
     [profileQuery.data, scenariosQuery.data],
+  )
+
+  const filteredScenarios = useMemo(
+    () => filterScenarios(scenariosQuery.data, searchQuery),
+    [scenariosQuery.data, searchQuery],
   )
 
   return (
@@ -338,17 +345,49 @@ export function LobbyPage() {
 
       {scenariosQuery.data && scenariosQuery.data.length > 0 ? (
         <section className="space-y-4">
-          <h2 className="text-xl font-semibold text-sos-strong">전체 시나리오</h2>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {scenariosQuery.data.map((scenario) => (
-              <ScenarioCard
-                key={scenario.scenario_id}
-                scenario={scenario}
-                onStart={handleStart}
-                isBusy={isStartingSession}
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <h2 className="text-xl font-semibold text-sos-strong">전체 시나리오</h2>
+            <div className="relative sm:w-80">
+              <svg
+                viewBox="0 0 20 20"
+                aria-hidden="true"
+                className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-sos-faint"
+              >
+                <path
+                  d="M9 3a6 6 0 104.47 10.03l3.25 3.25 1.06-1.06-3.25-3.25A6 6 0 009 3zm0 1.5a4.5 4.5 0 110 9 4.5 4.5 0 010-9z"
+                  fill="currentColor"
+                />
+              </svg>
+              <input
+                type="search"
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder="제목·사기 유형으로 검색"
+                aria-label="시나리오 검색"
+                className="w-full rounded-md border border-sos-line bg-sos-surface-1 py-2 pl-9 pr-3 text-sm text-sos-strong placeholder:text-sos-faint focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200"
               />
-            ))}
+            </div>
           </div>
+
+          {filteredScenarios.length > 0 ? (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {filteredScenarios.map((scenario) => (
+                <ScenarioCard
+                  key={scenario.scenario_id}
+                  scenario={scenario}
+                  onStart={handleStart}
+                  isBusy={isStartingSession}
+                />
+              ))}
+            </div>
+          ) : (
+            <p
+              role="status"
+              className="rounded-xl border border-sos-line bg-sos-surface-1 p-6 text-center text-sm text-sos-body"
+            >
+              ‘{searchQuery.trim()}’에 대한 검색 결과가 없어요.
+            </p>
+          )}
         </section>
       ) : null}
 

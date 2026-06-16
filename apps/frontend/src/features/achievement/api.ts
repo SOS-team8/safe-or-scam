@@ -19,6 +19,8 @@ type AchievementWire = {
   icon_url: string | null
   unlocked: boolean
   achieved_at: string | null
+  progress_current?: number | null
+  progress_target?: number | null
 }
 
 const toAchievementSummary = (wire: AchievementWire): AchievementSummary => ({
@@ -29,6 +31,8 @@ const toAchievementSummary = (wire: AchievementWire): AchievementSummary => ({
   iconUrl: wire.icon_url,
   isAchieved: wire.unlocked,
   achievedAt: wire.achieved_at,
+  progressCurrent: wire.progress_current ?? null,
+  progressTarget: wire.progress_target ?? null,
 })
 
 export const achievementApi = {

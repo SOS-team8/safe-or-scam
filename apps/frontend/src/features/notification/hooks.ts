@@ -13,6 +13,9 @@ export const useNotifications = () => {
     queryKey: notificationKeys.list(),
     queryFn: notificationApi.getNotifications,
     enabled: Boolean(accessToken),
+    // 벨 뱃지를 준실시간으로 유지하기 위한 폴링. 숨겨진 탭에서는 폴링하지 않는다.
+    refetchInterval: 60_000,
+    refetchIntervalInBackground: false,
   })
 }
 

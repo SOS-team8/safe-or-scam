@@ -2,16 +2,20 @@ import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest'
 import { render, screen } from '@testing-library/react'
 
 import { createWrapper } from '@/test/test-utils'
-import { useAchievements } from '@/features/achievement/hooks'
+import { useScenarios } from '@/features/game/hooks'
+import { useScenarioProgress } from '@/features/history/hooks'
 
-import { useUserStats } from '../hooks'
+import { usePhishingBreakdown, useUserStats } from '../hooks'
 import { StatsTab } from '../components/StatsTab'
 
-vi.mock('../hooks', () => ({ useUserStats: vi.fn() }))
-vi.mock('@/features/achievement/hooks', () => ({ useAchievements: vi.fn() }))
+vi.mock('../hooks', () => ({ useUserStats: vi.fn(), usePhishingBreakdown: vi.fn() }))
+vi.mock('@/features/game/hooks', () => ({ useScenarios: vi.fn() }))
+vi.mock('@/features/history/hooks', () => ({ useScenarioProgress: vi.fn() }))
 
 const mockedStats = useUserStats as unknown as Mock
-const mockedAchievements = useAchievements as unknown as Mock
+const mockedBreakdown = usePhishingBreakdown as unknown as Mock
+const mockedScenarios = useScenarios as unknown as Mock
+const mockedProgress = useScenarioProgress as unknown as Mock
 
 const renderTab = () => {
   const { Wrapper } = createWrapper()
@@ -20,8 +24,10 @@ const renderTab = () => {
 
 beforeEach(() => {
   mockedStats.mockReset()
-  mockedAchievements.mockReset()
-  mockedAchievements.mockReturnValue({ data: undefined })
+  // 신규 섹션은 기본적으로 빈 데이터(→ null 렌더)로 둬서 상태 테스트에 영향 없게 한다.
+  mockedBreakdown.mockReturnValue({ isPending: false, isError: false, data: [] })
+  mockedProgress.mockReturnValue({ isPending: false, isError: false, data: [] })
+  mockedScenarios.mockReturnValue({ data: [] })
 })
 
 describe('StatsTab states', () => {
@@ -69,7 +75,6 @@ describe('StatsTab states', () => {
         bestScore: 95,
       },
     })
-    mockedAchievements.mockReturnValue({ data: { achievedCount: 3, totalCount: 6 } })
     renderTab()
 
     expect(screen.getByText('완료 플레이')).toBeInTheDocument()
@@ -80,5 +85,10 @@ describe('StatsTab states', () => {
     expect(screen.getByText('안전 73%')).toBeInTheDocument()
     const bar = screen.getByRole('progressbar', { name: '안전 결말 비율' })
     expect(bar).toHaveAttribute('aria-valuenow', '73')
+
+    // 완주율 게이지 = round(15/18*100)=83%, 판당 평균 위험선택 = (7/15)=0.5
+    expect(screen.getByRole('img', { name: '완주율 83%' })).toBeInTheDocument()
+    expect(screen.getByText('판당 평균 위험 선택')).toBeInTheDocument()
+    expect(screen.getByText('0.5')).toBeInTheDocument()
   })
 })

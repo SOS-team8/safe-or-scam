@@ -13,23 +13,28 @@ const makeClient = () =>
     },
   })
 
+import { useAuthStore } from '@/features/auth/store'
+
 import { notificationApi } from '../api'
 import {
   useDeleteAllNotifications,
   useDeleteNotification,
   useMarkNotificationRead,
+  useNotifications,
 } from '../hooks'
 import { notificationKeys } from '../queryKeys'
 import type { NotificationListResponse } from '../types'
 
 vi.mock('../api', () => ({
   notificationApi: {
+    getNotifications: vi.fn(),
     markNotificationRead: vi.fn(),
     deleteNotification: vi.fn(),
     deleteAllNotifications: vi.fn(),
   },
 }))
 
+const mockedGet = notificationApi.getNotifications as unknown as Mock
 const mockedMarkRead = notificationApi.markNotificationRead as unknown as Mock
 const mockedDelete = notificationApi.deleteNotification as unknown as Mock
 const mockedDeleteAll = notificationApi.deleteAllNotifications as unknown as Mock
@@ -43,9 +48,43 @@ const seedList = (): NotificationListResponse => ({
 })
 
 beforeEach(() => {
+  mockedGet.mockReset()
   mockedMarkRead.mockReset()
   mockedDelete.mockReset()
   mockedDeleteAll.mockReset()
+  useAuthStore.setState({ accessToken: null })
+})
+
+describe('useNotifications polling', () => {
+  it('does not fetch while unauthenticated (enabled gated by access token)', () => {
+    const { Wrapper } = createWrapper({ queryClient: makeClient() })
+
+    renderHook(() => useNotifications(), { wrapper: Wrapper })
+
+    expect(mockedGet).not.toHaveBeenCalled()
+  })
+
+  it('refetches on a 60s interval when authenticated', async () => {
+    vi.useFakeTimers()
+    try {
+      useAuthStore.setState({ accessToken: 'token' })
+      mockedGet.mockResolvedValue(seedList())
+      const { Wrapper } = createWrapper({ queryClient: makeClient() })
+
+      renderHook(() => useNotifications(), { wrapper: Wrapper })
+
+      await vi.advanceTimersByTimeAsync(0)
+      expect(mockedGet).toHaveBeenCalledTimes(1)
+
+      await vi.advanceTimersByTimeAsync(60_000)
+      expect(mockedGet).toHaveBeenCalledTimes(2)
+
+      await vi.advanceTimersByTimeAsync(60_000)
+      expect(mockedGet).toHaveBeenCalledTimes(3)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
 })
 
 describe('useMarkNotificationRead optimistic update', () => {

@@ -111,6 +111,8 @@ export interface ScenarioSummary {
   total_endings: number
   total_good_endings: number
   total_bad_endings: number
+  // 결말 유형(ending_category) 수. 구버전 응답 호환을 위해 옵셔널(합산 시 ?? 0).
+  total_categories?: number
   tags: string[]
 }
 

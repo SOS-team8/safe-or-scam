@@ -8,8 +8,14 @@ import json
 
 import httpx
 
-from app.core.backend_client import GameCompletedPayload, notify_game_completed
+from app.core.backend_client import _TIMEOUT, GameCompletedPayload, notify_game_completed
 from app.core.config import settings
+
+
+def test_read_timeout_is_shortened_to_avoid_blocking_ending():
+    # 이 호출이 /move 응답(엔딩 화면)을 블록하므로 read 타임아웃을 1.5s 로 제한한다.
+    assert _TIMEOUT.read == 1.5
+    assert _TIMEOUT.connect == 2.0
 
 
 def _payload() -> GameCompletedPayload:

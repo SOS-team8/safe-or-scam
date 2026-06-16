@@ -14,3 +14,13 @@ export const useUserStats = () => {
     enabled: Boolean(accessToken),
   })
 }
+
+export const usePhishingBreakdown = () => {
+  const accessToken = useAuthStore((state) => state.accessToken)
+
+  return useQuery({
+    queryKey: statsKeys.phishingBreakdown(),
+    queryFn: statsApi.getPhishingBreakdown,
+    enabled: Boolean(accessToken),
+  })
+}
