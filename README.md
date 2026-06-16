@@ -53,7 +53,7 @@ A monorepo of four services:
 
 ## 📁 Project Structure
 
-```
+```text
 safe-or-scam/
 ├── apps/
 │   ├── backend/        # Spring Boot + PostgreSQL — auth, users, stats, achievements
