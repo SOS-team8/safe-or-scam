@@ -9,6 +9,7 @@
 target/
 build/
 out/
+bin/
 .gradle/
 gradle-app.setting
 !gradle-wrapper.jar
