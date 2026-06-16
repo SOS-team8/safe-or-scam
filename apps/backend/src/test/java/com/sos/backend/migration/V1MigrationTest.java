@@ -44,12 +44,10 @@ class V1MigrationTest extends AbstractIntegrationTest {
             "user_stats",
             "refresh_tokens",
             "auth_providers",
-            "user_scenario_progress",
             "achievements",
             "user_achievements",
             "notification",
             "withdrawal_outbox",
-            "game_sessions",
             "play_logs"
         );
 

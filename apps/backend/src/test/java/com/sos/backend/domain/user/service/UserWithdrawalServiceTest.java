@@ -2,9 +2,7 @@ package com.sos.backend.domain.user.service;
 
 import com.sos.backend.domain.auth.repository.AuthProviderRepository;
 import com.sos.backend.domain.auth.service.RefreshTokenService;
-import com.sos.backend.domain.game_session.repository.GameSessionRepository;
 import com.sos.backend.domain.notification.repository.NotificationRepository;
-import com.sos.backend.domain.scenario_progress.repository.UserScenarioProgressRepository;
 import com.sos.backend.domain.user.WithdrawalProperties;
 import com.sos.backend.domain.user.dto.WithdrawalResponse;
 import com.sos.backend.domain.user.entity.User;
@@ -51,10 +49,6 @@ class UserWithdrawalServiceTest {
     @Mock
     private NotificationRepository notificationRepository;
     @Mock
-    private GameSessionRepository gameSessionRepository;
-    @Mock
-    private UserScenarioProgressRepository userScenarioProgressRepository;
-    @Mock
     private WithdrawalOutboxRepository withdrawalOutboxRepository;
     @Mock
     private RefreshTokenService refreshTokenService;
@@ -73,8 +67,6 @@ class UserWithdrawalServiceTest {
             userProfileRepository,
             authProviderRepository,
             notificationRepository,
-            gameSessionRepository,
-            userScenarioProgressRepository,
             withdrawalOutboxRepository,
             refreshTokenService,
             userStatusCacheService,
@@ -143,8 +135,6 @@ class UserWithdrawalServiceTest {
         verify(userProfileRepository).deleteByUserId(userId);
         verify(authProviderRepository).deleteAllByUserId(userId);
         verify(notificationRepository).deleteAllByUserId(userId);
-        verify(gameSessionRepository).deleteAllByUserId(userId);
-        verify(userScenarioProgressRepository).deleteAllByUserId(userId);
         verify(refreshTokenService).revokeAllByUserId(userId);
         verify(userStatusCacheService).invalidate(userId);
         verify(applicationEventPublisher).publishEvent(any(UserAnonymizedEvent.class));

@@ -2,9 +2,7 @@ package com.sos.backend.domain.user.service;
 
 import com.sos.backend.domain.auth.repository.AuthProviderRepository;
 import com.sos.backend.domain.auth.service.RefreshTokenService;
-import com.sos.backend.domain.game_session.repository.GameSessionRepository;
 import com.sos.backend.domain.notification.repository.NotificationRepository;
-import com.sos.backend.domain.scenario_progress.repository.UserScenarioProgressRepository;
 import com.sos.backend.domain.user.WithdrawalProperties;
 import com.sos.backend.domain.user.dto.WithdrawalResponse;
 import com.sos.backend.domain.user.entity.User;
@@ -37,8 +35,6 @@ public class UserWithdrawalService {
     private final UserProfileRepository userProfileRepository;
     private final AuthProviderRepository authProviderRepository;
     private final NotificationRepository notificationRepository;
-    private final GameSessionRepository gameSessionRepository;
-    private final UserScenarioProgressRepository userScenarioProgressRepository;
     private final WithdrawalOutboxRepository withdrawalOutboxRepository;
     private final RefreshTokenService refreshTokenService;
     private final UserStatusCacheService userStatusCacheService;
@@ -109,8 +105,6 @@ public class UserWithdrawalService {
         userProfileRepository.deleteByUserId(user.getId());
         authProviderRepository.deleteAllByUserId(user.getId());
         notificationRepository.deleteAllByUserId(user.getId());
-        gameSessionRepository.deleteAllByUserId(user.getId());
-        userScenarioProgressRepository.deleteAllByUserId(user.getId());
         refreshTokenService.revokeAllByUserId(user.getId());
 
         // TODO: game-engine(Mongo) cleanup 엔드포인트 연동은 추후 작업에서 추가한다.
