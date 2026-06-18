@@ -56,3 +56,7 @@ tasks.withType<Test>().configureEach {
 		listOf("-javaagent:${mockitoAgent.singleFile.absolutePath}")
 	}
 }
+
+tasks.named("jar") {
+    enabled = false
+}
