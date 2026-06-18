@@ -17,7 +17,8 @@ WORKDIR /app
 RUN groupadd --system app && useradd --system --gid app app
 
 # 실행 가능한 boot jar만 복사 (*-plain.jar 는 패턴상 제외됨)
-COPY --from=builder /app/build/libs/*-SNAPSHOT.jar app.jar
+# plain jar 비활성화로 boot jar만 남음 → 버전 무관
+COPY --from=builder /app/build/libs/*.jar app.jar
 
 USER app
 ENV SPRING_PROFILES_ACTIVE=prod
