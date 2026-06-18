@@ -14,5 +14,9 @@ RUN uv sync --frozen --no-dev --no-install-project
 COPY app ./app
 RUN uv sync --frozen --no-dev
 
+# non-root 사용자로 실행 (Cloud Run 보안 모범사례)
+RUN groupadd --system app && useradd --system --gid app app
+USER app
+
 EXPOSE 8001
 CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8001}"]
