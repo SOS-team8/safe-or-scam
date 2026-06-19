@@ -15,7 +15,10 @@ COPY app ./app
 RUN uv sync --frozen --no-dev
 
 # non-root 사용자로 실행 (Cloud Run 보안 모범사례)
-RUN groupadd --system app && useradd --system --gid app app
+# data 디렉터리를 app 소유로 (앱이 news_cache·images 등을 쓸 수 있게)
+RUN groupadd --system app && useradd --system --gid app app \
+ && mkdir -p /app/app/data \
+ && chown -R app:app /app/app/data
 USER app
 
 EXPOSE 8001
