@@ -31,6 +31,7 @@ dependencies {
 	compileOnly("org.projectlombok:lombok")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 	runtimeOnly("org.postgresql:postgresql")
+    implementation("com.google.cloud.sql:postgres-socket-factory:1.21.0")
     implementation("org.flywaydb:flyway-core")
     runtimeOnly("org.flywaydb:flyway-database-postgresql")
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.6")
