@@ -1,0 +1,18 @@
+.env
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+dist/
+*.egg-info/
+
+# 시크릿 / 자격증명
+credentials/
+
+# 생성 산출물 (로컬 캐시)
+data/scenarios/
+data/images/
+data/news_cache/
+data/seed_scenarios/

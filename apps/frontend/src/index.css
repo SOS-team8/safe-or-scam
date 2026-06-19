@@ -1,0 +1,205 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: "Pretendard";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/woff2/Pretendard-Regular.woff2")
+    format("woff2");
+}
+
+@font-face {
+  font-family: "Pretendard";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/woff2/Pretendard-SemiBold.woff2")
+    format("woff2");
+}
+
+@font-face {
+  font-family: "Pretendard";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/woff2/Pretendard-Bold.woff2")
+    format("woff2");
+}
+
+:root {
+  --sos-color-bg-base: #020617;
+  --sos-color-bg-raised: #0f172a;
+  --sos-color-bg-panel: #111827;
+  --sos-color-surface-1: rgb(255 255 255 / 0.04);
+  --sos-color-surface-2: rgb(255 255 255 / 0.07);
+  --sos-color-inset: rgb(2 6 23 / 0.45);
+  --sos-shadow-raised:
+    inset 0 1px 0 rgb(255 255 255 / 0.06), 0 1px 2px rgb(2 6 23 / 0.5),
+    0 12px 32px rgb(2 6 23 / 0.35);
+  --sos-shadow-dialog:
+    inset 0 1px 0 rgb(255 255 255 / 0.06), 0 24px 64px rgb(2 6 23 / 0.6);
+  --sos-color-border-muted: rgb(255 255 255 / 0.1);
+  --sos-color-border-cyan: rgb(34 211 238 / 0.32);
+  --sos-color-border-emerald: rgb(52 211 153 / 0.36);
+  --sos-color-text-primary: #e2e8f0;
+  --sos-color-text-muted: #94a3b8;
+  /* 시맨틱 텍스트/라인 토큰 (값은 현행 raw 유틸리티와 동일 — 다크 시각 변화 없음).
+     라이트 모드(2단계)는 :root[data-theme="light"] 에서 이 값들만 재정의하면 된다. */
+  --sos-color-text-strong: #ffffff;
+  --sos-color-text-body: #cbd5e1;
+  --sos-color-text-faint: #64748b;
+  --sos-color-line: rgb(255 255 255 / 0.08);
+  --sos-color-line-strong: rgb(255 255 255 / 0.16);
+  --sos-color-emerald: #34d399;
+  --sos-color-cyan: #22d3ee;
+  --sos-color-red: #f87171;
+  --sos-font-sans:
+    "Pretendard", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+  --sos-text-glow-emerald:
+    0 0 14px rgb(52 211 153 / 0.32), 0 0 28px rgb(52 211 153 / 0.14);
+  --sos-text-glow-cyan:
+    0 0 14px rgb(34 211 238 / 0.34), 0 0 30px rgb(34 211 238 / 0.16);
+  --sos-surface-card:
+    linear-gradient(180deg, rgb(15 23 42 / 0.78), rgb(2 6 23 / 0.86));
+  --sos-surface-card-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.05), 0 20px 60px rgb(2 6 23 / 0.28);
+
+  color: #e2e8f0;
+  background: #020617;
+  font-family: var(--sos-font-sans);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@theme inline {
+  --font-sans: var(--sos-font-sans);
+  --color-sos-bg-base: var(--sos-color-bg-base);
+  --color-sos-bg-raised: var(--sos-color-bg-raised);
+  --color-sos-bg-panel: var(--sos-color-bg-panel);
+  --color-sos-emerald: var(--sos-color-emerald);
+  --color-sos-cyan: var(--sos-color-cyan);
+  --color-sos-red: var(--sos-color-red);
+  --color-sos-surface-1: var(--sos-color-surface-1);
+  --color-sos-surface-2: var(--sos-color-surface-2);
+  --color-sos-inset: var(--sos-color-inset);
+  --color-sos-strong: var(--sos-color-text-strong);
+  --color-sos-body: var(--sos-color-text-body);
+  --color-sos-muted: var(--sos-color-text-muted);
+  --color-sos-faint: var(--sos-color-text-faint);
+  --color-sos-line: var(--sos-color-line);
+  --color-sos-line-strong: var(--sos-color-line-strong);
+  --shadow-sos-card: var(--sos-surface-card-shadow);
+  --shadow-sos-raised: var(--sos-shadow-raised);
+  --shadow-sos-dialog: var(--sos-shadow-dialog);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+.text-glow-emerald {
+  text-shadow: var(--sos-text-glow-emerald);
+}
+
+.text-glow-cyan {
+  text-shadow: var(--sos-text-glow-cyan);
+}
+
+.surface-card {
+  border: 1px solid var(--sos-color-border-muted);
+  background: var(--sos-surface-card);
+  box-shadow: var(--sos-surface-card-shadow);
+}
+
+.scanlines {
+  position: relative;
+  isolation: isolate;
+}
+
+.scanlines::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.08;
+  background-image:
+    linear-gradient(rgb(34 211 238 / 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 0.025) 1px, transparent 1px);
+  background-size:
+    100% 4px,
+    6px 100%;
+  animation: sos-scanline-drift 8s linear infinite;
+}
+
+@keyframes sos-scanline-drift {
+  from {
+    background-position:
+      0 0,
+      0 0;
+  }
+
+  to {
+    background-position:
+      0 24px,
+      12px 0;
+  }
+}
+
+@keyframes sosNarrationCursor {
+  0%,
+  49% {
+    opacity: 1;
+  }
+
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes sosFadeSlideUp {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.animate-sos-fade-slide {
+  animation: sosFadeSlideUp 220ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+
+  .scanlines::after {
+    content: none;
+  }
+}

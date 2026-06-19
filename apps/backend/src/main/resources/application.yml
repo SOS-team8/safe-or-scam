@@ -1,0 +1,60 @@
+spring:
+  profiles:
+    active: local # 로컬 개발 중이니까 로컬. 이렇게 하면 application-local.yml도 함께 읽음
+
+  application:
+    name: sos-backend
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    baseline-version: 0
+    validate-on-migrate: true
+    out-of-order: false
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /api-docs
+
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}
+
+app:
+  internal:
+    # game-engine >> backend 서버 간 호출 인증용 공유 시크릿. game-engine 의 INTERNAL_API_KEY 와 동일해야 함.
+    api-key: ${INTERNAL_API_KEY}
+    base-url: ${GAME_ENGINE_BASE_URL:http://localhost:8000}
+
+jwt:
+  secret: ${JWT_SECRET}
+  access-token-expiration: 1800000     # 30분(밀리초)
+  refresh-token-expiration: 1209600000 # 14일(밀리초)
+
+auth:
+  email-verification:
+    code-length: 6
+    expires-in-seconds: 300    # 5분
+    cooldown-seconds: 60       # 재요청 쿨다운
+    daily-limit: 10            # 동일 이메일 24h 발송 한도
+    max-attempts: 5            # verify 시도 한도
+  verification-token:
+    secret: ${VERIFICATION_TOKEN_SECRET}
+    expires-in-seconds: 300    # 5분
+  password:
+    min-length: 10
+    max-length: 72             # BCrypt 입력 byte 한계
+    bcrypt-strength: 12
+
+withdrawal:
+  pending-days: 14
+  scheduler-fixed-delay-ms: 30000
+  scheduler-batch-size: 20
+
+mail:
+  sender:
+    from: safe.or.scam.skku@gmail.com
+    sender-name: Safe or Scam
+

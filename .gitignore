@@ -9,6 +9,7 @@
 target/
 build/
 out/
+bin/
 .gradle/
 gradle-app.setting
 !gradle-wrapper.jar
@@ -70,3 +71,30 @@ desktop.ini
 # ========================
 *.log
 logs/
+
+# ========================
+# Claude Code
+# ========================
+.claude/
+CLAUDE.md
+_workspace/
+
+# ========================
+# Credentials
+# ========================
+credentials/
+*.pem
+*.key
+# ========================
+# ai-pipeline data (seed 디렉토리는 commit, 임시·캐시는 ignore) — #51
+# ========================
+# 시나리오 생성 중간 단계 dump (디버깅용, 시드와 무관)
+apps/ai-pipeline/app/data/scenarios/progress/
+# 단발성 뉴스 크롤 캐시 (재크롤로 매번 변경, mongo news_articles 가 원본)
+apps/ai-pipeline/app/data/news_cache/
+# ending_categories 디렉토리 (현재 비어 있음 — mongo scenarios.ending_categories 가 원본)
+apps/ai-pipeline/app/data/ending_categories/
+# 이미지는 GCS 호스팅 (#53) — publish_scenario.sh 가 GCS 에 올린 뒤 mongo
+# image_url 이 절대 GCS URL 을 가리키므로 repo 에 PNG 유지 안 함. 시나리오
+# 생성 시 로컬 디스크에 잠시 쓰이지만 commit 대상은 아니다.
+apps/ai-pipeline/app/data/images/

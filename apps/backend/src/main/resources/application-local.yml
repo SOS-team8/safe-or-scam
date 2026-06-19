@@ -1,0 +1,49 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/${POSTGRES_DB:sos_db}
+    username: ${POSTGRES_USER:sos_user}
+    password: ${POSTGRES_PASSWORD:localpass123}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  mail:
+    host: localhost
+    port: 1025
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+server:
+  port: 8080
+
+app:
+  internal:
+    # game-engine >> backend 서버 간 호출 인증용 공유 시크릿. game-engine 의 INTERNAL_API_KEY 와 동일해야 함.
+    api-key: ${INTERNAL_API_KEY:local-internal-api-key-at-least-16-bytes}
+    base-url: ${GAME_ENGINE_BASE_URL:http://localhost:8000}
+
+jwt:
+  secret: ${JWT_SECRET:local-jwt-secret-key-at-least-32-bytes-123}
+  access-token-expiration: 1800000
+  refresh-token-expiration: 1209600000
+
+auth:
+  verification-token:
+    secret: ${VERIFICATION_TOKEN_SECRET:local-verification-token-secret-at-least-32b}
+    expires-in-seconds: 300
+

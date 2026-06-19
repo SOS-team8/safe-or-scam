@@ -1,0 +1,21 @@
+<svg viewBox="0 0 120 120" role="img" xmlns="http://www.w3.org/2000/svg">
+  <title>결말 수집가 배지</title>
+  <defs>
+    <linearGradient id="fcolRing" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#C4B5FD" />
+      <stop offset="1" stop-color="#7C3AED" />
+    </linearGradient>
+  </defs>
+  <circle cx="60" cy="60" r="56" fill="#5B21B6" />
+  <circle cx="60" cy="60" r="54" fill="url(#fcolRing)" />
+  <circle cx="60" cy="60" r="44" fill="#150B2E" />
+  <circle cx="60" cy="60" r="44" fill="none" stroke="#FFFFFF" stroke-opacity="0.08" stroke-width="2" />
+  <polygon points="44,48 76,48 86,61 34,61" fill="#A78BFA" />
+  <polygon points="50,48 70,48 75,61 45,61" fill="#DDD6FE" />
+  <polygon points="34,61 86,61 60,92" fill="#8B5CF6" />
+  <polygon points="60,61 86,61 60,92" fill="#7C3AED" />
+  <polygon points="48,61 72,61 60,92" fill="#A78BFA" opacity="0.75" />
+  <path d="M88 36 L89.6 40.4 L94 42 L89.6 43.6 L88 48 L86.4 43.6 L82 42 L86.4 40.4 Z" fill="#FFFFFF" opacity="0.9" />
+  <circle cx="33" cy="80" r="2.5" fill="#C4B5FD" opacity="0.7" />
+  <circle cx="86" cy="84" r="2" fill="#FFFFFF" opacity="0.5" />
+</svg>

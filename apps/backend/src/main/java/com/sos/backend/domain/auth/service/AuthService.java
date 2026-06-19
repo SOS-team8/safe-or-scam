@@ -1,0 +1,219 @@
+package com.sos.backend.domain.auth.service;
+
+import com.sos.backend.domain.auth.PasswordProperties;
+import com.sos.backend.domain.auth.dto.request.LoginRequest;
+import com.sos.backend.domain.auth.dto.request.LogoutRequest;
+import com.sos.backend.domain.auth.dto.request.RefreshRequest;
+import com.sos.backend.domain.auth.dto.request.SignupRequest;
+import com.sos.backend.domain.auth.dto.response.LoginResponse;
+import com.sos.backend.domain.auth.dto.response.RefreshResponse;
+import com.sos.backend.domain.auth.dto.response.SignupResponse;
+import com.sos.backend.domain.auth.entity.AuthProvider;
+import com.sos.backend.domain.auth.enums.Provider;
+import com.sos.backend.domain.auth.enums.VerificationPurpose;
+import com.sos.backend.domain.auth.repository.AuthProviderRepository;
+import com.sos.backend.domain.user.entity.User;
+import com.sos.backend.domain.user.enums.Role;
+import com.sos.backend.domain.user.enums.UserStatus;
+import com.sos.backend.domain.user.repository.UserRepository;
+import com.sos.backend.domain.user.service.UserWithdrawalService;
+import com.sos.backend.global.auth.JwtProvider;
+import com.sos.backend.global.auth.VerificationTokenProvider;
+import com.sos.backend.global.common.exception.CustomException;
+import com.sos.backend.global.common.exception.ErrorCode;
+import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.util.Optional;
+
+@Service
+@Slf4j
+@RequiredArgsConstructor
+public class AuthService {
+
+    private final VerificationTokenProvider verificationTokenProvider;
+    private final PasswordEncoder passwordEncoder;
+    private final PasswordProperties passwordProperties;
+    private final UserRepository userRepository;
+    private final AuthProviderRepository authProviderRepository;
+    private final JwtProvider jwtProvider;
+    private final RefreshTokenService refreshTokenService;
+    private final UserWithdrawalService userWithdrawalService;
+
+    private String dummyHash;
+
+    @PostConstruct
+    private void initDummyHash() {
+        this.dummyHash = passwordEncoder.encode("dummy");
+    }
+
+    @Transactional
+    public SignupResponse signup(SignupRequest request) {
+        // 1. verification_token 검증 + email 추출
+        String email = verificationTokenProvider.validateAndGetEmail(
+            request.verificationToken(),
+            VerificationPurpose.SIGNUP
+        );
+
+        // 2. 비밀번호 길이 검증
+        validatePasswordLength(request.password());
+
+        // 3. 이메일 중복 검증 (WITHDRAWAL_PENDING이면 즉시 익명화 후 신규 가입 허용)
+        Optional<User> existingUser = userRepository.findByEmail(email);
+        if (existingUser.isPresent()) {
+            User found = existingUser.get();
+            if (found.getStatus() == UserStatus.WITHDRAWAL_PENDING) {
+                userWithdrawalService.finalizePendingUserForResignup(found);
+                // 기존 계정 익명화 update를 먼저 DB에 반영해 unique(email) 충돌 방지
+                userRepository.flush();
+            } else {
+                throw new CustomException(ErrorCode.EMAIL_ALREADY_EXISTS);
+            }
+        }
+
+        // 4. User 생성 + 저장
+        String hashedPassword = passwordEncoder.encode(request.password());
+        User user = User.builder()
+            .email(email)
+            .password(hashedPassword)
+            .name(request.name())
+            .role(Role.GUEST)
+            .status(UserStatus.ACTIVE)
+            .lastLoginAt(LocalDateTime.now())
+            .build();
+        try {
+            userRepository.save(user);
+        } catch (DataIntegrityViolationException e) {
+            if (userRepository.existsByEmail(email)) {
+                throw new CustomException(ErrorCode.EMAIL_ALREADY_EXISTS);
+            }
+            throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
+        }
+
+        // 5. AuthProvider(LOCAL) 생성 + 저장
+        AuthProvider authProvider = AuthProvider.builder()
+            .user(user)
+            .provider(Provider.LOCAL)
+            // providerId는 LOCAL이면 null (엔티티 @PrePersist 검증)
+            .build();
+        authProviderRepository.save(authProvider);
+
+        // 6. Access/Refresh Token 발급 (자동 로그인)
+        String accessToken = jwtProvider.createAccessToken(user.getId(), user.getEmail(), user.getRole());
+        String refreshToken = refreshTokenService.issue(user);
+
+        // 7. 응답 구성
+        return new SignupResponse(
+            accessToken,
+            refreshToken,
+            new SignupResponse.UserInfo(
+                user.getId(),
+                user.getEmail(),
+                user.getName(),
+                user.getRole()
+            )
+        );
+    }
+
+    @Transactional
+    public LoginResponse login(LoginRequest request) {
+        // 1. 이메일로 user 조회
+        Optional<User> userOpt = userRepository.findByEmail(request.email());
+
+        // 2. user 없으면 더미 해시로 BCrypt 비교 후 실패 (timing attack 방어)
+        if (userOpt.isEmpty()) {
+            passwordEncoder.matches(request.password(), dummyHash);
+            throw new CustomException(ErrorCode.INVALID_CREDENTIALS);
+        }
+
+        User user = userOpt.get();
+
+        // 3. 비밀번호 비교
+        if (!passwordEncoder.matches(request.password(), user.getPassword())) {
+            throw new CustomException(ErrorCode.INVALID_CREDENTIALS);
+        }
+
+        // 4. 계정 상태 검증 (ACTIVE만 로그인 허용)
+        if (user.getStatus() != UserStatus.ACTIVE) {
+            throw new CustomException(ErrorCode.INVALID_CREDENTIALS);
+        }
+
+        // 5. lastLoginAt 갱신
+        user.setLastLoginAt(LocalDateTime.now());
+
+        // 6. Access/Refresh Token 발급
+        String accessToken = jwtProvider.createAccessToken(user.getId(), user.getEmail(), user.getRole());
+        String refreshToken = refreshTokenService.issue(user);
+
+        // 7. 응답 구성
+        return new LoginResponse(
+            accessToken,
+            refreshToken,
+            new LoginResponse.UserInfo(
+                user.getId(),
+                user.getEmail(),
+                user.getName(),
+                user.getRole()
+            )
+        );
+    }
+
+    /**
+     * Refresh token으로 새 access/refresh token 발급.
+     *
+     * P1-4 (backend-104) + auth-boundary.md §5 적용:
+     *  - {@link Transactional} 보장: refresh token revoke + 새 token 발급이 한 트랜잭션
+     *  - 새 access token에 role claim 명시: DB에서 user.getRole()을 재조회해 발급
+     *    (기존 토큰의 role 복사가 아니므로 role 변경이 즉시 반영)
+     */
+    @Transactional
+    public RefreshResponse refresh(RefreshRequest request) {
+        // 1. Refresh Token Rotation (검증 + 재사용 감지 + 새 refresh token 발급)
+        String newRefreshToken = refreshTokenService.rotate(request.refreshToken());
+
+        // 2. 새 refresh token에서 user id 추출
+        Long userId = jwtProvider.getUserId(newRefreshToken);
+
+        // 3. DB에서 user 재조회 → role claim에 반영 (P1-4 + ADR-006)
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        String newAccessToken = jwtProvider.createAccessToken(
+            user.getId(),
+            user.getEmail(),
+            user.getRole()
+        );
+
+        return new RefreshResponse(newAccessToken, newRefreshToken);
+    }
+
+    private void validatePasswordLength(String password) {
+        int byteLength = password.getBytes(StandardCharsets.UTF_8).length;
+        int charLength = password.length();
+
+        // 최소 길이는 문자 수 기준 (UX 일관성)
+        if (charLength < passwordProperties.minLength()) {
+            throw new CustomException(ErrorCode.INVALID_PASSWORD_LENGTH);
+        }
+
+        // 최대 길이는 byte 기준 (BCrypt 한계)
+        if (byteLength > passwordProperties.maxLength()) {
+            throw new CustomException(ErrorCode.INVALID_PASSWORD_LENGTH);
+        }
+    }
+
+    public void logout(LogoutRequest request, Long userId) {
+        refreshTokenService.revoke(request.refreshToken(), userId);
+    }
+
+    public void logoutAll(Long userId) {
+        refreshTokenService.revokeAllByUserId(userId);
+    }
+}
