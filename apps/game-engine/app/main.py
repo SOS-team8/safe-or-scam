@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes import game_sessions, scenarios, internal
+from app.core.config import settings
 from app.db.mongo import close_mongo, init_mongo, ping
 
 
@@ -21,11 +22,11 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# game-engine-api v2 §1 + phase3-cross-boundary §5: 개발 환경 frontend (Vite) 허용.
-# 운영 도메인은 system-architect Phase 6 에서 추가.
+# CORS 허용 origin 은 환경변수로 주입(CORS_ALLOWED_ORIGINS)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=settings.cors_allowed_origins_list,
+    allow_origin_regex=settings.cors_allow_origin_regex,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
