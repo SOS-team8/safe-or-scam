@@ -8,12 +8,18 @@ on:
       - '.github/workflows/cd-game-engine.yml'
   workflow_dispatch:   # Actions 탭에서 수동 실행(첫 검증용)
 
+concurrency:
+  group: cd-game-engine-main        
+  cancel-in-progress: true
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v2
